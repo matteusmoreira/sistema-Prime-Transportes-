@@ -1,0 +1,208 @@
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Upload, FileText } from 'lucide-react';
+import { Corrida, DocumentoUpload } from '@/types/corridas';
+import { useEmpresas } from '@/hooks/useEmpresas';
+import { OSBasicFields } from './OSBasicFields';
+import { OSCostFields } from './OSCostFields';
+interface OSFormProps {
+  corrida: Corrida;
+  onSubmit: (formData: any, documentos: DocumentoUpload[]) => void;
+  onCancel: () => void;
+}
+export const OSForm = ({
+  corrida,
+  onSubmit,
+  onCancel
+}: OSFormProps) => {
+  const { empresas } = useEmpresas();
+  
+  // Buscar o centro de custo da empresa associada à corrida
+  const empresaAssociada = empresas.find(empresa => empresa.nome === corrida.empresa);
+  const centroCustoEmpresa = empresaAssociada?.centroCusto || 'Não informado';
+
+  const [formData, setFormData] = useState({
+    horaOS: new Date().toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
+    numeroOS: corrida.numeroOS,
+    // Busca dinamicamente do admin
+    horaSaida: '',
+    horaChegada: '',
+    data: new Date().toISOString().split('T')[0],
+    kmInicio: '',
+    kmFinal: '',
+    empresa: corrida.empresa,
+    centroCusto: centroCustoEmpresa,
+    // Busca dinamicamente do admin
+    origem: corrida.origem,
+    destino: corrida.destino,
+    destinoExtra: '',
+    pedagio: '',
+    estacionamento: '',
+    hospedagem: '',
+    passageiros: corrida.passageiros,
+    // Busca dinamicamente do admin
+    observacoes: ''
+  });
+  const [documentos, setDocumentos] = useState<DocumentoUpload[]>([]);
+  const [comprovantes, setComprovantes] = useState({
+    pedagio: null as File | null,
+    // Adicionado comprovante para pedágio
+    estacionamento: null as File | null,
+    hospedagem: null as File | null
+  });
+  const updateFormData = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  const handleFileUpload = (tipo: 'pedagio' | 'estacionamento' | 'hospedagem', file: File | null) => {
+    setComprovantes(prev => ({
+      ...prev,
+      [tipo]: file
+    }));
+  };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const kmInicial = parseInt(formData.kmInicio) || 0;
+    const kmFinal = parseInt(formData.kmFinal) || 0;
+    const kmTotal = kmFinal - kmInicial;
+    const osData = {
+      ...formData,
+      kmInicial,
+      kmFinal,
+      kmTotal,
+      pedagio: parseFloat(formData.pedagio) || 0,
+      estacionamento: parseFloat(formData.estacionamento) || 0,
+      hospedagem: parseFloat(formData.hospedagem) || 0,
+      documentos: [...documentos, ...Object.entries(comprovantes).filter(([_, file]) => file !== null).map(([tipo, file]) => ({
+        id: `${tipo}-${Date.now()}`,
+        nome: `Comprovante ${tipo}`,
+        descricao: `Comprovante de ${tipo}`,
+        arquivo: file as File
+      }))]
+    };
+    onSubmit(osData, osData.documentos);
+  };
+  return <form onSubmit={handleSubmit} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Preenchimento de Ordem de Serviço</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <OSBasicFields formData={formData} updateFormData={updateFormData} />
+
+          {/* Dados fixos vindos do admin */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Empresa</Label>
+              <Input value={formData.empresa} readOnly className="bg-gray-100" />
+            </div>
+            <div className="space-y-2">
+              <Label>Centro de Custo</Label>
+              <Input value={formData.centroCusto} readOnly className="bg-gray-100" title={`Centro de custo da empresa: ${formData.centroCusto}`} />
+            </div>
+          </div>
+
+          {/* Origem e Destino */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Origem</Label>
+              <Input value={formData.origem} readOnly className="bg-gray-100" />
+            </div>
+            <div className="space-y-2">
+              <Label>Destino</Label>
+              <Input value={formData.destino} readOnly className="bg-gray-100" />
+            </div>
+          </div>
+
+          {/* Destino Extra */}
+          <div className="space-y-2">
+            <Label>Destino Extra</Label>
+            <Input value={formData.destinoExtra} onChange={e => updateFormData('destinoExtra', e.target.value)} placeholder="Paradas adicionais durante a viagem" />
+          </div>
+
+          {/* Custos com campo de pedágio atualizado */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Pedágio (R$)</Label>
+              <Input type="number" step="0.01" value={formData.pedagio} onChange={e => updateFormData('pedagio', e.target.value)} placeholder="0.00" />
+              <div className="mt-2">
+                <input type="file" accept="image/*,.pdf" onChange={e => handleFileUpload('pedagio', e.target.files?.[0] || null)} className="hidden" id="pedagio-file" />
+                <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById('pedagio-file')?.click()}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Anexar Comprovante
+                </Button>
+                {comprovantes.pedagio && <p className="text-sm text-green-600 mt-1">
+                    <FileText className="h-4 w-4 inline mr-1" />
+                    {comprovantes.pedagio.name}
+                  </p>}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Estacionamento (R$)</Label>
+              <Input type="number" step="0.01" value={formData.estacionamento} onChange={e => updateFormData('estacionamento', e.target.value)} placeholder="0.00" />
+              <div className="mt-2">
+                <input type="file" accept="image/*,.pdf" onChange={e => handleFileUpload('estacionamento', e.target.files?.[0] || null)} className="hidden" id="estacionamento-file" />
+                <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById('estacionamento-file')?.click()}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Anexar Comprovante
+                </Button>
+                {comprovantes.estacionamento && <p className="text-sm text-green-600 mt-1">
+                    <FileText className="h-4 w-4 inline mr-1" />
+                    {comprovantes.estacionamento.name}
+                  </p>}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Hospedagem (R$)</Label>
+              <Input type="number" step="0.01" value={formData.hospedagem} onChange={e => updateFormData('hospedagem', e.target.value)} placeholder="0.00" />
+              <div className="mt-2">
+                <input type="file" accept="image/*,.pdf" onChange={e => handleFileUpload('hospedagem', e.target.files?.[0] || null)} className="hidden" id="hospedagem-file" />
+                <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById('hospedagem-file')?.click()}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Anexar Comprovante
+                </Button>
+                {comprovantes.hospedagem && <p className="text-sm text-green-600 mt-1">
+                    <FileText className="h-4 w-4 inline mr-1" />
+                    {comprovantes.hospedagem.name}
+                  </p>}
+              </div>
+            </div>
+          </div>
+
+          {/* Passageiros - dados vindos do admin */}
+          <div className="space-y-2">
+            <Label>Passageiros</Label>
+            <Textarea value={formData.passageiros} readOnly className="bg-gray-100" rows={6} placeholder="Dados vindos do formulário do admin" />
+            
+          </div>
+
+          {/* Observações */}
+          <div className="space-y-2">
+            <Label>Observações</Label>
+            <Textarea value={formData.observacoes} onChange={e => updateFormData('observacoes', e.target.value)} rows={3} placeholder="Observações adicionais sobre a viagem" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="submit">
+          Enviar OS para Financeiro
+        </Button>
+      </div>
+    </form>;
+};
