@@ -1,52 +1,143 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { Notificacao, NotificacoesContextType } from '@/types/notifications';
 
 const NotificacoesContext = createContext<NotificacoesContextType | undefined>(undefined);
 
 export const NotificacoesProvider = ({ children }: { children: ReactNode }) => {
-  const [notificacoes, setNotificacoes] = useState<Notificacao[]>(() => {
-    const saved = localStorage.getItem('notificacoes');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (error) {
-        console.error('Erro ao carregar notificações do localStorage:', error);
-        return [];
+  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Carregar notificações do Supabase
+  const loadNotificacoes = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('notificacoes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Erro ao carregar notificações:', error);
+        toast.error('Erro ao carregar notificações');
+        return;
       }
+
+      const notificacoesFormatted = data?.map(notif => ({
+        id: notif.id,
+        tipo: notif.tipo as 'os_preenchida' | 'corrida_criada' | 'documento_vencendo',
+        titulo: notif.titulo,
+        descricao: notif.descricao,
+        destinatarios: notif.destinatarios,
+        dataHora: notif.data_hora,
+        lida: notif.lida || false,
+        corridaId: notif.corrida_id,
+        motoristaEmail: notif.motorista_email || '',
+        motoristaName: notif.motorista_name || ''
+      })) || [];
+
+      setNotificacoes(notificacoesFormatted);
+    } catch (error) {
+      console.error('Erro ao carregar notificações:', error);
+      toast.error('Erro ao carregar notificações');
+    } finally {
+      setLoading(false);
     }
-    return [];
-  });
+  };
 
-  // Salvar no localStorage sempre que as notificações mudarem
   useEffect(() => {
-    localStorage.setItem('notificacoes', JSON.stringify(notificacoes));
-  }, [notificacoes]);
+    loadNotificacoes();
+  }, []);
 
-  const adicionarNotificacao = (notificacaoData: Omit<Notificacao, 'id' | 'dataHora' | 'lida'>) => {
-    const novaNotificacao: Notificacao = {
-      ...notificacaoData,
-      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      dataHora: new Date().toISOString(),
-      lida: false
-    };
+  const adicionarNotificacao = async (notificacaoData: Omit<Notificacao, 'id' | 'dataHora' | 'lida'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('notificacoes')
+        .insert([{
+          tipo: notificacaoData.tipo,
+          titulo: notificacaoData.titulo,
+          descricao: notificacaoData.descricao,
+          destinatarios: notificacaoData.destinatarios,
+          corrida_id: notificacaoData.corridaId,
+          motorista_email: notificacaoData.motoristaEmail,
+          motorista_name: notificacaoData.motoristaName,
+          lida: false
+        }])
+        .select()
+        .single();
 
-    setNotificacoes(prev => [novaNotificacao, ...prev]);
-    console.log('Nova notificação adicionada:', novaNotificacao);
+      if (error) {
+        console.error('Erro ao adicionar notificação:', error);
+        toast.error('Erro ao adicionar notificação');
+        return;
+      }
+
+      const novaNotificacao: Notificacao = {
+        id: data.id,
+        tipo: data.tipo as 'os_preenchida' | 'corrida_criada' | 'documento_vencendo',
+        titulo: data.titulo,
+        descricao: data.descricao,
+        destinatarios: data.destinatarios,
+        dataHora: data.data_hora,
+        lida: false,
+        corridaId: data.corrida_id,
+        motoristaEmail: data.motorista_email || '',
+        motoristaName: data.motorista_name || ''
+      };
+
+      setNotificacoes(prev => [novaNotificacao, ...prev]);
+      console.log('Nova notificação adicionada:', novaNotificacao);
+    } catch (error) {
+      console.error('Erro ao adicionar notificação:', error);
+      toast.error('Erro ao adicionar notificação');
+    }
   };
 
-  const marcarComoLida = (id: string) => {
-    setNotificacoes(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, lida: true } : notif
-      )
-    );
+  const marcarComoLida = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('notificacoes')
+        .update({ lida: true })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao marcar notificação como lida:', error);
+        toast.error('Erro ao marcar notificação como lida');
+        return;
+      }
+
+      setNotificacoes(prev => 
+        prev.map(notif => 
+          notif.id === id ? { ...notif, lida: true } : notif
+        )
+      );
+    } catch (error) {
+      console.error('Erro ao marcar notificação como lida:', error);
+      toast.error('Erro ao marcar notificação como lida');
+    }
   };
 
-  const marcarTodasComoLidas = () => {
-    setNotificacoes(prev => 
-      prev.map(notif => ({ ...notif, lida: true }))
-    );
+  const marcarTodasComoLidas = async () => {
+    try {
+      const { error } = await supabase
+        .from('notificacoes')
+        .update({ lida: true })
+        .eq('lida', false);
+
+      if (error) {
+        console.error('Erro ao marcar todas as notificações como lidas:', error);
+        toast.error('Erro ao marcar todas as notificações como lidas');
+        return;
+      }
+
+      setNotificacoes(prev => 
+        prev.map(notif => ({ ...notif, lida: true }))
+      );
+    } catch (error) {
+      console.error('Erro ao marcar todas as notificações como lidas:', error);
+      toast.error('Erro ao marcar todas as notificações como lidas');
+    }
   };
 
   const obterNaoLidas = (userEmail?: string) => {

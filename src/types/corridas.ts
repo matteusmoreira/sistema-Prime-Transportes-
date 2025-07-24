@@ -56,12 +56,13 @@ export interface Corrida {
 
 export interface CorridasContextType {
   corridas: Corrida[];
-  addCorrida: (corridaData: Omit<Corrida, 'id' | 'status'>) => void;
-  updateCorrida: (id: number, updatedData: Partial<Corrida>) => void;
-  fillOS: (id: number, osData: Partial<Corrida>) => void;
-  deleteCorrida: (id: number) => void;
-  approveCorrida: (id: number) => void;
-  rejectCorrida: (id: number, motivo: string) => void;
-  updateStatus: (id: number, status: Corrida['status']) => void;
+  loading: boolean;
+  addCorrida: (corridaData: Omit<Corrida, 'id' | 'status'>) => Promise<void>;
+  updateCorrida: (id: number, updatedData: Partial<Corrida>) => Promise<void>;
+  fillOS: (id: number, osData: Partial<Corrida>) => Promise<void>;
+  deleteCorrida: (id: number) => Promise<void>;
+  approveCorrida: (id: number) => Promise<void>;
+  rejectCorrida: (id: number, motivo: string) => Promise<void>;
+  updateStatus: (id: number, status: Corrida['status']) => Promise<void>;
   getCorridasByMotorista: (motoristaEmail: string) => Corrida[];
 }

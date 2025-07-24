@@ -1,165 +1,184 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { Corrida, CorridasContextType } from '@/types/corridas';
 import { getCorridasByMotorista } from '@/utils/corridaHelpers';
-
-// Array vazio - sem dados fictícios
-const initialCorridas: Corrida[] = [];
 
 const CorridasContext = createContext<CorridasContextType | undefined>(undefined);
 
 export const CorridasProvider = ({ children }: { children: ReactNode }) => {
-  // Carregar dados do localStorage ou usar array vazio
-  const [corridas, setCorridas] = useState<Corrida[]>(() => {
-    const saved = localStorage.getItem('corridas');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (error) {
-        console.error('Erro ao carregar corridas do localStorage:', error);
-        return initialCorridas;
+  const [corridas, setCorridas] = useState<Corrida[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Carregar corridas do Supabase
+  const loadCorridas = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('corridas')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Erro ao carregar corridas:', error);
+        toast.error('Erro ao carregar corridas');
+        return;
       }
-    }
-    return initialCorridas;
-  });
 
-  // Salvar no localStorage sempre que a lista de corridas mudar
-  useEffect(() => {
-    localStorage.setItem('corridas', JSON.stringify(corridas));
-    console.log('=== SAVE CORRIDAS ===');
-    console.log('Corridas salvas no localStorage:', corridas);
-    console.log('Quantidade de corridas salvas:', corridas.length);
-    corridas.forEach((corrida, index) => {
-      console.log(`Corrida ${index + 1}:`, {
+      const corridasFormatted = data?.map(corrida => ({
         id: corrida.id,
-        motorista: corrida.motorista,
-        empresa: corrida.empresa,
-        centroCusto: corrida.centroCusto,
-        origem: corrida.origem,
-        destino: corrida.destino
-      });
-    });
-    console.log('=== FIM SAVE CORRIDAS ===');
-  }, [corridas]);
+        empresa: corrida.empresa || '',
+        empresaId: corrida.empresa_id || 0,
+        centroCusto: corrida.centro_custo || '',
+        solicitante: corrida.solicitante || '',
+        passageiro: corrida.passageiro || '',
+        telefonePassageiro: corrida.telefone_passageiro || '',
+        origem: corrida.origem || '',
+        destino: corrida.destino || '',
+        data: corrida.data || '',
+        horaSaida: corrida.hora_saida || '',
+        horaChegada: corrida.hora_chegada || '',
+        observacoes: corrida.observacoes || '',
+        status: (corrida.status as Corrida['status']) || 'Pendente',
+        motorista: corrida.motorista || '',
+        kmInicial: corrida.km_inicial || 0,
+        kmFinal: corrida.km_final || 0,
+        kmTotal: corrida.km_total || 0,
+        combustivelInicial: corrida.combustivel_inicial || 0,
+        combustivelFinal: corrida.combustivel_final || 0,
+        valorCombustivel: corrida.valor_combustivel || 0,
+        pedagio: corrida.pedagio || 0,
+        estacionamento: corrida.estacionamento || 0,
+        hospedagem: corrida.hospedagem || 0,
+        outros: corrida.outros || 0,
+        valor: corrida.valor || 0,
+        valorMotorista: corrida.valor_motorista || 0,
+        horaInicio: corrida.hora_inicio || '',
+        dataServico: corrida.data_servico || '',
+        distanciaPercorrida: corrida.distancia_percorrida || 0,
+        reembolsos: corrida.reembolsos || 0,
+        veiculo: corrida.veiculo || '',
+        projeto: corrida.projeto || '',
+        motivo: corrida.motivo || '',
+        motivoRejeicao: corrida.motivo_rejeicao || '',
+        tipoAbrangencia: corrida.tipo_abrangencia || '',
+        tempoViagem: corrida.tempo_viagem || '',
+        observacoesOS: corrida.observacoes_os || '',
+        preenchidoPorMotorista: corrida.preenchido_por_motorista || false,
+        numeroOS: corrida.numero_os || '',
+        total: corrida.total || 0,
+        localAbastecimento: corrida.local_abastecimento || '',
+        destinoExtra: corrida.destino_extra || '',
+        passageiros: corrida.passageiros || ''
+      })) || [];
 
-  const addCorrida = (corridaData: Omit<Corrida, 'id' | 'status'>) => {
-    console.log('=== ADD CORRIDA DEBUG ===');
-    console.log('Dados recebidos para adicionar corrida:', corridaData);
-    console.log('Nome do motorista na corrida:', corridaData.motorista);
-    console.log('Centro de custo da corrida:', corridaData.centroCusto);
-    console.log('Tipo do campo motorista:', typeof corridaData.motorista);
-    
-    const newId = corridas.length > 0 ? Math.max(...corridas.map(c => c.id)) + 1 : 1;
-    
-    // Se a corrida tem motorista definido, usar status "Aguardando Conferência", senão "Pendente"
-    const status = corridaData.motorista ? 'Aguardando Conferência' : 'Pendente';
-    
-    const newCorrida: Corrida = {
-      ...corridaData,
-      id: newId,
-      status: status as Corrida['status'],
-      // Garantir que o centro de custo seja sempre salvo
-      centroCusto: corridaData.centroCusto || ''
-    };
-    
-    console.log('Nova corrida que será adicionada:', newCorrida);
-    console.log('Motorista na nova corrida:', newCorrida.motorista);
-    console.log('Centro de custo na nova corrida:', newCorrida.centroCusto);
-    
-    setCorridas(prev => {
-      const updated = [...prev, newCorrida];
-      console.log('Lista de corridas após adição:', updated);
-      console.log('Total de corridas após adição:', updated.length);
-      return updated;
-    });
-    
-    console.log('=== FIM ADD CORRIDA DEBUG ===');
-    toast.success('Corrida cadastrada com sucesso!');
+      setCorridas(corridasFormatted);
+      console.log('Corridas carregadas do Supabase:', corridasFormatted.length);
+    } catch (error) {
+      console.error('Erro ao carregar corridas:', error);
+      toast.error('Erro ao carregar corridas');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateCorrida = (id: number, updatedData: Partial<Corrida>) => {
-    console.log('Atualizando corrida:', id, updatedData);
+  useEffect(() => {
+    loadCorridas();
+  }, []);
+
+  const addCorrida = async (corridaData: Omit<Corrida, 'id' | 'status'>) => {
+    console.log('Adicionando corrida:', corridaData);
+    
+    try {
+      const status = corridaData.motorista ? 'Aguardando Conferência' : 'Pendente';
+      
+      const { data, error } = await supabase
+        .from('corridas')
+        .insert([{
+          empresa: corridaData.empresa,
+          empresa_id: corridaData.empresaId,
+          centro_custo: corridaData.centroCusto,
+          solicitante: corridaData.solicitante,
+          passageiro: corridaData.passageiro,
+          telefone_passageiro: corridaData.telefonePassageiro,
+          origem: corridaData.origem,
+          destino: corridaData.destino,
+          data: corridaData.data,
+          hora_saida: corridaData.horaSaida,
+          hora_chegada: corridaData.horaChegada,
+          observacoes: corridaData.observacoes,
+          status: status,
+          motorista: corridaData.motorista
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Erro ao adicionar corrida:', error);
+        toast.error('Erro ao adicionar corrida');
+        return;
+      }
+
+      const newCorrida: Corrida = {
+        ...corridaData,
+        id: data.id,
+        status: status as Corrida['status']
+      };
+
+      setCorridas(prev => [...prev, newCorrida]);
+      toast.success('Corrida cadastrada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao adicionar corrida:', error);
+      toast.error('Erro ao adicionar corrida');
+    }
+  };
+
+  const updateCorrida = async (id: number, updatedData: Partial<Corrida>) => {
     setCorridas(prev => prev.map(c => 
       c.id === id ? { ...c, ...updatedData } : c
     ));
     toast.success('Corrida atualizada com sucesso!');
   };
 
-  const fillOS = (id: number, osData: Partial<Corrida>) => {
-    console.log('Preenchendo OS da corrida:', id, osData);
-    
-    // Buscar a corrida para obter o nome do motorista
-    const corrida = corridas.find(c => c.id === id);
-    
+  const fillOS = async (id: number, osData: Partial<Corrida>) => {
     setCorridas(prev => prev.map(c => 
       c.id === id ? { ...c, ...osData, status: 'OS Preenchida' as const, preenchidoPorMotorista: true } : c
     ));
-
-    // Disparar notificação para administradores e financeiro
-    if (corrida) {
-      // Buscar emails de administradores e financeiro do localStorage
-      const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-      const destinatarios = usuarios
-        .filter((user: any) => user.nivel === 'Administrador' || user.nivel === 'Financeiro')
-        .map((user: any) => user.email);
-
-      // Disparar evento customizado para adicionar notificação
-      window.dispatchEvent(new CustomEvent('nova-notificacao', {
-        detail: {
-          tipo: 'os_preenchida',
-          titulo: 'Ordem de Serviço Preenchida',
-          descricao: `O motorista ${corrida.motorista} preencheu a OS da corrida #${id} (${corrida.origem} → ${corrida.destino})`,
-          corridaId: id,
-          motoristaEmail: '', // Será preenchido se necessário
-          motoristaName: corrida.motorista,
-          destinatarios
-        }
-      }));
-    }
-
     toast.success('Ordem de Serviço preenchida com sucesso!');
   };
 
-  const deleteCorrida = (id: number) => {
+  const deleteCorrida = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir esta corrida?')) {
       setCorridas(prev => prev.filter(c => c.id !== id));
       toast.success('Corrida excluída com sucesso!');
     }
   };
 
-  const approveCorrida = (id: number) => {
+  const approveCorrida = async (id: number) => {
     setCorridas(prev => prev.map(c => 
       c.id === id ? { ...c, status: 'Aprovada' as const } : c
     ));
     toast.success('Corrida aprovada com sucesso!');
   };
 
-  const rejectCorrida = (id: number, motivo: string) => {
+  const rejectCorrida = async (id: number, motivo: string) => {
     setCorridas(prev => prev.map(c => 
       c.id === id ? { ...c, status: 'Rejeitada' as const, motivoRejeicao: motivo } : c
     ));
     toast.error('Corrida rejeitada!');
   };
 
-  const updateStatus = (id: number, status: Corrida['status']) => {
-    console.log('=== CONTEXTO UPDATE STATUS ===');
-    console.log('ID da corrida:', id, 'Novo status:', status);
-    
-    setCorridas(prev => {
-      const updated = prev.map(c => 
-        c.id === id ? { ...c, status } : c
-      );
-      console.log('Corridas atualizadas no contexto:', updated);
-      return updated;
-    });
-    
-    console.log('=== FIM CONTEXTO UPDATE STATUS ===');
+  const updateStatus = async (id: number, status: Corrida['status']) => {
+    setCorridas(prev => prev.map(c => 
+      c.id === id ? { ...c, status } : c
+    ));
   };
 
   return (
     <CorridasContext.Provider value={{
       corridas,
+      loading,
       addCorrida,
       updateCorrida,
       fillOS,

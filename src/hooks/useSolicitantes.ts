@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { useEmpresas } from '@/contexts/EmpresasContext';
 
 export interface Solicitante {
@@ -13,56 +13,93 @@ export interface Solicitante {
   cargo: string;
 }
 
-// Array vazio - sem dados fictícios
-const initialSolicitantes: Solicitante[] = [];
-
 export const useSolicitantes = () => {
   const { empresas } = useEmpresas();
-  
-  // Carregar dados do localStorage ou usar array vazio
-  const [solicitantes, setSolicitantes] = useState<Solicitante[]>(() => {
-    const saved = localStorage.getItem('solicitantes');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (error) {
-        console.error('Erro ao carregar solicitantes do localStorage:', error);
-        return initialSolicitantes;
+  const [solicitantes, setSolicitantes] = useState<Solicitante[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Carregar solicitantes do Supabase
+  const loadSolicitantes = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('solicitantes')
+        .select('*, empresas(nome)')
+        .order('nome');
+      
+      if (error) {
+        console.error('Erro ao carregar solicitantes:', error);
+        toast.error('Erro ao carregar solicitantes');
+        return;
       }
+
+      const solicitantesFormatted = data?.map(solicitante => ({
+        id: solicitante.id,
+        nome: solicitante.nome,
+        empresaId: solicitante.empresa_id || 0,
+        empresaNome: (solicitante.empresas as any)?.nome || '',
+        email: solicitante.email,
+        telefone: solicitante.telefone || '',
+        cargo: ''
+      })) || [];
+
+      setSolicitantes(solicitantesFormatted);
+    } catch (error) {
+      console.error('Erro ao carregar solicitantes:', error);
+      toast.error('Erro ao carregar solicitantes');
+    } finally {
+      setLoading(false);
     }
-    return initialSolicitantes;
-  });
+  };
 
-  // Salvar no localStorage sempre que a lista de solicitantes mudar
   useEffect(() => {
-    localStorage.setItem('solicitantes', JSON.stringify(solicitantes));
-    console.log('Solicitantes salvos no localStorage:', solicitantes);
-  }, [solicitantes]);
+    loadSolicitantes();
+  }, []);
 
-  const addSolicitante = (solicitanteData: Omit<Solicitante, 'id'>) => {
+  const addSolicitante = async (solicitanteData: Omit<Solicitante, 'id'>) => {
     console.log('Adicionando solicitante:', solicitanteData);
     
     // Buscar o nome da empresa atualizado
     const empresa = empresas.find(e => e.id === solicitanteData.empresaId);
     const empresaNome = empresa ? empresa.nome : solicitanteData.empresaNome;
     
-    const newId = solicitantes.length > 0 ? Math.max(...solicitantes.map(s => s.id)) + 1 : 1;
-    const newSolicitante: Solicitante = {
-      ...solicitanteData,
-      empresaNome,
-      id: newId
-    };
-    
-    console.log('Novo solicitante criado:', newSolicitante);
-    setSolicitantes(prev => {
-      const updated = [...prev, newSolicitante];
-      console.log('Lista de solicitantes atualizada:', updated);
-      return updated;
-    });
-    toast.success('Solicitante cadastrado com sucesso!');
+    try {
+      const { data, error } = await supabase
+        .from('solicitantes')
+        .insert([{
+          nome: solicitanteData.nome,
+          empresa_id: solicitanteData.empresaId,
+          email: solicitanteData.email,
+          telefone: solicitanteData.telefone
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Erro ao adicionar solicitante:', error);
+        toast.error('Erro ao adicionar solicitante');
+        return;
+      }
+
+      const newSolicitante: Solicitante = {
+        id: data.id,
+        nome: data.nome,
+        empresaId: data.empresa_id || 0,
+        empresaNome,
+        email: data.email,
+        telefone: data.telefone || '',
+        cargo: solicitanteData.cargo
+      };
+
+      setSolicitantes(prev => [...prev, newSolicitante]);
+      toast.success('Solicitante cadastrado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao adicionar solicitante:', error);
+      toast.error('Erro ao adicionar solicitante');
+    }
   };
 
-  const updateSolicitante = (id: number, updatedData: Partial<Solicitante>) => {
+  const updateSolicitante = async (id: number, updatedData: Partial<Solicitante>) => {
     console.log('Atualizando solicitante:', id, updatedData);
     
     // Se está atualizando a empresa, buscar o nome atualizado
@@ -73,21 +110,61 @@ export const useSolicitantes = () => {
       }
     }
     
-    setSolicitantes(prev => prev.map(s => 
-      s.id === id ? { ...s, ...updatedData } : s
-    ));
-    toast.success('Solicitante atualizado com sucesso!');
+    try {
+      const { error } = await supabase
+        .from('solicitantes')
+        .update({
+          nome: updatedData.nome,
+          empresa_id: updatedData.empresaId,
+          email: updatedData.email,
+          telefone: updatedData.telefone
+        })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao atualizar solicitante:', error);
+        toast.error('Erro ao atualizar solicitante');
+        return;
+      }
+
+      setSolicitantes(prev => prev.map(s => 
+        s.id === id ? { ...s, ...updatedData } : s
+      ));
+      toast.success('Solicitante atualizado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atualizar solicitante:', error);
+      toast.error('Erro ao atualizar solicitante');
+    }
   };
 
-  const deleteSolicitante = (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este solicitante?')) {
+  const deleteSolicitante = async (id: number) => {
+    if (!window.confirm('Tem certeza que deseja excluir este solicitante?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('solicitantes')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao excluir solicitante:', error);
+        toast.error('Erro ao excluir solicitante');
+        return;
+      }
+
       setSolicitantes(prev => prev.filter(s => s.id !== id));
       toast.success('Solicitante excluído com sucesso!');
+    } catch (error) {
+      console.error('Erro ao excluir solicitante:', error);
+      toast.error('Erro ao excluir solicitante');
     }
   };
 
   return {
     solicitantes,
+    loading,
     addSolicitante,
     updateSolicitante,
     deleteSolicitante

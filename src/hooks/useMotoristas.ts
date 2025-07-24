@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface DocumentoMotorista {
   id: string;
@@ -30,76 +31,160 @@ export interface Motorista {
   fotosVeiculo: FotoVeiculo[];
 }
 
-// Array vazio - sem dados fictícios
-const initialMotoristas: Motorista[] = [];
-
 export const useMotoristas = () => {
-  // Carregar dados do localStorage ou usar array vazio
-  const [motoristas, setMotoristas] = useState<Motorista[]>(() => {
-    const saved = localStorage.getItem('motoristas');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (error) {
-        console.error('Erro ao carregar motoristas do localStorage:', error);
-        return initialMotoristas;
+  const [motoristas, setMotoristas] = useState<Motorista[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Carregar motoristas do Supabase
+  const loadMotoristas = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('motoristas')
+        .select('*')
+        .order('nome');
+      
+      if (error) {
+        console.error('Erro ao carregar motoristas:', error);
+        toast.error('Erro ao carregar motoristas');
+        return;
       }
+
+      const motoristasFormatted = data?.map(motorista => ({
+        id: motorista.id,
+        nome: motorista.nome,
+        cpf: motorista.cpf || '',
+        telefone: motorista.telefone || '',
+        email: motorista.email,
+        cnh: motorista.cnh || '',
+        cnhDataValidade: motorista.validade_cnh || '',
+        status: motorista.ativo ? 'Aprovado' as const : 'Aguardando Aprovação' as const,
+        documentos: [] as DocumentoMotorista[],
+        fotosVeiculo: [] as FotoVeiculo[]
+      })) || [];
+
+      setMotoristas(motoristasFormatted);
+    } catch (error) {
+      console.error('Erro ao carregar motoristas:', error);
+      toast.error('Erro ao carregar motoristas');
+    } finally {
+      setLoading(false);
     }
-    return initialMotoristas;
-  });
+  };
 
-  // Salvar no localStorage sempre que a lista de motoristas mudar
   useEffect(() => {
-    localStorage.setItem('motoristas', JSON.stringify(motoristas));
-    console.log('Motoristas salvos no localStorage:', motoristas);
-  }, [motoristas]);
+    loadMotoristas();
+  }, []);
 
-  const addMotorista = (formData: Omit<Motorista, 'id' | 'status'>) => {
+  const addMotorista = async (formData: Omit<Motorista, 'id' | 'status'>) => {
     console.log('Adicionando motorista:', formData);
     
-    const newId = motoristas.length > 0 ? Math.max(...motoristas.map(m => m.id)) + 1 : 1;
-    const newMotorista: Motorista = {
-      ...formData,
-      id: newId,
-      status: 'Aguardando Aprovação'
-    };
-    
-    console.log('Novo motorista criado:', newMotorista);
-    setMotoristas(prev => {
-      const updated = [...prev, newMotorista];
-      console.log('Lista de motoristas atualizada:', updated);
-      return updated;
-    });
-    toast.success('Motorista cadastrado com sucesso!');
-  };
+    try {
+      const { data, error } = await supabase
+        .from('motoristas')
+        .insert([{
+          nome: formData.nome,
+          cpf: formData.cpf,
+          telefone: formData.telefone,
+          email: formData.email,
+          cnh: formData.cnh,
+          validade_cnh: formData.cnhDataValidade,
+          ativo: false // Aguardando aprovação
+        }])
+        .select()
+        .single();
 
-  const updateMotorista = (id: number, updatedData: Partial<Motorista>) => {
-    console.log('Atualizando motorista:', id, updatedData);
-    setMotoristas(prev => prev.map(m => 
-      m.id === id ? { ...m, ...updatedData } : m
-    ));
-    toast.success('Motorista atualizado com sucesso!');
-  };
+      if (error) {
+        console.error('Erro ao adicionar motorista:', error);
+        toast.error('Erro ao adicionar motorista');
+        return;
+      }
 
-  const deleteMotorista = (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este motorista?')) {
-      setMotoristas(prev => prev.filter(m => m.id !== id));
-      toast.success('Motorista excluído com sucesso!');
+      const newMotorista: Motorista = {
+        id: data.id,
+        nome: data.nome,
+        cpf: data.cpf || '',
+        telefone: data.telefone || '',
+        email: data.email,
+        cnh: data.cnh || '',
+        cnhDataValidade: data.validade_cnh || '',
+        status: 'Aguardando Aprovação',
+        documentos: [],
+        fotosVeiculo: []
+      };
+
+      setMotoristas(prev => [...prev, newMotorista]);
+      toast.success('Motorista cadastrado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao adicionar motorista:', error);
+      toast.error('Erro ao adicionar motorista');
     }
   };
 
-  const approveMotorista = (id: number) => {
-    setMotoristas(prev => prev.map(m => 
-      m.id === id ? { ...m, status: 'Aprovado' as const } : m
-    ));
-    toast.success('Motorista aprovado com sucesso!');
+  const updateMotorista = async (id: number, updatedData: Partial<Motorista>) => {
+    console.log('Atualizando motorista:', id, updatedData);
+    
+    try {
+      const { error } = await supabase
+        .from('motoristas')
+        .update({
+          nome: updatedData.nome,
+          cpf: updatedData.cpf,
+          telefone: updatedData.telefone,
+          email: updatedData.email,
+          cnh: updatedData.cnh,
+          validade_cnh: updatedData.cnhDataValidade,
+          ativo: updatedData.status === 'Aprovado'
+        })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao atualizar motorista:', error);
+        toast.error('Erro ao atualizar motorista');
+        return;
+      }
+
+      setMotoristas(prev => prev.map(m => 
+        m.id === id ? { ...m, ...updatedData } : m
+      ));
+      toast.success('Motorista atualizado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atualizar motorista:', error);
+      toast.error('Erro ao atualizar motorista');
+    }
   };
 
-  const rejectMotorista = (id: number) => {
-    setMotoristas(prev => prev.map(m => 
-      m.id === id ? { ...m, status: 'Reprovado' as const } : m
-    ));
-    toast.error('Motorista reprovado!');
+  const deleteMotorista = async (id: number) => {
+    if (!window.confirm('Tem certeza que deseja excluir este motorista?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('motoristas')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao excluir motorista:', error);
+        toast.error('Erro ao excluir motorista');
+        return;
+      }
+
+      setMotoristas(prev => prev.filter(m => m.id !== id));
+      toast.success('Motorista excluído com sucesso!');
+    } catch (error) {
+      console.error('Erro ao excluir motorista:', error);
+      toast.error('Erro ao excluir motorista');
+    }
+  };
+
+  const approveMotorista = async (id: number) => {
+    await updateMotorista(id, { status: 'Aprovado' });
+  };
+
+  const rejectMotorista = async (id: number) => {
+    await updateMotorista(id, { status: 'Reprovado' });
   };
 
   const getMotoristaByEmail = (email: string) => {
@@ -108,6 +193,7 @@ export const useMotoristas = () => {
 
   return {
     motoristas,
+    loading,
     addMotorista,
     updateMotorista,
     deleteMotorista,
