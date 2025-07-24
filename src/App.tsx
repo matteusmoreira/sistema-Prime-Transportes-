@@ -8,8 +8,10 @@ import { CorridasProvider } from "./contexts/CorridasContext";
 import { AlertasProvider } from "./contexts/AlertasContext";
 import { EmpresasProvider } from "./contexts/EmpresasContext";
 import { NotificacoesProvider } from "./contexts/NotificacoesContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import { useNotificationListener } from "./hooks/useNotificationListener";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +23,7 @@ const AppContent = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -31,17 +34,19 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <EmpresasProvider>
-        <CorridasProvider>
-          <AlertasProvider>
-            <NotificacoesProvider>
-              <Toaster />
-              <Sonner />
-              <AppContent />
-            </NotificacoesProvider>
-          </AlertasProvider>
-        </CorridasProvider>
-      </EmpresasProvider>
+      <AuthProvider>
+        <EmpresasProvider>
+          <CorridasProvider>
+            <AlertasProvider>
+              <NotificacoesProvider>
+                <Toaster />
+                <Sonner />
+                <AppContent />
+              </NotificacoesProvider>
+            </AlertasProvider>
+          </CorridasProvider>
+        </EmpresasProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
