@@ -91,20 +91,22 @@ export const MotoristaManager = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Converter documentos para o formato final
-    const documentosFinais: DocumentoMotorista[] = documentos.map(doc => ({
+    // Converter documentos para o formato final, incluindo o arquivo File real
+    const documentosFinais: any[] = documentos.map(doc => ({
       id: doc.id,
       nome: doc.nome,
       descricao: doc.descricao,
       arquivo: doc.arquivo?.name || '',
+      arquivoFile: doc.arquivo, // Incluir o arquivo File real
       dataUpload: new Date().toISOString().split('T')[0]
     }));
 
-    // Converter fotos para o formato final
-    const fotosFinais: FotoVeiculo[] = fotosVeiculo.map(foto => ({
+    // Converter fotos para o formato final, incluindo o arquivo File real
+    const fotosFinais: any[] = fotosVeiculo.map(foto => ({
       id: foto.id,
       nome: foto.nome,
       arquivo: foto.arquivo?.name || '',
+      arquivoFile: foto.arquivo, // Incluir o arquivo File real
       tamanho: foto.tamanho,
       dataUpload: new Date().toISOString().split('T')[0]
     }));

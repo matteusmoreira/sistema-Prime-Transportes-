@@ -76,10 +76,27 @@ export const useMotoristas = () => {
     loadMotoristas();
   }, []);
 
+  const uploadFile = async (file: File, bucket: string, path: string) => {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      console.error('Erro no upload:', error);
+      throw error;
+    }
+
+    return data;
+  };
+
   const addMotorista = async (formData: Omit<Motorista, 'id' | 'status'>) => {
     console.log('Adicionando motorista:', formData);
     
     try {
+      // Primeiro, criar o motorista
       const { data, error } = await supabase
         .from('motoristas')
         .insert([{
@@ -100,6 +117,71 @@ export const useMotoristas = () => {
         return;
       }
 
+      const motoristaId = data.id;
+      const documentosUploadados: DocumentoMotorista[] = [];
+      const fotosUploadadas: FotoVeiculo[] = [];
+
+      // Upload dos documentos
+      for (const doc of formData.documentos) {
+        if (doc.arquivo) {
+          try {
+            // Buscar o arquivo original do input file
+            const arquivo = (doc as any).arquivoFile; // Arquivo File real
+            if (arquivo instanceof File) {
+              const fileName = `${motoristaId}-${Date.now()}-${arquivo.name}`;
+              await uploadFile(arquivo, 'motorista-documentos', fileName);
+              
+              // Salvar referência no banco
+              const { error: docError } = await supabase
+                .from('motorista_documentos')
+                .insert({
+                  motorista_id: motoristaId,
+                  nome: doc.nome,
+                  tipo: doc.descricao,
+                  url: fileName
+                });
+
+              if (!docError) {
+                documentosUploadados.push({
+                  id: doc.id,
+                  nome: doc.nome,
+                  descricao: doc.descricao,
+                  arquivo: fileName,
+                  dataUpload: new Date().toISOString().split('T')[0]
+                });
+              }
+            }
+          } catch (uploadError) {
+            console.error('Erro no upload do documento:', uploadError);
+            toast.error(`Erro no upload do documento: ${doc.nome}`);
+          }
+        }
+      }
+
+      // Upload das fotos
+      for (const foto of formData.fotosVeiculo) {
+        if (foto.arquivo) {
+          try {
+            const arquivo = (foto as any).arquivoFile; // Arquivo File real
+            if (arquivo instanceof File) {
+              const fileName = `${motoristaId}-${Date.now()}-${arquivo.name}`;
+              await uploadFile(arquivo, 'motorista-fotos', fileName);
+              
+              fotosUploadadas.push({
+                id: foto.id,
+                nome: foto.nome,
+                arquivo: fileName,
+                tamanho: foto.tamanho,
+                dataUpload: new Date().toISOString().split('T')[0]
+              });
+            }
+          } catch (uploadError) {
+            console.error('Erro no upload da foto:', uploadError);
+            toast.error(`Erro no upload da foto: ${foto.nome}`);
+          }
+        }
+      }
+
       const newMotorista: Motorista = {
         id: data.id,
         nome: data.nome,
@@ -109,8 +191,8 @@ export const useMotoristas = () => {
         cnh: data.cnh || '',
         cnhDataValidade: data.validade_cnh || '',
         status: 'Aguardando Aprovação',
-        documentos: [],
-        fotosVeiculo: []
+        documentos: documentosUploadados,
+        fotosVeiculo: fotosUploadadas
       };
 
       setMotoristas(prev => [...prev, newMotorista]);
