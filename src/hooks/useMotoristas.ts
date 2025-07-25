@@ -197,13 +197,26 @@ export const useMotoristas = () => {
               console.log('Upload de foto:', { original: arquivo.name, sanitized: sanitizedName, final: fileName });
               await uploadFile(arquivo, 'motorista-fotos', fileName);
               
-              fotosUploadadas.push({
-                id: foto.id,
-                nome: foto.nome,
-                arquivo: fileName,
-                tamanho: foto.tamanho,
-                dataUpload: new Date().toISOString().split('T')[0]
-              });
+              // Salvar referência no banco
+              const { error: fotoError } = await supabase
+                .from('motorista_fotos')
+                .insert({
+                  motorista_id: motoristaId,
+                  nome: foto.nome,
+                  nome_original: arquivo.name,
+                  url: fileName,
+                  tamanho: foto.tamanho
+                });
+
+              if (!fotoError) {
+                fotosUploadadas.push({
+                  id: foto.id,
+                  nome: foto.nome,
+                  arquivo: fileName,
+                  tamanho: foto.tamanho,
+                  dataUpload: new Date().toISOString().split('T')[0]
+                });
+              }
             }
           } catch (uploadError) {
             console.error('Erro no upload da foto:', uploadError);

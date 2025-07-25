@@ -27,7 +27,9 @@ interface DocumentoBanco {
 interface FotoBanco {
   id: number;
   nome: string;
+  nome_original: string;
   url: string;
+  tamanho: number;
   created_at: string;
 }
 
@@ -62,15 +64,15 @@ export const AdminDocumentosViewer = ({
       if (docsError) throw docsError;
       setDocumentos(docsData || []);
 
-      // Carregar fotos de uma tabela se existir, ou usar dados dos documentos antigos
-      // Por enquanto, vamos usar as fotos do campo fotosVeiculo do motorista
-      const fotosVeiculo = motorista.fotosVeiculo || [];
-      setFotos(fotosVeiculo.map((foto, index) => ({
-        id: index,
-        nome: foto.nome,
-        url: foto.arquivo || '',
-        created_at: new Date().toISOString()
-      })));
+      // Carregar fotos do banco
+      const { data: fotosData, error: fotosError } = await supabase
+        .from('motorista_fotos')
+        .select('*')
+        .eq('motorista_id', motorista.id)
+        .order('created_at', { ascending: false });
+
+      if (fotosError) throw fotosError;
+      setFotos(fotosData || []);
 
     } catch (error) {
       console.error('Erro ao carregar documentos:', error);

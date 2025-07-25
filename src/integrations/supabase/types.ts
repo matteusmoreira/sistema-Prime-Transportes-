@@ -368,6 +368,36 @@ export type Database = {
           },
         ]
       }
+      motorista_fotos: {
+        Row: {
+          created_at: string
+          id: number
+          motorista_id: number
+          nome: string
+          nome_original: string
+          tamanho: number | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          motorista_id: number
+          nome: string
+          nome_original: string
+          tamanho?: number | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          motorista_id?: number
+          nome?: string
+          nome_original?: string
+          tamanho?: number | null
+          url?: string
+        }
+        Relationships: []
+      }
       motoristas: {
         Row: {
           ativo: boolean | null
