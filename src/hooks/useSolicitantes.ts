@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresas } from '@/contexts/EmpresasContext';
+import { useAuthDependentData } from '@/hooks/useAuthDependentData';
 
 export interface Solicitante {
   id: number;
@@ -17,6 +18,7 @@ export const useSolicitantes = () => {
   const { empresas } = useEmpresas();
   const [solicitantes, setSolicitantes] = useState<Solicitante[]>([]);
   const [loading, setLoading] = useState(true);
+  const { shouldLoadData, isAuthLoading } = useAuthDependentData();
 
   // Carregar solicitantes do Supabase
   const loadSolicitantes = async () => {
@@ -53,8 +55,12 @@ export const useSolicitantes = () => {
   };
 
   useEffect(() => {
-    loadSolicitantes();
-  }, []);
+    if (shouldLoadData) {
+      loadSolicitantes();
+    } else if (!isAuthLoading) {
+      setLoading(false);
+    }
+  }, [shouldLoadData, isAuthLoading]);
 
   const addSolicitante = async (solicitanteData: Omit<Solicitante, 'id'>) => {
     console.log('Adicionando solicitante:', solicitanteData);

@@ -4,12 +4,14 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Corrida, CorridasContextType } from '@/types/corridas';
 import { getCorridasByMotorista } from '@/utils/corridaHelpers';
+import { useAuthDependentData } from '@/hooks/useAuthDependentData';
 
 const CorridasContext = createContext<CorridasContextType | undefined>(undefined);
 
 export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   const [corridas, setCorridas] = useState<Corrida[]>([]);
   const [loading, setLoading] = useState(true);
+  const { shouldLoadData, isAuthLoading } = useAuthDependentData();
 
   // Carregar corridas do Supabase
   const loadCorridas = async () => {
@@ -84,8 +86,12 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    loadCorridas();
-  }, []);
+    if (shouldLoadData) {
+      loadCorridas();
+    } else if (!isAuthLoading) {
+      setLoading(false);
+    }
+  }, [shouldLoadData, isAuthLoading]);
 
   const addCorrida = async (corridaData: Omit<Corrida, 'id' | 'status'>) => {
     console.log('Adicionando corrida:', corridaData);

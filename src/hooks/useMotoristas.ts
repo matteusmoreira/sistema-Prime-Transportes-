@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuthDependentData } from '@/hooks/useAuthDependentData';
 
 export interface DocumentoMotorista {
   id: string;
@@ -34,6 +35,7 @@ export interface Motorista {
 export const useMotoristas = () => {
   const [motoristas, setMotoristas] = useState<Motorista[]>([]);
   const [loading, setLoading] = useState(true);
+  const { shouldLoadData, isAuthLoading } = useAuthDependentData();
 
   // Carregar motoristas do Supabase
   const loadMotoristas = async () => {
@@ -73,8 +75,12 @@ export const useMotoristas = () => {
   };
 
   useEffect(() => {
-    loadMotoristas();
-  }, []);
+    if (shouldLoadData) {
+      loadMotoristas();
+    } else if (!isAuthLoading) {
+      setLoading(false);
+    }
+  }, [shouldLoadData, isAuthLoading]);
 
   // Função para sanitizar nomes de arquivo
   const sanitizeFileName = (fileName: string): string => {

@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuthDependentData } from '@/hooks/useAuthDependentData';
 
 export interface Empresa {
   id: number;
@@ -28,6 +29,7 @@ const EmpresasContext = createContext<EmpresasContextType | undefined>(undefined
 export const EmpresasProvider = ({ children }: { children: ReactNode }) => {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(true);
+  const { shouldLoadData, isAuthLoading } = useAuthDependentData();
 
   // Carregar empresas do Supabase
   const loadEmpresas = async () => {
@@ -66,8 +68,14 @@ export const EmpresasProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    loadEmpresas();
-  }, []);
+    if (shouldLoadData) {
+      loadEmpresas();
+    } else if (!isAuthLoading) {
+      // Se não está carregando auth mas não deve carregar dados, 
+      // significa que não está logado
+      setLoading(false);
+    }
+  }, [shouldLoadData, isAuthLoading]);
 
   const addEmpresa = async (empresaData: Omit<Empresa, 'id'>) => {
     console.log('Context: Tentando cadastrar empresa:', empresaData);
