@@ -38,6 +38,7 @@ export const Sidebar = ({
     { id: 'voucher', label: 'Voucher', icon: Receipt, roles: ['Administrador', 'Financeiro'] },
     { id: 'alertas', label: 'Alertas', icon: Bell, roles: ['Administrador', 'Administração', 'Motorista'] },
     { id: 'relatorios', label: 'Relatórios', icon: FileText, roles: ['Administrador', 'Administração', 'Financeiro'] },
+    { id: 'minha-conta', label: 'Minha Conta', icon: Users, roles: ['Motorista'] },
   ];
 
   const filteredItems = menuItems.filter(item => item.roles.includes(userLevel));

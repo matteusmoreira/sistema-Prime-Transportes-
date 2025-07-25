@@ -121,37 +121,70 @@ export const useMotoristas = () => {
     console.log('Fotos:', formData.fotosVeiculo);
     
     try {
-      // Primeiro, criar o motorista
-      console.log('Criando motorista no banco...');
-      const { data, error } = await supabase
-        .from('motoristas')
-        .insert([{
-          nome: formData.nome,
-          cpf: formData.cpf || null,
-          telefone: formData.telefone || null,
-          email: formData.email,
-          cnh: formData.cnh || null,
-          validade_cnh: formData.cnhDataValidade || null,
-          status: (formData as any).status || 'Pendente'
-        }])
-        .select()
+      // Verificar se é um admin criando o motorista
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user?.id)
         .single();
 
-      console.log('Resultado da inserção:', { data, error });
+      let data, motoristaId;
 
-      if (error) {
-        console.error('Erro detalhado ao adicionar motorista:', error);
+      if (profile?.role === 'Administrador') {
+        // Criar conta via edge function
+        console.log('Admin criando conta via edge function...');
+        const { data: response, error } = await supabase.functions.invoke('create-motorista-account', {
+          body: {
+            email: formData.email,
+            nome: formData.nome,
+            cpf: formData.cpf,
+            telefone: formData.telefone,
+            cnh: formData.cnh,
+            validadeCnh: formData.cnhDataValidade
+          }
+        });
+
+        if (error) throw error;
+        if (!response.success) throw new Error(response.error);
         
-        // Tratamento específico para erro de CPF duplicado
-        if (error.code === '23505' && error.message.includes('motoristas_cpf_key')) {
-          toast.error('Este CPF já está cadastrado no sistema');
-        } else {
-          toast.error(`Erro ao adicionar motorista: ${error.message}`);
+        data = response.motorista;
+        motoristaId = data.id;
+        
+        toast.success(response.message);
+      } else {
+        // Criar apenas o registro do motorista (para motoristas se auto-cadastrando)
+        console.log('Criando motorista no banco...');
+        const { data: motoristaData, error } = await supabase
+          .from('motoristas')
+          .insert([{
+            nome: formData.nome,
+            cpf: formData.cpf || null,
+            telefone: formData.telefone || null,
+            email: formData.email,
+            cnh: formData.cnh || null,
+            validade_cnh: formData.cnhDataValidade || null,
+            status: (formData as any).status || 'Pendente'
+          }])
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Erro detalhado ao adicionar motorista:', error);
+          
+          // Tratamento específico para erro de CPF duplicado
+          if (error.code === '23505' && error.message.includes('motoristas_cpf_key')) {
+            toast.error('Este CPF já está cadastrado no sistema');
+          } else {
+            toast.error(`Erro ao adicionar motorista: ${error.message}`);
+          }
+          return;
         }
-        return;
+
+        data = motoristaData;
+        motoristaId = data.id;
       }
 
-      const motoristaId = data.id;
       const documentosUploadados: DocumentoMotorista[] = [];
       const fotosUploadadas: FotoVeiculo[] = [];
 
@@ -247,7 +280,10 @@ export const useMotoristas = () => {
       };
 
       setMotoristas(prev => [...prev, newMotorista]);
-      toast.success('Motorista cadastrado com sucesso!');
+      
+      if (profile?.role !== 'Administrador') {
+        toast.success('Motorista cadastrado com sucesso!');
+      }
     } catch (error) {
       console.error('Erro ao adicionar motorista:', error);
       toast.error('Erro ao adicionar motorista');

@@ -12,6 +12,7 @@ import { VoucherManager } from '@/components/voucher/VoucherManager';
 import { AlertasManager } from '@/components/alertas/AlertasManager';
 import { NotificacoesMotorista } from '@/components/alertas/NotificacoesMotorista';
 import { RelatoriosManager } from '@/components/relatorios/RelatoriosManager';
+import { MinhaContaManager } from './MinhaContaManager';
 import { DashboardHome } from './DashboardHome';
 
 interface DashboardProps {
@@ -48,6 +49,8 @@ export const Dashboard = ({ userLevel, onLogout, userEmail }: DashboardProps) =>
           : <AlertasManager />;
       case 'relatorios':
         return <RelatoriosManager />;
+      case 'minha-conta':
+        return <MinhaContaManager />;
       default:
         return <DashboardHome userLevel={userLevel} userEmail={userEmail} />;
     }
