@@ -105,19 +105,21 @@ export const useMotoristas = () => {
         .from('motoristas')
         .insert([{
           nome: formData.nome,
-          cpf: formData.cpf,
-          telefone: formData.telefone,
+          cpf: formData.cpf || null,
+          telefone: formData.telefone || null,
           email: formData.email,
-          cnh: formData.cnh,
-          validade_cnh: formData.cnhDataValidade,
+          cnh: formData.cnh || null,
+          validade_cnh: formData.cnhDataValidade || null,
           ativo: false // Aguardando aprovação
         }])
         .select()
         .single();
 
+      console.log('Resultado da inserção:', { data, error });
+
       if (error) {
-        console.error('Erro ao adicionar motorista:', error);
-        toast.error('Erro ao adicionar motorista');
+        console.error('Erro detalhado ao adicionar motorista:', error);
+        toast.error(`Erro ao adicionar motorista: ${error.message}`);
         return;
       }
 
