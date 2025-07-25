@@ -65,19 +65,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   useEffect(() => {
+    console.log('=== AUTH CONTEXT INIT ===');
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          console.log('User logged in, fetching profile...');
           // Defer profile fetch to avoid potential auth deadlock
           setTimeout(async () => {
             const profileData = await fetchProfile(session.user.id);
+            console.log('Profile fetched:', profileData);
             setProfile(profileData);
           }, 0);
         } else {
+          console.log('No user session');
           setProfile(null);
         }
         
@@ -87,12 +93,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
         setTimeout(async () => {
           const profileData = await fetchProfile(session.user.id);
+          console.log('Initial profile fetch:', profileData);
           setProfile(profileData);
           setLoading(false);
         }, 0);
