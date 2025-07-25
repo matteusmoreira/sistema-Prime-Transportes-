@@ -1,5 +1,8 @@
 
 import { useCorridas } from './useCorridas';
+import { useEmpresas } from '@/contexts/EmpresasContext';
+import { useMotoristas } from '@/hooks/useMotoristas';
+import { getCorridasByMotorista as getCorridasHelper } from '@/utils/corridaHelpers';
 import { toast } from 'sonner';
 
 export const useCorridasLogic = (userLevel: string, userEmail: string) => {
@@ -17,6 +20,9 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
     rejectCorrida,
     getCorridasByMotorista
   } = useCorridas();
+
+  const { empresas } = useEmpresas();
+  const { motoristas } = useMotoristas();
 
   console.log('Total de corridas no contexto:', corridas.length);
   console.log('Todas as corridas do contexto:', corridas);
@@ -37,7 +43,7 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
     return true;
   };
 
-  const processFormData = (formData: any, documentos: any) => {
+  const processFormData = (formData: any, documentos: any, empresas: any[], motoristas: any[]) => {
     console.log('=== DEBUG processFormData ===');
     console.log('Dados do formulário recebidos:', formData);
     console.log('Motorista selecionado no formulário:', formData.motorista);
@@ -47,14 +53,12 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
     console.log('Valor exato do motorista:', JSON.stringify(formData.motorista));
     
     // Buscar empresa para obter o ID
-    const empresas = JSON.parse(localStorage.getItem('empresas') || '[]');
     const empresa = empresas.find((e: any) => e.nome === formData.empresa);
     const empresaId = empresa ? empresa.id : 1;
     
     // Se for um motorista logado, buscar o nome do motorista pelo email
     let motoristaName = formData.motorista;
     if (userLevel === 'Motorista' && userEmail) {
-      const motoristas = JSON.parse(localStorage.getItem('motoristas') || '[]');
       const motorista = motoristas.find((m: any) => m.email === userEmail);
       if (motorista) {
         motoristaName = motorista.nome;
@@ -112,7 +116,7 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
   if (userLevel === 'Motorista') {
     console.log('=== FILTRANDO CORRIDAS PARA MOTORISTA ===');
     console.log('Chamando getCorridasByMotorista com email:', userEmail);
-    corridasFiltradas = getCorridasByMotorista(userEmail);
+    corridasFiltradas = getCorridasHelper(corridas, userEmail, motoristas);
     console.log('Resultado da filtragem - Corridas encontradas:', corridasFiltradas);
     console.log('Quantidade de corridas do motorista:', corridasFiltradas.length);
     
@@ -141,11 +145,15 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
   console.log('Array de corridas filtradas que será retornado:', corridasFiltradas);
   console.log('=== FIM DEBUG useCorridasLogic ===');
 
+  const processFormDataWithContext = (formData: any, documentos: any) => {
+    return processFormData(formData, documentos, empresas, motoristas);
+  };
+
   return {
     corridasFiltradas,
     handleEdit,
     handleFillOS,
-    processFormData,
+    processFormData: processFormDataWithContext,
     addCorrida,
     updateCorrida,
     fillOS,

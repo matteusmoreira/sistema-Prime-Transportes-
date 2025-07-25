@@ -1,6 +1,6 @@
 import { Corrida } from '@/types/corridas';
 
-export const getCorridasByMotorista = (corridas: Corrida[], motoristaEmail: string): Corrida[] => {
+export const getCorridasByMotorista = (corridas: Corrida[], motoristaEmail: string, motoristas: any[]): Corrida[] => {
   console.log('=== GET CORRIDAS BY MOTORISTA DEBUG ===');
   console.log('Email do motorista logado:', motoristaEmail);
   console.log('Tipo do email:', typeof motoristaEmail);
@@ -12,8 +12,7 @@ export const getCorridasByMotorista = (corridas: Corrida[], motoristaEmail: stri
   console.log('Quantidade de corridas:', corridas ? corridas.length : 'undefined');
   
   // Buscar motorista pelo email para obter o nome
-  const motoristas = JSON.parse(localStorage.getItem('motoristas') || '[]');
-  console.log('Todos os motoristas no localStorage:', motoristas);
+  console.log('Todos os motoristas recebidos:', motoristas);
   console.log('Emails dos motoristas cadastrados:', motoristas.map((m: any) => m.email));
   
   const motorista = motoristas.find((m: any) => {

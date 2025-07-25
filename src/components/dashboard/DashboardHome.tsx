@@ -38,8 +38,7 @@ export const DashboardHome = ({
   // Calcular corridas efetuadas para motoristas (apenas Concluída e No Show)
   const corridasEfetuadas = userLevel === 'Motorista' && userEmail 
     ? corridas.filter(c => {
-        // Buscar o nome do motorista pelo email
-        const motoristas = JSON.parse(localStorage.getItem('motoristas') || '[]');
+        // Buscar o nome do motorista pelo email usando o contexto
         const motorista = motoristas.find((m: any) => m.email === userEmail);
         
         return motorista && 

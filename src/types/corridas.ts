@@ -64,5 +64,5 @@ export interface CorridasContextType {
   approveCorrida: (id: number) => Promise<void>;
   rejectCorrida: (id: number, motivo: string) => Promise<void>;
   updateStatus: (id: number, status: Corrida['status']) => Promise<void>;
-  getCorridasByMotorista: (motoristaEmail: string) => Corrida[];
+  getCorridasByMotorista: (motoristaEmail: string, motoristas: any[]) => Corrida[];
 }

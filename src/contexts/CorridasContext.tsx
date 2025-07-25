@@ -186,7 +186,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       approveCorrida,
       rejectCorrida,
       updateStatus,
-      getCorridasByMotorista: (motoristaEmail: string) => getCorridasByMotorista(corridas, motoristaEmail)
+      getCorridasByMotorista: (motoristaEmail: string, motoristas: any[]) => getCorridasByMotorista(corridas, motoristaEmail, motoristas)
     }}>
       {children}
     </CorridasContext.Provider>
