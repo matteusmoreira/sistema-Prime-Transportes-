@@ -76,7 +76,20 @@ export const useMotoristas = () => {
     loadMotoristas();
   }, []);
 
+  // Função para sanitizar nomes de arquivo
+  const sanitizeFileName = (fileName: string): string => {
+    return fileName
+      .normalize('NFD') // Decomposição de caracteres acentuados
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^a-zA-Z0-9.-]/g, '_') // Substitui caracteres especiais por underscore
+      .replace(/_{2,}/g, '_') // Remove underscores múltiplos
+      .replace(/^_|_$/g, '') // Remove underscores do início e fim
+      .toLowerCase(); // Converte para minúsculas
+  };
+
   const uploadFile = async (file: File, bucket: string, path: string) => {
+    console.log('Tentando upload:', { bucket, path, fileName: file.name });
+    
     const { data, error } = await supabase.storage
       .from(bucket)
       .upload(path, file, {
@@ -89,6 +102,7 @@ export const useMotoristas = () => {
       throw error;
     }
 
+    console.log('Upload realizado com sucesso:', data);
     return data;
   };
 
@@ -140,7 +154,9 @@ export const useMotoristas = () => {
             // Buscar o arquivo original do input file
             const arquivo = (doc as any).arquivoFile; // Arquivo File real
             if (arquivo instanceof File) {
-              const fileName = `${motoristaId}-${Date.now()}-${arquivo.name}`;
+              const sanitizedName = sanitizeFileName(arquivo.name);
+              const fileName = `${motoristaId}-${Date.now()}-${sanitizedName}`;
+              console.log('Upload de documento:', { original: arquivo.name, sanitized: sanitizedName, final: fileName });
               await uploadFile(arquivo, 'motorista-documentos', fileName);
               
               // Salvar referência no banco
@@ -176,7 +192,9 @@ export const useMotoristas = () => {
           try {
             const arquivo = (foto as any).arquivoFile; // Arquivo File real
             if (arquivo instanceof File) {
-              const fileName = `${motoristaId}-${Date.now()}-${arquivo.name}`;
+              const sanitizedName = sanitizeFileName(arquivo.name);
+              const fileName = `${motoristaId}-${Date.now()}-${sanitizedName}`;
+              console.log('Upload de foto:', { original: arquivo.name, sanitized: sanitizedName, final: fileName });
               await uploadFile(arquivo, 'motorista-fotos', fileName);
               
               fotosUploadadas.push({
