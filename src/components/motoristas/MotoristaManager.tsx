@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Car } from 'lucide-react';
+import { toast } from 'sonner';
 import { useMotoristas, Motorista, DocumentoMotorista, FotoVeiculo } from '@/hooks/useMotoristas';
 import { MotoristaForm } from './form/MotoristaForm';
 import { MotoristaTable } from './table/MotoristaTable';
@@ -90,6 +91,17 @@ export const MotoristaManager = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('=== SUBMIT DO FORMULÁRIO ===');
+    console.log('FormData:', formData);
+    console.log('Documentos antes da conversão:', documentos);
+    console.log('Fotos antes da conversão:', fotosVeiculo);
+    
+    // Validação básica
+    if (!formData.nome || !formData.email) {
+      toast.error('Nome e email são obrigatórios');
+      return;
+    }
     
     // Converter documentos para o formato final, incluindo o arquivo File real
     const documentosFinais: any[] = documentos.map(doc => ({

@@ -93,10 +93,14 @@ export const useMotoristas = () => {
   };
 
   const addMotorista = async (formData: Omit<Motorista, 'id' | 'status'>) => {
-    console.log('Adicionando motorista:', formData);
+    console.log('=== INICIANDO CADASTRO DE MOTORISTA ===');
+    console.log('Form data recebido:', formData);
+    console.log('Documentos:', formData.documentos);
+    console.log('Fotos:', formData.fotosVeiculo);
     
     try {
       // Primeiro, criar o motorista
+      console.log('Criando motorista no banco...');
       const { data, error } = await supabase
         .from('motoristas')
         .insert([{
