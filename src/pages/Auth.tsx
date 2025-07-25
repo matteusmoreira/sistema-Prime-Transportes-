@@ -10,6 +10,7 @@ import { Truck, Mail, Lock, User, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { Database } from '@/integrations/supabase/types';
+import { EnhancedMotoristaSignup } from '@/components/auth/EnhancedMotoristaSignup';
 
 type UserRole = Database['public']['Enums']['user_role'];
 
@@ -19,6 +20,7 @@ export const Auth = () => {
   
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
+  const [showEnhancedSignup, setShowEnhancedSignup] = useState(false);
   
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
@@ -92,7 +94,7 @@ export const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
+      <Card className={`w-full ${showEnhancedSignup ? 'max-w-4xl' : 'max-w-md'}`}>
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="bg-blue-600 p-3 rounded-full">
@@ -154,6 +156,52 @@ export const Auth = () => {
             </TabsContent>
             
             <TabsContent value="signup">
+              {!showEnhancedSignup ? (
+                <div className="space-y-4">
+                  <div className="text-center space-y-4">
+                    <h3 className="text-lg font-medium">Escolha seu tipo de cadastro</h3>
+                    <div className="grid grid-cols-1 gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-auto p-4 text-left"
+                        onClick={() => setShowEnhancedSignup(true)}
+                      >
+                        <div>
+                          <div className="font-medium">Motorista Completo</div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            Cadastro completo com documentos, CNH e fotos do veículo
+                          </div>
+                        </div>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-auto p-4 text-left"
+                        onClick={() => setActiveTab('simple-signup')}
+                      >
+                        <div>
+                          <div className="font-medium">Outros Usuários</div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            Cadastro simples para administração, financeiro, etc.
+                          </div>
+                        </div>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <EnhancedMotoristaSignup
+                  onSuccess={() => {
+                    setShowEnhancedSignup(false);
+                    setActiveTab('signin');
+                  }}
+                  onBack={() => setShowEnhancedSignup(false)}
+                />
+              )}
+            </TabsContent>
+            
+            <TabsContent value="simple-signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-nome" className="flex items-center gap-2">
@@ -205,20 +253,29 @@ export const Auth = () => {
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Motorista">Motorista</SelectItem>
                       <SelectItem value="Administração">Administração</SelectItem>
                       <SelectItem value="Financeiro">Financeiro</SelectItem>
                       <SelectItem value="Administrador">Administrador</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={loading}
-                >
-                  {loading ? 'Cadastrando...' : 'Cadastrar'}
-                </Button>
+                <div className="flex space-x-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => setActiveTab('signup')}
+                  >
+                    Voltar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="flex-1" 
+                    disabled={loading}
+                  >
+                    {loading ? 'Cadastrando...' : 'Cadastrar'}
+                  </Button>
+                </div>
               </form>
             </TabsContent>
             

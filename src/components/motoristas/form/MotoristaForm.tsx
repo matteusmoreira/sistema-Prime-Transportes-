@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Upload, Image, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCpfValidation } from '@/hooks/useCpfValidation';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface MotoristaFormData {
   nome: string;
@@ -14,6 +15,7 @@ interface MotoristaFormData {
   email: string;
   cnh: string;
   cnhDataValidade: string;
+  status?: 'Pendente' | 'Aprovado' | 'Reprovado';
 }
 
 interface DocumentoUpload {
@@ -266,6 +268,23 @@ export const MotoristaForm = ({
           />
         </div>
       </div>
+
+      {/* Status selection - only show for admin users */}
+      {formData.status !== undefined && (
+        <div className="space-y-2">
+          <Label htmlFor="status">Status</Label>
+          <Select value={formData.status} onValueChange={(value: 'Pendente' | 'Aprovado' | 'Reprovado') => onInputChange('status' as any, value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Pendente">Pendente</SelectItem>
+              <SelectItem value="Aprovado">Aprovado</SelectItem>
+              <SelectItem value="Reprovado">Reprovado</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">

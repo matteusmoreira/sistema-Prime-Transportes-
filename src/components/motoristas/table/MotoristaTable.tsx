@@ -86,7 +86,7 @@ export const MotoristaTable = ({
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  {motorista.status === 'Aguardando Aprovação' && (
+                  {motorista.status === 'Pendente' && (
                     <>
                       <Button
                         size="sm"

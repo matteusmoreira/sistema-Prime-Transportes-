@@ -411,6 +411,7 @@ export type Database = {
           id: number
           nome: string
           rg: string | null
+          status: Database["public"]["Enums"]["motorista_status"]
           telefone: string | null
           updated_at: string
           user_id: string | null
@@ -428,6 +429,7 @@ export type Database = {
           id?: number
           nome: string
           rg?: string | null
+          status?: Database["public"]["Enums"]["motorista_status"]
           telefone?: string | null
           updated_at?: string
           user_id?: string | null
@@ -445,6 +447,7 @@ export type Database = {
           id?: number
           nome?: string
           rg?: string | null
+          status?: Database["public"]["Enums"]["motorista_status"]
           telefone?: string | null
           updated_at?: string
           user_id?: string | null
@@ -600,6 +603,7 @@ export type Database = {
         | "Em Análise"
         | "No Show"
         | "Revisar"
+      motorista_status: "Pendente" | "Aprovado" | "Reprovado"
       user_role: "Administrador" | "Administração" | "Financeiro" | "Motorista"
     }
     CompositeTypes: {
@@ -745,6 +749,7 @@ export const Constants = {
         "No Show",
         "Revisar",
       ],
+      motorista_status: ["Pendente", "Aprovado", "Reprovado"],
       user_role: ["Administrador", "Administração", "Financeiro", "Motorista"],
     },
   },

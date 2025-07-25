@@ -41,7 +41,8 @@ export const MotoristaManager = () => {
     telefone: '',
     email: '',
     cnh: '',
-    cnhDataValidade: ''
+    cnhDataValidade: '',
+    status: 'Pendente' as 'Pendente' | 'Aprovado' | 'Reprovado'
   });
   const [documentos, setDocumentos] = useState<DocumentoUpload[]>([]);
   const [fotosVeiculo, setFotosVeiculo] = useState<FotoVeiculoUpload[]>([]);
@@ -53,7 +54,8 @@ export const MotoristaManager = () => {
       telefone: '',
       email: '',
       cnh: '',
-      cnhDataValidade: ''
+      cnhDataValidade: '',
+      status: 'Pendente' as 'Pendente' | 'Aprovado' | 'Reprovado'
     });
     setDocumentos([]);
     setFotosVeiculo([]);
@@ -68,7 +70,8 @@ export const MotoristaManager = () => {
       telefone: motorista.telefone,
       email: motorista.email,
       cnh: motorista.cnh,
-      cnhDataValidade: motorista.cnhDataValidade || ''
+      cnhDataValidade: motorista.cnhDataValidade || '',
+      status: motorista.status
     });
     
     // Converter documentos existentes para o formato do formulário
@@ -130,10 +133,12 @@ export const MotoristaManager = () => {
         fotosVeiculo: fotosFinais
       });
     } else {
+      const { status, ...motoristaDados } = formData;
       addMotorista({
-        ...formData,
+        ...motoristaDados,
         documentos: documentosFinais,
-        fotosVeiculo: fotosFinais
+        fotosVeiculo: fotosFinais,
+        status // Pass the admin-selected status
       });
     }
     

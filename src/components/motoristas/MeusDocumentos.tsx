@@ -96,7 +96,7 @@ export const MeusDocumentos = ({ motoristaEmail }: MeusDocumentosProps) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {motorista.status === 'Aguardando Aprovação' && (
+            {motorista.status === 'Pendente' && (
               <p className="text-sm text-orange-600">
                 ⏳ Seus documentos estão sendo analisados pela administração.
               </p>

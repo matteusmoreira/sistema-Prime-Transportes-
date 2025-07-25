@@ -27,9 +27,10 @@ export interface Motorista {
   email: string;
   cnh: string;
   cnhDataValidade: string;
-  status: 'Aguardando Aprovação' | 'Aprovado' | 'Reprovado';
+  status: 'Pendente' | 'Aprovado' | 'Reprovado';
   documentos: DocumentoMotorista[];
   fotosVeiculo: FotoVeiculo[];
+  user_id?: string;
 }
 
 export const useMotoristas = () => {
@@ -60,9 +61,10 @@ export const useMotoristas = () => {
         email: motorista.email,
         cnh: motorista.cnh || '',
         cnhDataValidade: motorista.validade_cnh || '',
-        status: motorista.ativo ? 'Aprovado' as const : 'Aguardando Aprovação' as const,
+        status: motorista.status || 'Pendente',
         documentos: [] as DocumentoMotorista[],
-        fotosVeiculo: [] as FotoVeiculo[]
+        fotosVeiculo: [] as FotoVeiculo[],
+        user_id: motorista.user_id || undefined
       })) || [];
 
       setMotoristas(motoristasFormatted);
@@ -112,7 +114,7 @@ export const useMotoristas = () => {
     return data;
   };
 
-  const addMotorista = async (formData: Omit<Motorista, 'id' | 'status'>) => {
+  const addMotorista = async (formData: Omit<Motorista, 'id'> | (Omit<Motorista, 'id' | 'status'> & { status?: 'Pendente' | 'Aprovado' | 'Reprovado' })) => {
     console.log('=== INICIANDO CADASTRO DE MOTORISTA ===');
     console.log('Form data recebido:', formData);
     console.log('Documentos:', formData.documentos);
@@ -130,7 +132,7 @@ export const useMotoristas = () => {
           email: formData.email,
           cnh: formData.cnh || null,
           validade_cnh: formData.cnhDataValidade || null,
-          ativo: false // Aguardando aprovação
+          status: (formData as any).status || 'Pendente'
         }])
         .select()
         .single();
@@ -239,7 +241,7 @@ export const useMotoristas = () => {
         email: data.email,
         cnh: data.cnh || '',
         cnhDataValidade: data.validade_cnh || '',
-        status: 'Aguardando Aprovação',
+        status: (formData as any).status || 'Pendente',
         documentos: documentosUploadados,
         fotosVeiculo: fotosUploadadas
       };
@@ -265,7 +267,7 @@ export const useMotoristas = () => {
           email: updatedData.email,
           cnh: updatedData.cnh,
           validade_cnh: updatedData.cnhDataValidade,
-          ativo: updatedData.status === 'Aprovado'
+          status: updatedData.status
         })
         .eq('id', id);
 

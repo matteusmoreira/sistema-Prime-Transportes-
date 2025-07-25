@@ -152,7 +152,7 @@ export const AdminDocumentosViewer = ({
 
         <div className="space-y-6">
           {/* Ações de Aprovação/Rejeição */}
-          {motorista.status === 'Aguardando Aprovação' && (
+          {motorista.status === 'Pendente' && (
             <div className="flex space-x-2 p-4 bg-gray-50 rounded-lg">
               <Button 
                 onClick={() => onApprove?.(motorista.id)}
