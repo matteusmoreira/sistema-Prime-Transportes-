@@ -119,7 +119,13 @@ export const useMotoristas = () => {
 
       if (error) {
         console.error('Erro detalhado ao adicionar motorista:', error);
-        toast.error(`Erro ao adicionar motorista: ${error.message}`);
+        
+        // Tratamento específico para erro de CPF duplicado
+        if (error.code === '23505' && error.message.includes('motoristas_cpf_key')) {
+          toast.error('Este CPF já está cadastrado no sistema');
+        } else {
+          toast.error(`Erro ao adicionar motorista: ${error.message}`);
+        }
         return;
       }
 

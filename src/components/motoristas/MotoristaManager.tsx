@@ -172,6 +172,7 @@ export const MotoristaManager = () => {
               isEditing={!!editingMotorista}
               documentos={documentos}
               fotosVeiculo={fotosVeiculo}
+              motoristaId={editingMotorista?.id}
             />
           </DialogContent>
         </Dialog>

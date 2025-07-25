@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Upload, Image, X } from 'lucide-react';
+import { Plus, Trash2, Upload, Image, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCpfValidation } from '@/hooks/useCpfValidation';
 
 interface MotoristaFormData {
   nome: string;
@@ -39,6 +40,7 @@ interface MotoristaFormProps {
   isEditing: boolean;
   documentos?: DocumentoUpload[];
   fotosVeiculo?: FotoVeiculoUpload[];
+  motoristaId?: number;
 }
 
 export const MotoristaForm = ({ 
@@ -50,10 +52,45 @@ export const MotoristaForm = ({
   onCancel, 
   isEditing,
   documentos = [],
-  fotosVeiculo = []
+  fotosVeiculo = [],
+  motoristaId
 }: MotoristaFormProps) => {
   const [documentosLocal, setDocumentosLocal] = useState<DocumentoUpload[]>(documentos);
   const [fotosLocal, setFotosLocal] = useState<FotoVeiculoUpload[]>(fotosVeiculo);
+  
+  // CPF validation hook
+  const { isValid: isCpfValid, isDuplicate, isChecking, error: cpfError, formatCpf } = useCpfValidation(
+    formData.cpf, 
+    motoristaId
+  );
+
+  // Format phone number
+  const formatPhone = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 11) {
+      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    }
+    return value;
+  };
+
+  // Handle CPF input with formatting
+  const handleCpfChange = (value: string) => {
+    const formatted = formatCpf(value);
+    onInputChange('cpf', formatted);
+  };
+
+  // Handle phone input with formatting
+  const handlePhoneChange = (value: string) => {
+    const formatted = formatPhone(value);
+    onInputChange('telefone', formatted);
+  };
+
+  // Enhanced form validation
+  const isFormValid = () => {
+    const hasRequiredFields = formData.nome && formData.email && formData.cpf && formData.telefone;
+    const cpfValid = formData.cpf ? isCpfValid && !isDuplicate : true;
+    return hasRequiredFields && cpfValid && !isChecking;
+  };
 
   const adicionarDocumento = () => {
     const novoDoc: DocumentoUpload = {
@@ -164,20 +201,40 @@ export const MotoristaForm = ({
       </div>
       <div className="space-y-2">
         <Label htmlFor="cpf">CPF *</Label>
-        <Input
-          id="cpf"
-          value={formData.cpf}
-          onChange={(e) => onInputChange('cpf', e.target.value)}
-          placeholder="000.000.000-00"
-        />
+        <div className="relative">
+          <Input
+            id="cpf"
+            value={formData.cpf}
+            onChange={(e) => handleCpfChange(e.target.value)}
+            placeholder="000.000.000-00"
+            maxLength={14}
+            className={`pr-10 ${
+              formData.cpf && cpfError ? 'border-red-500' : 
+              formData.cpf && isCpfValid && !isDuplicate ? 'border-green-500' : ''
+            }`}
+          />
+          {isChecking && (
+            <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-gray-400" />
+          )}
+          {!isChecking && formData.cpf && cpfError && (
+            <AlertCircle className="absolute right-3 top-3 h-4 w-4 text-red-500" />
+          )}
+          {!isChecking && formData.cpf && isCpfValid && !isDuplicate && (
+            <CheckCircle className="absolute right-3 top-3 h-4 w-4 text-green-500" />
+          )}
+        </div>
+        {cpfError && (
+          <p className="text-sm text-red-500">{cpfError}</p>
+        )}
       </div>
       <div className="space-y-2">
         <Label htmlFor="telefone">Telefone *</Label>
         <Input
           id="telefone"
           value={formData.telefone}
-          onChange={(e) => onInputChange('telefone', e.target.value)}
+          onChange={(e) => handlePhoneChange(e.target.value)}
           placeholder="(00) 00000-0000"
+          maxLength={15}
         />
       </div>
       <div className="space-y-2">
@@ -352,7 +409,7 @@ export const MotoristaForm = ({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit">
+        <Button type="submit" disabled={!isFormValid()}>
           {isEditing ? 'Atualizar' : 'Cadastrar'}
         </Button>
       </div>
