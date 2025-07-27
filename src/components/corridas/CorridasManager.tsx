@@ -47,7 +47,8 @@ export const CorridasManager = ({
     fillOS,
     deleteCorrida,
     approveCorrida,
-    rejectCorrida
+    rejectCorrida,
+    selectMotorista
   } = useCorridasLogic(userLevel, userEmail);
 
   console.log('=== CORRIDAS FILTRADAS FINAL ===');
@@ -141,6 +142,7 @@ export const CorridasManager = ({
             onDelete={deleteCorrida}
             onApprove={approveCorrida}
             onReject={rejectCorrida}
+            onSelectMotorista={selectMotorista}
           />
         </CardContent>
       </Card>

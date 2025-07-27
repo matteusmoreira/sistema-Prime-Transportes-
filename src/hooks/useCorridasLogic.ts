@@ -18,6 +18,7 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
     deleteCorrida, 
     approveCorrida, 
     rejectCorrida,
+    selectMotorista,
     getCorridasByMotorista
   } = useCorridas();
 
@@ -159,6 +160,7 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
     fillOS,
     deleteCorrida,
     approveCorrida,
-    rejectCorrida
+    rejectCorrida,
+    selectMotorista
   };
 };

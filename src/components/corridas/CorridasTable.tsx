@@ -2,11 +2,12 @@
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Eye, Check, X, FileEdit } from 'lucide-react';
+import { Edit, Trash2, Eye, Check, X, FileEdit, UserPlus } from 'lucide-react';
 import { Corrida } from '@/types/corridas';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { MotoristaSelectionDialog } from './MotoristaSelectionDialog';
 
 interface CorridasTableProps {
   corridas: Corrida[];
@@ -18,6 +19,7 @@ interface CorridasTableProps {
   onDelete: (id: number) => void;
   onApprove: (id: number) => void;
   onReject: (id: number, motivo: string) => void;
+  onSelectMotorista?: (corridaId: number, motoristaName: string, veiculo?: string) => void;
 }
 
 export const CorridasTable = ({ 
@@ -29,7 +31,8 @@ export const CorridasTable = ({
   onFillOS,
   onDelete, 
   onApprove, 
-  onReject 
+  onReject,
+  onSelectMotorista
 }: CorridasTableProps) => {
   console.log('=== CORRIDAS TABLE DEBUG ===');
   console.log('UserLevel na tabela:', userLevel);
@@ -45,6 +48,10 @@ export const CorridasTable = ({
     corridaId: null 
   });
   const [rejectReason, setRejectReason] = useState('');
+  const [motoristaSelectionDialog, setMotoristaSelectionDialog] = useState<{ open: boolean; corridaId: number | null }>({
+    open: false,
+    corridaId: null
+  });
 
   const handleRejectClick = (corridaId: number) => {
     setRejectDialog({ open: true, corridaId });
@@ -73,8 +80,28 @@ export const CorridasTable = ({
         return <Badge className="bg-red-100 text-red-800 border-red-300 hover:bg-red-200">{status}</Badge>;
       case 'No Show':
         return <Badge className="bg-green-700 text-white border-green-700 hover:bg-green-800">{status}</Badge>;
+      case 'Selecionar Motorista':
+        return <Badge className="bg-red-100 text-red-800 border-red-300 hover:bg-red-200">{status}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const getMotoristaDisplay = (motorista: string | undefined) => {
+    if (motorista) {
+      return <span className="text-sm">{motorista}</span>;
+    }
+    return <Badge className="bg-red-100 text-red-800 border-red-300 hover:bg-red-200">Selecionar Motorista</Badge>;
+  };
+
+  const handleSelectMotoristaClick = (corridaId: number) => {
+    setMotoristaSelectionDialog({ open: true, corridaId });
+  };
+
+  const handleMotoristaSelected = (motoristaName: string, veiculo?: string) => {
+    if (motoristaSelectionDialog.corridaId && onSelectMotorista) {
+      onSelectMotorista(motoristaSelectionDialog.corridaId, motoristaName, veiculo);
+      setMotoristaSelectionDialog({ open: false, corridaId: null });
     }
   };
 
@@ -164,7 +191,7 @@ export const CorridasTable = ({
             <TableRow key={corrida.id}>
               <TableCell>{new Date(corrida.dataServico || corrida.data).toLocaleDateString('pt-BR')}</TableCell>
               <TableCell className="font-medium">{corrida.empresa}</TableCell>
-              <TableCell>{corrida.motorista}</TableCell>
+              <TableCell>{getMotoristaDisplay(corrida.motorista)}</TableCell>
               <TableCell>{corrida.origem} → {corrida.destino}</TableCell>
               <TableCell>{corrida.centroCusto}</TableCell>
               <TableCell>R$ {(corrida.valor || 0).toFixed(2)}</TableCell>
@@ -190,6 +217,17 @@ export const CorridasTable = ({
                         <X className="h-4 w-4" />
                       </Button>
                     </>
+                  )}
+
+                  {userLevel === 'Administrador' && corrida.status === 'Selecionar Motorista' && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="border-red-300 text-red-800 hover:bg-red-50"
+                      onClick={() => handleSelectMotoristaClick(corrida.id)}
+                    >
+                      <UserPlus className="h-4 w-4" />
+                    </Button>
                   )}
 
                   {userLevel === 'Administrador' && (
@@ -240,6 +278,14 @@ export const CorridasTable = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Motorista Selection Dialog */}
+      <MotoristaSelectionDialog
+        open={motoristaSelectionDialog.open}
+        onOpenChange={(open) => setMotoristaSelectionDialog({ open, corridaId: null })}
+        onSelect={handleMotoristaSelected}
+        corridaId={motoristaSelectionDialog.corridaId || undefined}
+      />
     </>
   );
 };

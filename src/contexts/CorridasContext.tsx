@@ -151,6 +151,43 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
+      // Salvar documentos se existirem
+      if (corridaData.documentos && corridaData.documentos.length > 0) {
+        for (const documento of corridaData.documentos) {
+          if (documento.arquivo) {
+            try {
+              // Upload do arquivo para o storage
+              const fileName = `${data.id}_${Date.now()}_${documento.nome}`;
+              const { error: uploadError } = await supabase.storage
+                .from('corrida-documentos')
+                .upload(fileName, documento.arquivo);
+
+              if (uploadError) {
+                console.error('Erro ao fazer upload do documento:', uploadError);
+                continue;
+              }
+
+              // Obter URL pública do arquivo
+              const { data: publicUrlData } = supabase.storage
+                .from('corrida-documentos')
+                .getPublicUrl(fileName);
+
+              // Salvar registro do documento na tabela
+              await supabase
+                .from('corrida_documentos')
+                .insert({
+                  corrida_id: data.id,
+                  nome: documento.nome,
+                  descricao: documento.descricao,
+                  url: publicUrlData.publicUrl
+                });
+            } catch (docError) {
+              console.error('Erro ao salvar documento:', docError);
+            }
+          }
+        }
+      }
+
       const newCorrida: Corrida = {
         ...corridaData,
         id: data.id,
@@ -236,6 +273,39 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
     setCorridas(prev => prev.map(c => 
       c.id === id ? { ...c, status } : c
     ));
+    toast.success('Status atualizado com sucesso!');
+  };
+
+  const selectMotorista = async (corridaId: number, motoristaName: string, veiculo?: string) => {
+    try {
+      const { error } = await supabase
+        .from('corridas')
+        .update({ 
+          motorista: motoristaName,
+          veiculo: veiculo || null,
+          status: 'Aguardando OS'
+        })
+        .eq('id', corridaId);
+
+      if (error) {
+        console.error('Erro ao selecionar motorista:', error);
+        toast.error('Erro ao selecionar motorista');
+        return;
+      }
+
+      setCorridas(prev => prev.map(c => 
+        c.id === corridaId ? { 
+          ...c, 
+          motorista: motoristaName,
+          veiculo: veiculo || c.veiculo,
+          status: 'Aguardando OS' as const
+        } : c
+      ));
+      toast.success('Motorista selecionado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao selecionar motorista:', error);
+      toast.error('Erro ao selecionar motorista');
+    }
   };
 
   return (
@@ -246,10 +316,11 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       updateCorrida,
       fillOS,
       deleteCorrida,
-      approveCorrida,
-      rejectCorrida,
-      updateStatus,
-      getCorridasByMotorista: (motoristaEmail: string, motoristas: any[]) => getCorridasByMotorista(corridas, motoristaEmail, motoristas)
+    approveCorrida,
+    rejectCorrida,
+    updateStatus,
+    selectMotorista,
+    getCorridasByMotorista: (motoristaEmail: string, motoristas: any[]) => getCorridasByMotorista(corridas, motoristaEmail, motoristas)
     }}>
       {children}
     </CorridasContext.Provider>
