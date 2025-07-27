@@ -417,24 +417,160 @@ export const useMotoristas = () => {
   };
 
   const deleteMotorista = async (id: number) => {
-    if (!window.confirm('Tem certeza que deseja excluir este motorista?')) {
+    if (!window.confirm('Tem certeza que deseja excluir este motorista? Esta ação removerá TODOS os dados relacionados incluindo documentos, fotos e conta de usuário.')) {
       return;
     }
 
     try {
-      const { error } = await supabase
+      console.log('=== INICIANDO EXCLUSÃO COMPLETA DO MOTORISTA ===', id);
+      
+      // 1. Buscar dados do motorista primeiro
+      const { data: motorista } = await supabase
+        .from('motoristas')
+        .select('*, user_id, email')
+        .eq('id', id)
+        .single();
+
+      if (!motorista) {
+        toast.error('Motorista não encontrado');
+        return;
+      }
+
+      console.log('Motorista encontrado:', motorista);
+
+      // 2. Verificar se existem corridas associadas
+      const { data: corridas } = await supabase
+        .from('corridas')
+        .select('id')
+        .eq('motorista_id', id);
+
+      if (corridas && corridas.length > 0) {
+        toast.error('Não é possível excluir motorista com corridas associadas');
+        return;
+      }
+
+      // 3. Buscar documentos para excluir arquivos do storage
+      const { data: documentos } = await supabase
+        .from('motorista_documentos')
+        .select('*')
+        .eq('motorista_id', id);
+
+      console.log('Documentos encontrados:', documentos?.length || 0);
+
+      // 4. Buscar fotos para excluir arquivos do storage
+      const { data: fotos } = await supabase
+        .from('motorista_fotos')
+        .select('*')
+        .eq('motorista_id', id);
+
+      console.log('Fotos encontradas:', fotos?.length || 0);
+
+      // 5. Excluir arquivos de documentos do storage
+      if (documentos && documentos.length > 0) {
+        for (const doc of documentos) {
+          try {
+            const filePath = doc.url.split('/').pop();
+            if (filePath) {
+              await supabase.storage
+                .from('motorista-documentos')
+                .remove([`${id}/${filePath}`]);
+              console.log('Documento removido do storage:', filePath);
+            }
+          } catch (storageError) {
+            console.warn('Erro ao remover documento do storage:', storageError);
+          }
+        }
+      }
+
+      // 6. Excluir arquivos de fotos do storage
+      if (fotos && fotos.length > 0) {
+        for (const foto of fotos) {
+          try {
+            const filePath = foto.url.split('/').pop();
+            if (filePath) {
+              await supabase.storage
+                .from('motorista-fotos')
+                .remove([`${id}/${filePath}`]);
+              console.log('Foto removida do storage:', filePath);
+            }
+          } catch (storageError) {
+            console.warn('Erro ao remover foto do storage:', storageError);
+          }
+        }
+      }
+
+      // 7. Excluir registros de documentos da tabela
+      if (documentos && documentos.length > 0) {
+        const { error: docError } = await supabase
+          .from('motorista_documentos')
+          .delete()
+          .eq('motorista_id', id);
+
+        if (docError) {
+          console.error('Erro ao excluir documentos:', docError);
+        } else {
+          console.log('Documentos excluídos da tabela');
+        }
+      }
+
+      // 8. Excluir registros de fotos da tabela
+      if (fotos && fotos.length > 0) {
+        const { error: fotosError } = await supabase
+          .from('motorista_fotos')
+          .delete()
+          .eq('motorista_id', id);
+
+        if (fotosError) {
+          console.error('Erro ao excluir fotos:', fotosError);
+        } else {
+          console.log('Fotos excluídas da tabela');
+        }
+      }
+
+      // 9. Excluir motorista da tabela
+      const { error: motoristaError } = await supabase
         .from('motoristas')
         .delete()
         .eq('id', id);
 
-      if (error) {
-        console.error('Erro ao excluir motorista:', error);
+      if (motoristaError) {
+        console.error('Erro ao excluir motorista:', motoristaError);
         toast.error('Erro ao excluir motorista');
         return;
       }
 
+      console.log('Motorista excluído da tabela');
+
+      // 10. Excluir perfil do usuário (se existir)
+      if (motorista.user_id) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', motorista.user_id);
+
+        if (profileError) {
+          console.warn('Erro ao excluir perfil:', profileError);
+        } else {
+          console.log('Perfil excluído');
+        }
+
+        // 11. Tentar excluir usuário de autenticação (usando service role)
+        try {
+          const { error: authError } = await supabase.auth.admin.deleteUser(motorista.user_id);
+          if (authError) {
+            console.warn('Erro ao excluir usuário de autenticação:', authError);
+          } else {
+            console.log('Usuário de autenticação excluído');
+          }
+        } catch (authDeleteError) {
+          console.warn('Não foi possível excluir usuário de autenticação:', authDeleteError);
+        }
+      }
+
+      // 12. Atualizar estado local
       setMotoristas(prev => prev.filter(m => m.id !== id));
-      toast.success('Motorista excluído com sucesso!');
+      console.log('=== EXCLUSÃO COMPLETA FINALIZADA ===');
+      toast.success('Motorista e todos os dados relacionados excluídos com sucesso!');
     } catch (error) {
       console.error('Erro ao excluir motorista:', error);
       toast.error('Erro ao excluir motorista');
