@@ -1,7 +1,6 @@
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Corrida } from '@/types/corridas';
-import { useEmpresas } from '@/hooks/useEmpresas';
 
 interface CorridaDetailsProps {
   corrida: Corrida;
@@ -10,11 +9,15 @@ interface CorridaDetailsProps {
 export const CorridaDetails = ({
   corrida
 }: CorridaDetailsProps) => {
-  const { empresas } = useEmpresas();
-  
-  // Buscar o centro de custo da empresa associada à corrida
-  const empresaAssociada = empresas.find(empresa => empresa.nome === corrida.empresa);
-  const centroCustoEmpresa = empresaAssociada?.centroCusto || 'Não informado';
+  // Helper function to check if a field has meaningful data
+  const hasValue = (value: any): boolean => {
+    return value !== null && value !== undefined && value !== '';
+  };
+
+  // Helper function to display field value or fallback
+  const displayValue = (value: any, fallback: string = 'Não informado'): string => {
+    return hasValue(value) ? String(value) : fallback;
+  };
   
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -66,7 +69,7 @@ export const CorridaDetails = ({
           </div>
           <div>
             <Label className="font-semibold">Horário de Início:</Label>
-            <p>{corrida.horaInicio || corrida.horaSaida || 'Não informado'}</p>
+            <p>{displayValue(corrida.horaInicio || corrida.horaSaida)}</p>
           </div>
           <div>
             <Label className="font-semibold">Status:</Label>
@@ -74,11 +77,11 @@ export const CorridaDetails = ({
           </div>
           <div>
             <Label className="font-semibold">Centro de Custo:</Label>
-            <p>{centroCustoEmpresa}</p>
+            <p>{displayValue(corrida.centroCusto)}</p>
           </div>
           <div>
             <Label className="font-semibold">Nº OS:</Label>
-            <p>{corrida.numeroOS || 'Não informado'}</p>
+            <p>{displayValue(corrida.numeroOS)}</p>
           </div>
         </div>
       </div>
@@ -97,7 +100,7 @@ export const CorridaDetails = ({
           </div>
           <div>
             <Label className="font-semibold">Tipo de Abrangência:</Label>
-            <p>{corrida.tipoAbrangencia || 'Não informado'}</p>
+            <p>{displayValue(corrida.tipoAbrangencia)}</p>
           </div>
         </div>
       </div>
@@ -108,15 +111,15 @@ export const CorridaDetails = ({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label className="font-semibold">Projeto:</Label>
-            <p>{corrida.projeto || 'Não informado'}</p>
+            <p>{displayValue(corrida.projeto)}</p>
           </div>
           <div>
             <Label className="font-semibold">Motivo:</Label>
-            <p>{corrida.motivo || 'Não informado'}</p>
+            <p>{displayValue(corrida.motivo)}</p>
           </div>
           <div>
             <Label className="font-semibold">Veículo:</Label>
-            <p>{corrida.veiculo || 'Não informado'}</p>
+            <p>{displayValue(corrida.veiculo)}</p>
           </div>
           <div>
             <Label className="font-semibold">Valor para o Motorista:</Label>
@@ -125,20 +128,20 @@ export const CorridaDetails = ({
         </div>
       </div>
 
-      {corrida.destinoExtra && <div>
+      {hasValue(corrida.destinoExtra) && <div>
           <Label className="font-semibold">Destino Extra:</Label>
           <p className="mt-1 p-2 bg-gray-50 rounded">{corrida.destinoExtra}</p>
         </div>}
 
       {/* Passageiros */}
-      {(corrida.passageiros || corrida.passageiro) && <div className="space-y-4">
+      {hasValue(corrida.passageiro || corrida.passageiros) && <div className="space-y-4">
           <h3 className="text-lg font-semibold border-b pb-2">Passageiros</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="font-semibold">Lista de Passageiros:</Label>
-              <pre className="mt-1 p-2 bg-gray-50 rounded whitespace-pre-wrap">{corrida.passageiros || corrida.passageiro}</pre>
+              <pre className="mt-1 p-2 bg-gray-50 rounded whitespace-pre-wrap">{corrida.passageiro || corrida.passageiros}</pre>
             </div>
-            {corrida.telefonePassageiro && <div>
+            {hasValue(corrida.telefonePassageiro) && <div>
               <Label className="font-semibold">Telefone do Passageiro:</Label>
               <p>{corrida.telefonePassageiro}</p>
             </div>}
@@ -155,7 +158,7 @@ export const CorridaDetails = ({
           </div>
         </div>}
 
-      {corrida.observacoes && <div>
+      {hasValue(corrida.observacoes) && <div>
           <Label className="font-semibold">Observações:</Label>
           <p className="mt-1 p-2 bg-gray-50 rounded">{corrida.observacoes}</p>
         </div>}
