@@ -181,8 +181,40 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteCorrida = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir esta corrida?')) {
-      setCorridas(prev => prev.filter(c => c.id !== id));
-      toast.success('Corrida excluída com sucesso!');
+      try {
+        console.log('Excluindo corrida:', id);
+        
+        // Primeiro, excluir documentos relacionados
+        const { error: docsError } = await supabase
+          .from('corrida_documentos')
+          .delete()
+          .eq('corrida_id', id);
+        
+        if (docsError) {
+          console.error('Erro ao excluir documentos da corrida:', docsError);
+          // Continua mesmo com erro nos documentos
+        }
+        
+        // Depois, excluir a corrida
+        const { error } = await supabase
+          .from('corridas')
+          .delete()
+          .eq('id', id);
+        
+        if (error) {
+          console.error('Erro ao excluir corrida:', error);
+          toast.error('Erro ao excluir corrida');
+          return;
+        }
+        
+        // Atualizar estado local apenas após sucesso na exclusão do banco
+        setCorridas(prev => prev.filter(c => c.id !== id));
+        toast.success('Corrida excluída com sucesso!');
+        console.log('Corrida excluída com sucesso:', id);
+      } catch (error) {
+        console.error('Erro ao excluir corrida:', error);
+        toast.error('Erro ao excluir corrida');
+      }
     }
   };
 
