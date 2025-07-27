@@ -31,25 +31,22 @@ export const OSForm = ({
       hour: '2-digit',
       minute: '2-digit'
     }),
-    numeroOS: corrida.numeroOS,
-    // Busca dinamicamente do admin
-    horaSaida: '',
+    numeroOS: corrida.numeroOS || '',
+    horaSaida: corrida.horaSaida || corrida.horaInicio || '',
     horaChegada: '',
-    data: new Date().toISOString().split('T')[0],
-    kmInicio: '',
-    kmFinal: '',
+    data: corrida.dataServico || corrida.data || new Date().toISOString().split('T')[0],
+    kmInicio: corrida.kmInicial?.toString() || '',
+    kmFinal: corrida.kmFinal?.toString() || '',
     empresa: corrida.empresa,
     centroCusto: centroCustoEmpresa,
-    // Busca dinamicamente do admin
     origem: corrida.origem,
     destino: corrida.destino,
-    destinoExtra: '',
-    pedagio: '',
-    estacionamento: '',
-    hospedagem: '',
-    passageiros: corrida.passageiros,
-    // Busca dinamicamente do admin
-    observacoes: ''
+    destinoExtra: corrida.destinoExtra || '',
+    pedagio: corrida.pedagio?.toString() || '',
+    estacionamento: corrida.estacionamento?.toString() || '',
+    hospedagem: corrida.hospedagem?.toString() || '',
+    passageiros: corrida.passageiros || corrida.passageiro || '',
+    observacoes: corrida.observacoes || ''
   });
   const [documentos, setDocumentos] = useState<DocumentoUpload[]>([]);
   const [comprovantes, setComprovantes] = useState({
@@ -184,8 +181,13 @@ export const OSForm = ({
           {/* Passageiros - dados vindos do admin */}
           <div className="space-y-2">
             <Label>Passageiros</Label>
-            <Textarea value={formData.passageiros} readOnly className="bg-gray-100" rows={6} placeholder="Dados vindos do formulário do admin" />
-            
+            <Textarea 
+              value={formData.passageiros} 
+              readOnly 
+              className="bg-gray-100" 
+              rows={6} 
+              placeholder={formData.passageiros ? "" : "Nenhum passageiro informado"} 
+            />
           </div>
 
           {/* Observações */}
