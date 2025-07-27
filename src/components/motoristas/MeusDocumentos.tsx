@@ -1,9 +1,11 @@
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Download, Calendar } from 'lucide-react';
+import { FileText, Download, Calendar, Eye } from 'lucide-react';
 import { useMotoristas, DocumentoMotorista } from '@/hooks/useMotoristas';
+import { MeusDocumentosViewer } from './MeusDocumentosViewer';
 
 interface MeusDocumentosProps {
   motoristaEmail: string;
@@ -12,6 +14,7 @@ interface MeusDocumentosProps {
 export const MeusDocumentos = ({ motoristaEmail }: MeusDocumentosProps) => {
   const { getMotoristaByEmail } = useMotoristas();
   const motorista = getMotoristaByEmail(motoristaEmail);
+  const [isDocumentViewerOpen, setIsDocumentViewerOpen] = useState(false);
 
   if (!motorista) {
     return (
@@ -31,12 +34,22 @@ export const MeusDocumentos = ({ motoristaEmail }: MeusDocumentosProps) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold text-gray-900">Meus Documentos</h2>
-        <Badge variant={
-          motorista.status === 'Aprovado' ? 'default' : 
-          motorista.status === 'Reprovado' ? 'destructive' : 'secondary'
-        }>
-          {motorista.status}
-        </Badge>
+        <div className="flex items-center space-x-3">
+          <Button 
+            onClick={() => setIsDocumentViewerOpen(true)}
+            variant="outline"
+            size="sm"
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Ver Documentos Reais
+          </Button>
+          <Badge variant={
+            motorista.status === 'Aprovado' ? 'default' : 
+            motorista.status === 'Reprovado' ? 'destructive' : 'secondary'
+          }>
+            {motorista.status}
+          </Badge>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -114,6 +127,11 @@ export const MeusDocumentos = ({ motoristaEmail }: MeusDocumentosProps) => {
           </div>
         </CardContent>
       </Card>
+
+      <MeusDocumentosViewer 
+        open={isDocumentViewerOpen}
+        onOpenChange={setIsDocumentViewerOpen}
+      />
     </div>
   );
 };

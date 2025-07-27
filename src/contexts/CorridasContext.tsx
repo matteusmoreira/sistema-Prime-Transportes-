@@ -88,7 +88,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           localAbastecimento: corrida.local_abastecimento || '',
           destinoExtra: corrida.destino_extra || '',
           passageiros: corrida.passageiros || '',
-          documentos: corrida.corrida_documentos || []
+          documentos: Array.isArray(corrida.corrida_documentos) ? corrida.corrida_documentos : []
         };
       }) || [];
 
@@ -167,20 +167,21 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
                 continue;
               }
 
-              // Obter URL pública do arquivo
-              const { data: publicUrlData } = supabase.storage
-                .from('corrida-documentos')
-                .getPublicUrl(fileName);
-
-              // Salvar registro do documento na tabela
-              await supabase
+              // Salvar registro do documento na tabela com a URL do arquivo no storage
+              const { error: docInsertError } = await supabase
                 .from('corrida_documentos')
                 .insert({
                   corrida_id: data.id,
                   nome: documento.nome,
                   descricao: documento.descricao,
-                  url: publicUrlData.publicUrl
+                  url: fileName // Store the file path instead of public URL
                 });
+
+              if (docInsertError) {
+                console.error('Erro ao inserir documento na tabela:', docInsertError);
+              } else {
+                console.log('Documento salvo com sucesso:', documento.nome);
+              }
             } catch (docError) {
               console.error('Erro ao salvar documento:', docError);
             }

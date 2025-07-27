@@ -1,20 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FileText, Download, Calendar, Image, Eye, CheckCircle, XCircle } from 'lucide-react';
-import { useMotoristas, Motorista } from '@/hooks/useMotoristas';
+import { FileText, Download, Calendar, Image, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface AdminDocumentosViewerProps {
-  motorista: Motorista;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onApprove?: (id: number) => void;
-  onReject?: (id: number) => void;
-}
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DocumentoBanco {
   id: number;
@@ -33,45 +24,63 @@ interface FotoBanco {
   created_at: string;
 }
 
-export const AdminDocumentosViewer = ({ 
-  motorista, 
+interface MeusDocumentosViewerProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export const MeusDocumentosViewer = ({ 
   open, 
-  onOpenChange,
-  onApprove,
-  onReject 
-}: AdminDocumentosViewerProps) => {
+  onOpenChange 
+}: MeusDocumentosViewerProps) => {
   const [documentos, setDocumentos] = useState<DocumentoBanco[]>([]);
   const [fotos, setFotos] = useState<FotoBanco[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (open && motorista) {
+    if (open && user) {
       loadDocumentos();
     }
-  }, [open, motorista]);
+  }, [open, user]);
 
   const loadDocumentos = async () => {
     setLoading(true);
-    console.log('Loading documents for motorista:', motorista.id);
+    console.log('Loading documents for current user:', user?.id);
     
     try {
-      // Carregar documentos do banco
+      // First get the motorista ID for the current user
+      const { data: motoristaData, error: motoristaError } = await supabase
+        .from('motoristas')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (motoristaError || !motoristaData) {
+        console.log('Motorista not found for user:', user?.id);
+        return;
+      }
+
+      const motoristaId = motoristaData.id;
+      console.log('Found motorista ID:', motoristaId);
+
+      // Load documents
       const { data: docsData, error: docsError } = await supabase
         .from('motorista_documentos')
         .select('*')
-        .eq('motorista_id', motorista.id)
+        .eq('motorista_id', motoristaId)
         .order('created_at', { ascending: false });
 
       console.log('Documents query result:', { docsData, docsError });
       if (docsError) throw docsError;
       setDocumentos(docsData || []);
 
-      // Carregar fotos do banco
+      // Load photos
       const { data: fotosData, error: fotosError } = await supabase
         .from('motorista_fotos')
         .select('*')
-        .eq('motorista_id', motorista.id)
+        .eq('motorista_id', motoristaId)
         .order('created_at', { ascending: false });
 
       console.log('Photos query result:', { fotosData, fotosError });
@@ -98,7 +107,7 @@ export const AdminDocumentosViewer = ({
 
       if (error) throw error;
 
-      // Criar URL para download
+      // Create download link
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
@@ -143,40 +152,10 @@ export const AdminDocumentosViewer = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>Documentos de {motorista.nome}</span>
-            <Badge variant={
-              motorista.status === 'Aprovado' ? 'default' : 
-              motorista.status === 'Reprovado' ? 'destructive' : 'secondary'
-            }>
-              {motorista.status}
-            </Badge>
-          </DialogTitle>
+          <DialogTitle>Meus Documentos</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Ações de Aprovação/Rejeição */}
-          {motorista.status === 'Pendente' && (
-            <div className="flex space-x-2 p-4 bg-gray-50 rounded-lg">
-              <Button 
-                onClick={() => onApprove?.(motorista.id)}
-                className="flex-1"
-                variant="default"
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Aprovar Motorista
-              </Button>
-              <Button 
-                onClick={() => onReject?.(motorista.id)}
-                className="flex-1"
-                variant="destructive"
-              >
-                <XCircle className="h-4 w-4 mr-2" />
-                Reprovar Motorista
-              </Button>
-            </div>
-          )}
-
           {/* Documentos */}
           <div>
             <h3 className="text-lg font-semibold mb-4 flex items-center">
@@ -269,20 +248,6 @@ export const AdminDocumentosViewer = ({
               </Card>
             )}
           </div>
-
-          {/* Informações do Motorista */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informações do Motorista</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-2 text-sm">
-              <div><strong>Email:</strong> {motorista.email}</div>
-              <div><strong>CPF:</strong> {motorista.cpf}</div>
-              <div><strong>Telefone:</strong> {motorista.telefone}</div>
-              <div><strong>CNH:</strong> {motorista.cnh}</div>
-              <div><strong>Validade CNH:</strong> {motorista.cnhDataValidade}</div>
-            </CardContent>
-          </Card>
         </div>
       </DialogContent>
     </Dialog>
