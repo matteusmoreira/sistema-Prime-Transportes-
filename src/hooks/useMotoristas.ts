@@ -53,21 +53,59 @@ export const useMotoristas = () => {
         return;
       }
 
-      const motoristasFormatted = data?.map(motorista => ({
-        id: motorista.id,
-        nome: motorista.nome,
-        cpf: motorista.cpf || '',
-        telefone: motorista.telefone || '',
-        email: motorista.email,
-        cnh: motorista.cnh || '',
-        cnhDataValidade: motorista.validade_cnh || '',
-        status: motorista.status || 'Pendente',
-        documentos: [] as DocumentoMotorista[],
-        fotosVeiculo: [] as FotoVeiculo[],
-        user_id: motorista.user_id || undefined
-      })) || [];
+      if (!data) {
+        setMotoristas([]);
+        return;
+      }
 
-      setMotoristas(motoristasFormatted);
+      // Carregar documentos e fotos para cada motorista
+      const motoristasWithDocs = await Promise.all(
+        data.map(async (motorista) => {
+          // Carregar documentos
+          const { data: documentos } = await supabase
+            .from('motorista_documentos')
+            .select('*')
+            .eq('motorista_id', motorista.id);
+
+          // Carregar fotos
+          const { data: fotos } = await supabase
+            .from('motorista_fotos')
+            .select('*')
+            .eq('motorista_id', motorista.id);
+
+          const documentosFormatted: DocumentoMotorista[] = (documentos || []).map(doc => ({
+            id: doc.id.toString(),
+            nome: doc.nome,
+            descricao: doc.tipo || '',
+            arquivo: doc.url,
+            dataUpload: new Date(doc.created_at).toLocaleDateString('pt-BR')
+          }));
+
+          const fotosFormatted: FotoVeiculo[] = (fotos || []).map(foto => ({
+            id: foto.id.toString(),
+            nome: foto.nome,
+            arquivo: foto.url,
+            tamanho: foto.tamanho || 0,
+            dataUpload: new Date(foto.created_at).toLocaleDateString('pt-BR')
+          }));
+
+          return {
+            id: motorista.id,
+            nome: motorista.nome,
+            cpf: motorista.cpf || '',
+            telefone: motorista.telefone || '',
+            email: motorista.email,
+            cnh: motorista.cnh || '',
+            cnhDataValidade: motorista.validade_cnh || '',
+            status: motorista.status || 'Pendente',
+            documentos: documentosFormatted,
+            fotosVeiculo: fotosFormatted,
+            user_id: motorista.user_id || undefined
+          };
+        })
+      );
+
+      setMotoristas(motoristasWithDocs);
     } catch (error) {
       console.error('Erro ao carregar motoristas:', error);
       toast.error('Erro ao carregar motoristas');
@@ -368,6 +406,7 @@ export const useMotoristas = () => {
     deleteMotorista,
     approveMotorista,
     rejectMotorista,
-    getMotoristaByEmail
+    getMotoristaByEmail,
+    loadMotoristas
   };
 };

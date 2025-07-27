@@ -159,7 +159,10 @@ export const AdminDocumentosViewer = ({
           {motorista.status === 'Pendente' && (
             <div className="flex space-x-2 p-4 bg-gray-50 rounded-lg">
               <Button 
-                onClick={() => onApprove?.(motorista.id)}
+                onClick={async () => {
+                  await onApprove?.(motorista.id);
+                  await loadDocumentos();
+                }}
                 className="flex-1"
                 variant="default"
               >
@@ -167,7 +170,10 @@ export const AdminDocumentosViewer = ({
                 Aprovar Motorista
               </Button>
               <Button 
-                onClick={() => onReject?.(motorista.id)}
+                onClick={async () => {
+                  await onReject?.(motorista.id);
+                  await loadDocumentos();
+                }}
                 className="flex-1"
                 variant="destructive"
               >

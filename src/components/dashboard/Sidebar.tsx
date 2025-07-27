@@ -45,26 +45,26 @@ export const Sidebar = ({
 
   return (
     <div className={cn(
-      "bg-white shadow-lg transition-all duration-300 flex flex-col",
+      "bg-sidebar-background shadow-lg transition-all duration-300 flex flex-col border-r border-sidebar-border",
       isOpen ? "w-64" : "w-16"
     )}>
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between">
           {isOpen && (
             <div className="flex items-center space-x-2">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <Truck className="h-6 w-6 text-white" />
+              <div className="bg-sidebar-primary p-2 rounded-lg">
+                <Truck className="h-6 w-6 text-sidebar-primary-foreground" />
               </div>
-              <span className="font-bold text-gray-900">Prime Transportes</span>
+              <span className="font-bold text-sidebar-foreground">Prime Transportes</span>
             </div>
           )}
           <button
             onClick={onToggle}
-            className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-1 rounded-lg hover:bg-sidebar-accent transition-colors"
           >
             <ChevronLeft className={cn(
-              "h-5 w-5 text-gray-500 transition-transform",
+              "h-5 w-5 text-sidebar-foreground transition-transform",
               !isOpen && "rotate-180"
             )} />
           </button>
@@ -85,8 +85,8 @@ export const Sidebar = ({
                   className={cn(
                     "w-full flex items-center p-3 rounded-lg transition-colors text-left",
                     isActive 
-                      ? "bg-blue-600 text-white" 
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground" 
+                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}
                   title={!isOpen ? item.label : undefined}
                 >
@@ -103,11 +103,11 @@ export const Sidebar = ({
 
       {/* User Level Indicator */}
       {isOpen && (
-        <div className="p-4 border-t border-gray-200">
-          <div className="text-sm text-gray-600">
+        <div className="p-4 border-t border-sidebar-border">
+          <div className="text-sm text-sidebar-foreground">
             <span className="font-medium">Nível de acesso:</span>
             <br />
-            <span className="text-blue-600 font-semibold">{userLevel}</span>
+            <span className="text-sidebar-primary font-semibold">{userLevel}</span>
           </div>
         </div>
       )}

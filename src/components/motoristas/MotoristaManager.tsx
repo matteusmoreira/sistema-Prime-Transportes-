@@ -30,7 +30,8 @@ export const MotoristaManager = () => {
     updateMotorista, 
     deleteMotorista, 
     approveMotorista, 
-    rejectMotorista 
+    rejectMotorista,
+    loadMotoristas
   } = useMotoristas();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -92,7 +93,7 @@ export const MotoristaManager = () => {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     console.log('=== SUBMIT DO FORMULÁRIO ===');
@@ -127,19 +128,21 @@ export const MotoristaManager = () => {
     }));
     
     if (editingMotorista) {
-      updateMotorista(editingMotorista.id, {
+      await updateMotorista(editingMotorista.id, {
         ...formData,
         documentos: documentosFinais,
         fotosVeiculo: fotosFinais
       });
+      await loadMotoristas(); // Refresh data
     } else {
       const { status, ...motoristaDados } = formData;
-      addMotorista({
+      await addMotorista({
         ...motoristaDados,
         documentos: documentosFinais,
         fotosVeiculo: fotosFinais,
         status // Pass the admin-selected status
       });
+      await loadMotoristas(); // Refresh data
     }
     
     setIsDialogOpen(false);
