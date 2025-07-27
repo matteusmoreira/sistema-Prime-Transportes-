@@ -332,6 +332,7 @@ export const useMotoristas = () => {
     console.log('Atualizando motorista:', id, updatedData);
     
     try {
+      // Atualizar dados básicos do motorista
       const { error } = await supabase
         .from('motoristas')
         .update({
@@ -351,9 +352,63 @@ export const useMotoristas = () => {
         return;
       }
 
-      setMotoristas(prev => prev.map(m => 
-        m.id === id ? { ...m, ...updatedData } : m
-      ));
+      // Processar novos documentos se existirem
+      if (updatedData.documentos) {
+        for (const doc of updatedData.documentos) {
+          const arquivo = (doc as any).arquivoFile;
+          if (arquivo instanceof File) {
+            try {
+              const sanitizedName = sanitizeFileName(arquivo.name);
+              const fileName = `${id}-${Date.now()}-${sanitizedName}`;
+              await uploadFile(arquivo, 'motorista-documentos', fileName);
+              
+              // Salvar referência no banco
+              await supabase
+                .from('motorista_documentos')
+                .insert({
+                  motorista_id: id,
+                  nome: doc.nome,
+                  tipo: doc.descricao,
+                  url: fileName
+                });
+            } catch (uploadError) {
+              console.error('Erro no upload do documento:', uploadError);
+              toast.error(`Erro no upload do documento: ${doc.nome}`);
+            }
+          }
+        }
+      }
+
+      // Processar novas fotos se existirem
+      if (updatedData.fotosVeiculo) {
+        for (const foto of updatedData.fotosVeiculo) {
+          const arquivo = (foto as any).arquivoFile;
+          if (arquivo instanceof File) {
+            try {
+              const sanitizedName = sanitizeFileName(arquivo.name);
+              const fileName = `${id}-${Date.now()}-${sanitizedName}`;
+              await uploadFile(arquivo, 'motorista-fotos', fileName);
+              
+              // Salvar referência no banco
+              await supabase
+                .from('motorista_fotos')
+                .insert({
+                  motorista_id: id,
+                  nome: foto.nome,
+                  nome_original: arquivo.name,
+                  url: fileName,
+                  tamanho: foto.tamanho
+                });
+            } catch (uploadError) {
+              console.error('Erro no upload da foto:', uploadError);
+              toast.error(`Erro no upload da foto: ${foto.nome}`);
+            }
+          }
+        }
+      }
+
+      // Recarregar dados atualizados
+      await loadMotoristas();
       toast.success('Motorista atualizado com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar motorista:', error);
