@@ -1,6 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Corrida } from '@/types/corridas';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CorridaDetailsProps {
   corrida: Corrida;
@@ -9,6 +10,7 @@ interface CorridaDetailsProps {
 export const CorridaDetails = ({
   corrida
 }: CorridaDetailsProps) => {
+  const { profile } = useAuth();
   // Helper function to check if a field has meaningful data
   const hasValue = (value: any): boolean => {
     return value !== null && value !== undefined && value !== '';
@@ -21,6 +23,10 @@ export const CorridaDetails = ({
   
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'Selecionar Motorista':
+        return <Badge className="bg-red-100 text-red-800 border-red-300 hover:bg-red-200">{status}</Badge>;
+      case 'Aguardando OS':
+        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200">{status}</Badge>;
       case 'Aguardando Conferência':
         return <Badge className="bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200">{status}</Badge>;
       case 'Em Análise':
@@ -121,6 +127,13 @@ export const CorridaDetails = ({
             <Label className="font-semibold">Veículo:</Label>
             <p>{displayValue(corrida.veiculo)}</p>
           </div>
+          {/* Mostrar ambos os valores para admins, apenas valor motorista para motoristas */}
+          {profile?.role !== 'Motorista' && (
+            <div>
+              <Label className="font-semibold">Valor Total:</Label>
+              <p>R$ {corrida.total?.toFixed(2) || corrida.valor?.toFixed(2) || '0.00'}</p>
+            </div>
+          )}
           <div>
             <Label className="font-semibold">Valor para o Motorista:</Label>
             <p>R$ {corrida.valorMotorista?.toFixed(2) || '0.00'}</p>

@@ -13,13 +13,21 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const { shouldLoadData, isAuthLoading } = useAuthDependentData();
 
-  // Carregar corridas do Supabase
+  // Carregar corridas do Supabase com documentos
   const loadCorridas = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('corridas')
-        .select('*')
+        .select(`
+          *,
+          corrida_documentos (
+            id,
+            nome,
+            descricao,
+            url
+          )
+        `)
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -28,52 +36,61 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      const corridasFormatted = data?.map(corrida => ({
-        id: corrida.id,
-        empresa: corrida.empresa || '',
-        empresaId: corrida.empresa_id || 0,
-        centroCusto: corrida.centro_custo || '',
-        solicitante: corrida.solicitante || '',
-        passageiro: corrida.passageiro || '',
-        telefonePassageiro: corrida.telefone_passageiro || '',
-        origem: corrida.origem || '',
-        destino: corrida.destino || '',
-        data: corrida.data || '',
-        horaSaida: corrida.hora_saida || '',
-        horaChegada: corrida.hora_chegada || '',
-        observacoes: corrida.observacoes || '',
-        status: (corrida.status as Corrida['status']) || 'Pendente',
-        motorista: corrida.motorista || '',
-        kmInicial: corrida.km_inicial || 0,
-        kmFinal: corrida.km_final || 0,
-        kmTotal: corrida.km_total || 0,
-        combustivelInicial: corrida.combustivel_inicial || 0,
-        combustivelFinal: corrida.combustivel_final || 0,
-        valorCombustivel: corrida.valor_combustivel || 0,
-        pedagio: corrida.pedagio || 0,
-        estacionamento: corrida.estacionamento || 0,
-        hospedagem: corrida.hospedagem || 0,
-        outros: corrida.outros || 0,
-        valor: corrida.valor || 0,
-        valorMotorista: corrida.valor_motorista || 0,
-        horaInicio: corrida.hora_inicio || '',
-        dataServico: corrida.data_servico || '',
-        distanciaPercorrida: corrida.distancia_percorrida || 0,
-        reembolsos: corrida.reembolsos || 0,
-        veiculo: corrida.veiculo || '',
-        projeto: corrida.projeto || '',
-        motivo: corrida.motivo || '',
-        motivoRejeicao: corrida.motivo_rejeicao || '',
-        tipoAbrangencia: corrida.tipo_abrangencia || '',
-        tempoViagem: corrida.tempo_viagem || '',
-        observacoesOS: corrida.observacoes_os || '',
-        preenchidoPorMotorista: corrida.preenchido_por_motorista || false,
-        numeroOS: corrida.numero_os || '',
-        total: corrida.total || 0,
-        localAbastecimento: corrida.local_abastecimento || '',
-        destinoExtra: corrida.destino_extra || '',
-        passageiros: corrida.passageiros || ''
-      })) || [];
+      const corridasFormatted = data?.map(corrida => {
+        // Determinar status baseado na presença do motorista
+        let status = corrida.status as Corrida['status'];
+        if (status === 'Pendente' || status === 'Aguardando Conferência') {
+          status = corrida.motorista ? 'Aguardando OS' : 'Selecionar Motorista';
+        }
+
+        return {
+          id: corrida.id,
+          empresa: corrida.empresa || '',
+          empresaId: corrida.empresa_id || 0,
+          centroCusto: corrida.centro_custo || '',
+          solicitante: corrida.solicitante || '',
+          passageiro: corrida.passageiro || '',
+          telefonePassageiro: corrida.telefone_passageiro || '',
+          origem: corrida.origem || '',
+          destino: corrida.destino || '',
+          data: corrida.data || '',
+          horaSaida: corrida.hora_saida || '',
+          horaChegada: corrida.hora_chegada || '',
+          observacoes: corrida.observacoes || '',
+          status,
+          motorista: corrida.motorista || '',
+          kmInicial: corrida.km_inicial || 0,
+          kmFinal: corrida.km_final || 0,
+          kmTotal: corrida.km_total || 0,
+          combustivelInicial: corrida.combustivel_inicial || 0,
+          combustivelFinal: corrida.combustivel_final || 0,
+          valorCombustivel: corrida.valor_combustivel || 0,
+          pedagio: corrida.pedagio || 0,
+          estacionamento: corrida.estacionamento || 0,
+          hospedagem: corrida.hospedagem || 0,
+          outros: corrida.outros || 0,
+          valor: corrida.valor || 0,
+          valorMotorista: corrida.valor_motorista || 0,
+          horaInicio: corrida.hora_inicio || '',
+          dataServico: corrida.data_servico || '',
+          distanciaPercorrida: corrida.distancia_percorrida || 0,
+          reembolsos: corrida.reembolsos || 0,
+          veiculo: corrida.veiculo || '',
+          projeto: corrida.projeto || '',
+          motivo: corrida.motivo || '',
+          motivoRejeicao: corrida.motivo_rejeicao || '',
+          tipoAbrangencia: corrida.tipo_abrangencia || '',
+          tempoViagem: corrida.tempo_viagem || '',
+          observacoesOS: corrida.observacoes_os || '',
+          preenchidoPorMotorista: corrida.preenchido_por_motorista || false,
+          numeroOS: corrida.numero_os || '',
+          total: corrida.total || 0,
+          localAbastecimento: corrida.local_abastecimento || '',
+          destinoExtra: corrida.destino_extra || '',
+          passageiros: corrida.passageiros || '',
+          documentos: corrida.corrida_documentos || []
+        };
+      }) || [];
 
       setCorridas(corridasFormatted);
       console.log('Corridas carregadas do Supabase:', corridasFormatted.length);
@@ -97,11 +114,11 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
     console.log('Adicionando corrida:', corridaData);
     
     try {
-      const status = corridaData.motorista ? 'Aguardando Conferência' : 'Pendente';
+      const status = corridaData.motorista ? 'Aguardando OS' : 'Selecionar Motorista';
       
       const { data, error } = await supabase
         .from('corridas')
-        .insert([{
+        .insert({
           empresa: corridaData.empresa,
           empresa_id: corridaData.empresaId,
           centro_custo: corridaData.centroCusto,
@@ -115,8 +132,16 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           hora_chegada: corridaData.horaChegada,
           observacoes: corridaData.observacoes,
           status: status,
-          motorista: corridaData.motorista
-        }])
+          motorista: corridaData.motorista,
+          veiculo: corridaData.veiculo,
+          projeto: corridaData.projeto,
+          motivo: corridaData.motivo,
+          valor: corridaData.valor,
+          valor_motorista: corridaData.valorMotorista,
+          total: corridaData.total,
+          tipo_abrangencia: corridaData.tipoAbrangencia,
+          destino_extra: corridaData.destinoExtra
+        })
         .select()
         .single();
 

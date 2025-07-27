@@ -1,9 +1,10 @@
 
 export interface DocumentoUpload {
-  id: string;
+  id: string | number;
   nome: string;
   descricao: string;
   arquivo?: File;
+  url?: string;
 }
 
 export interface Corrida {
@@ -19,7 +20,7 @@ export interface Corrida {
   horaSaida: string;
   horaChegada: string;
   observacoes: string;
-  status: 'Pendente' | 'Confirmada' | 'Em Andamento' | 'Concluída' | 'Cancelada' | 'Aguardando OS' | 'OS Preenchida' | 'Aprovada' | 'Rejeitada' | 'Aguardando Conferência' | 'Em Análise' | 'No Show' | 'Revisar';
+  status: 'Pendente' | 'Confirmada' | 'Em Andamento' | 'Concluída' | 'Cancelada' | 'Aguardando OS' | 'OS Preenchida' | 'Aprovada' | 'Rejeitada' | 'Aguardando Conferência' | 'Em Análise' | 'No Show' | 'Revisar' | 'Selecionar Motorista';
   motorista?: string;
   veiculo?: string;
   kmInicial?: number;
