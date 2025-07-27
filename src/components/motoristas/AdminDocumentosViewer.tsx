@@ -47,6 +47,7 @@ export const AdminDocumentosViewer = ({
 
   useEffect(() => {
     if (open && motorista) {
+      console.log('AdminDocumentosViewer: Carregando documentos para motorista', motorista.id);
       loadDocumentos();
     }
   }, [open, motorista]);
