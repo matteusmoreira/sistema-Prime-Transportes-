@@ -50,7 +50,7 @@ export const DocumentosUpload = ({ documentos, onDocumentosChange }: DocumentosU
               <Label>Nome do Documento</Label>
               <Input 
                 value={doc.nome} 
-                onChange={e => atualizarDocumento(doc.id, 'nome', e.target.value)} 
+                onChange={e => atualizarDocumento(String(doc.id), 'nome', e.target.value)} 
                 placeholder="Ex: Nota Fiscal, Recibo de Combustível" 
               />
             </div>
@@ -58,7 +58,7 @@ export const DocumentosUpload = ({ documentos, onDocumentosChange }: DocumentosU
               <Label>Arquivo</Label>
               <Input 
                 type="file" 
-                onChange={e => atualizarDocumento(doc.id, 'arquivo', e.target.files?.[0])} 
+                onChange={e => atualizarDocumento(String(doc.id), 'arquivo', e.target.files?.[0])} 
                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" 
               />
             </div>
@@ -67,13 +67,13 @@ export const DocumentosUpload = ({ documentos, onDocumentosChange }: DocumentosU
             <Label>Descrição</Label>
             <Textarea 
               value={doc.descricao} 
-              onChange={e => atualizarDocumento(doc.id, 'descricao', e.target.value)} 
+              onChange={e => atualizarDocumento(String(doc.id), 'descricao', e.target.value)} 
               placeholder="Descreva o que é este documento" 
               rows={2} 
             />
           </div>
           <div className="flex justify-end">
-            <Button type="button" onClick={() => removerDocumento(doc.id)} variant="destructive" size="sm">
+            <Button type="button" onClick={() => removerDocumento(String(doc.id))} variant="destructive" size="sm">
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>

@@ -603,6 +603,7 @@ export type Database = {
         | "Em Análise"
         | "No Show"
         | "Revisar"
+        | "Selecionar Motorista"
       motorista_status: "Pendente" | "Aprovado" | "Reprovado"
       user_role: "Administrador" | "Administração" | "Financeiro" | "Motorista"
     }
@@ -748,6 +749,7 @@ export const Constants = {
         "Em Análise",
         "No Show",
         "Revisar",
+        "Selecionar Motorista",
       ],
       motorista_status: ["Pendente", "Aprovado", "Reprovado"],
       user_role: ["Administrador", "Administração", "Financeiro", "Motorista"],

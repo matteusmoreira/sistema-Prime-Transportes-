@@ -131,7 +131,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           hora_saida: corridaData.horaSaida,
           hora_chegada: corridaData.horaChegada,
           observacoes: corridaData.observacoes,
-          status: status,
+          status: status as any,
           motorista: corridaData.motorista,
           veiculo: corridaData.veiculo,
           projeto: corridaData.projeto,
