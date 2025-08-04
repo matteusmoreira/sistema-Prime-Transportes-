@@ -15,10 +15,21 @@ export const DashboardHome = ({
   userLevel,
   userEmail
 }: DashboardHomeProps) => {
-  const { empresas } = useEmpresas();
+  const { empresas, loading: empresasLoading } = useEmpresas();
   const { solicitantes } = useSolicitantes();
   const { motoristas } = useMotoristas();
   const { corridas } = useCorridas();
+
+  // Se ainda está carregando dados essenciais, mostrar loading
+  if (empresasLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="text-center">
+          <div className="animate-pulse text-gray-600">Carregando dados...</div>
+        </div>
+      </div>
+    );
+  }
 
   // Calcular estatísticas reais
   const stats = {
