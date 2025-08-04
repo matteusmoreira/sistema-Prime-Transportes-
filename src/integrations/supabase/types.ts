@@ -299,6 +299,7 @@ export type Database = {
       }
       empresas: {
         Row: {
+          centro_custo: string | null
           cnpj: string | null
           contato: string | null
           created_at: string
@@ -310,6 +311,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          centro_custo?: string | null
           cnpj?: string | null
           contato?: string | null
           created_at?: string
@@ -321,6 +323,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          centro_custo?: string | null
           cnpj?: string | null
           contato?: string | null
           created_at?: string

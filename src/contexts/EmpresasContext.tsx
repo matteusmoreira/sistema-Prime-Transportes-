@@ -37,7 +37,7 @@ export const EmpresasProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       const { data, error } = await supabase
         .from('empresas')
-        .select('*')
+        .select('id, nome, cnpj, telefone, email, endereco, contato, centro_custo')
         .order('nome');
       
       if (error) {
@@ -55,7 +55,7 @@ export const EmpresasProvider = ({ children }: { children: ReactNode }) => {
         email: empresa.email || '',
         endereco: empresa.endereco || '',
         observacoes: empresa.contato || '',
-        centroCusto: ''
+        centroCusto: empresa.centro_custo || ''
       })) || [];
 
       setEmpresas(empresasFormatted);
@@ -95,7 +95,8 @@ export const EmpresasProvider = ({ children }: { children: ReactNode }) => {
           telefone: empresaData.telefone || '',
           cnpj: empresaData.cnpj || '',
           email: empresaData.email || '',
-          contato: empresaData.observacoes || ''
+          contato: empresaData.observacoes || '',
+          centro_custo: empresaData.centroCusto || ''
         }])
         .select()
         .single();
@@ -138,7 +139,8 @@ export const EmpresasProvider = ({ children }: { children: ReactNode }) => {
           telefone: updatedData.telefone,
           cnpj: updatedData.cnpj,
           email: updatedData.email,
-          contato: updatedData.observacoes
+          contato: updatedData.observacoes,
+          centro_custo: updatedData.centroCusto
         })
         .eq('id', id);
 
