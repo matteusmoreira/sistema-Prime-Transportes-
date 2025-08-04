@@ -193,7 +193,7 @@ export const CorridasTable = ({
               <TableCell className="font-medium">{corrida.empresa}</TableCell>
               <TableCell>{getMotoristaDisplay(corrida.motorista)}</TableCell>
               <TableCell>{corrida.origem} → {corrida.destino}</TableCell>
-              <TableCell>{corrida.centroCusto}</TableCell>
+              <TableCell>{corrida.centroCusto || '-'}</TableCell>
               <TableCell>R$ {(corrida.valor || 0).toFixed(2)}</TableCell>
               <TableCell>{getStatusBadge(corrida.status)}</TableCell>
               <TableCell>
