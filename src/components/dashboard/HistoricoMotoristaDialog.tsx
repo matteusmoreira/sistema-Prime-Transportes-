@@ -1,0 +1,208 @@
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CalendarDays, Clock, MapPin, DollarSign, FileText } from 'lucide-react';
+import { Corrida } from '@/types/corridas';
+
+interface HistoricoMotoristaDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  corridas: Corrida[];
+  motoristaEmail: string;
+  motoristas: any[];
+}
+
+export const HistoricoMotoristaDialog = ({
+  open,
+  onOpenChange,
+  corridas,
+  motoristaEmail,
+  motoristas
+}: HistoricoMotoristaDialogProps) => {
+  const [filtroStatus, setFiltroStatus] = useState<string>('todas');
+
+  // Buscar motorista pelo email
+  const motorista = motoristas.find((m: any) => m.email === motoristaEmail);
+  
+  // Filtrar corridas do motorista
+  const corridasDoMotorista = corridas.filter(c => 
+    motorista && c.motorista === motorista.nome
+  );
+
+  // Aplicar filtro de status
+  const corridasFiltradas = filtroStatus === 'todas' 
+    ? corridasDoMotorista
+    : corridasDoMotorista.filter(c => c.status === filtroStatus);
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'Aguardando OS':
+        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">{status}</Badge>;
+      case 'Aguardando Conferência':
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-300">{status}</Badge>;
+      case 'Aprovada':
+        return <Badge className="bg-green-100 text-green-800 border-green-300">{status}</Badge>;
+      case 'Concluída':
+        return <Badge className="bg-green-700 text-white border-green-700">{status}</Badge>;
+      case 'No Show':
+        return <Badge className="bg-orange-100 text-orange-800 border-orange-300">{status}</Badge>;
+      case 'Cancelada':
+        return <Badge className="bg-red-100 text-red-800 border-red-300">{status}</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const totalValorReceber = corridasFiltradas
+    .filter(c => c.status === 'Aprovada' || c.status === 'Concluída')
+    .reduce((total, c) => total + (c.valorMotorista || 0), 0);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Histórico de Corridas - {motorista?.nome}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Resumo */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Total de Corridas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{corridasDoMotorista.length}</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Corridas Concluídas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {corridasDoMotorista.filter(c => c.status === 'Concluída' || c.status === 'No Show').length}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Valor a Receber</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  R$ {totalValorReceber.toFixed(2)}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Filtros */}
+          <div className="flex gap-2 flex-wrap">
+            <Button 
+              variant={filtroStatus === 'todas' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFiltroStatus('todas')}
+            >
+              Todas ({corridasDoMotorista.length})
+            </Button>
+            <Button 
+              variant={filtroStatus === 'Aguardando OS' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFiltroStatus('Aguardando OS')}
+            >
+              Aguardando OS ({corridasDoMotorista.filter(c => c.status === 'Aguardando OS').length})
+            </Button>
+            <Button 
+              variant={filtroStatus === 'Concluída' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFiltroStatus('Concluída')}
+            >
+              Concluídas ({corridasDoMotorista.filter(c => c.status === 'Concluída').length})
+            </Button>
+            <Button 
+              variant={filtroStatus === 'Aprovada' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFiltroStatus('Aprovada')}
+            >
+              Aprovadas ({corridasDoMotorista.filter(c => c.status === 'Aprovada').length})
+            </Button>
+          </div>
+
+          {/* Lista de Corridas */}
+          <div className="space-y-4">
+            {corridasFiltradas.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Nenhuma corrida encontrada para este filtro.
+              </div>
+            ) : (
+              corridasFiltradas.map((corrida) => (
+                <Card key={corrida.id} className="border-l-4 border-l-blue-500">
+                  <CardContent className="pt-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-lg">#{corrida.id}</span>
+                          {getStatusBadge(corrida.status)}
+                        </div>
+                        <p className="text-sm text-gray-600">{corrida.empresa}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center gap-1 text-green-600 font-semibold">
+                          <DollarSign className="h-4 w-4" />
+                          R$ {(corrida.valorMotorista || 0).toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <CalendarDays className="h-4 w-4 text-gray-500" />
+                          <span>{new Date(corrida.dataServico || corrida.data).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Clock className="h-4 w-4 text-gray-500" />
+                          <span>{corrida.horaInicio || corrida.horaSaida}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <MapPin className="h-4 w-4 text-gray-500" />
+                          <span>{corrida.origem} → {corrida.destino}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        {corrida.solicitante && (
+                          <div className="text-sm">
+                            <span className="text-gray-500">Solicitante:</span> {corrida.solicitante}
+                          </div>
+                        )}
+                        {corrida.passageiros && (
+                          <div className="text-sm">
+                            <span className="text-gray-500">Passageiros:</span> {corrida.passageiros}
+                          </div>
+                        )}
+                        {corrida.observacoes && (
+                          <div className="text-sm">
+                            <span className="text-gray-500">Obs:</span> {corrida.observacoes}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};

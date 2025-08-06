@@ -1,10 +1,12 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Users, Car, Route, Calculator, TrendingUp, CheckCircle } from 'lucide-react';
+import { Building2, Users, Car, Route, Calculator, TrendingUp, CheckCircle, Clock, FileText } from 'lucide-react';
 import { useEmpresas } from '@/contexts/EmpresasContext';
 import { useSolicitantes } from '@/hooks/useSolicitantes';
 import { useMotoristas } from '@/hooks/useMotoristas';
 import { useCorridas } from '@/contexts/CorridasContext';
+import { useState } from 'react';
+import { HistoricoMotoristaDialog } from './HistoricoMotoristaDialog';
 
 interface DashboardHomeProps {
   userLevel: string;
@@ -19,6 +21,7 @@ export const DashboardHome = ({
   const { solicitantes } = useSolicitantes();
   const { motoristas } = useMotoristas();
   const { corridas } = useCorridas();
+  const [showHistorico, setShowHistorico] = useState(false);
 
   // Se ainda está carregando dados essenciais, mostrar loading
   if (empresasLoading) {
@@ -31,31 +34,39 @@ export const DashboardHome = ({
     );
   }
 
-  // Calcular estatísticas reais
+  // Buscar motorista logado se for motorista
+  const motoristaLogado = userLevel === 'Motorista' && userEmail 
+    ? motoristas.find((m: any) => m.email === userEmail)
+    : null;
+
+  // Filtrar corridas do motorista se for motorista
+  const corridasDoMotorista = userLevel === 'Motorista' && motoristaLogado
+    ? corridas.filter(c => c.motorista === motoristaLogado.nome)
+    : corridas;
+
+  // Calcular estatísticas baseadas no nível do usuário
   const stats = {
     empresas: empresas.length,
     solicitantes: solicitantes.length,
     motoristas: motoristas.filter(m => m.status === 'Aprovado').length,
-    corridas: corridas.length,
-    corridasHoje: corridas.filter(c => {
+    corridas: userLevel === 'Motorista' ? corridasDoMotorista.length : corridas.length,
+    corridasHoje: (userLevel === 'Motorista' ? corridasDoMotorista : corridas).filter(c => {
       const hoje = new Date().toISOString().split('T')[0];
       return c.data === hoje || c.dataServico === hoje;
     }).length,
-    valorTotal: corridas
+    valorTotal: (userLevel === 'Motorista' ? corridasDoMotorista : corridas)
       .filter(c => c.status === 'Aprovada')
-      .reduce((total, c) => total + (c.valor || 0), 0)
+      .reduce((total, c) => total + (userLevel === 'Motorista' ? (c.valorMotorista || 0) : (c.valor || 0)), 0)
   };
 
   // Calcular corridas efetuadas para motoristas (apenas Concluída e No Show)
-  const corridasEfetuadas = userLevel === 'Motorista' && userEmail 
-    ? corridas.filter(c => {
-        // Buscar o nome do motorista pelo email usando o contexto
-        const motorista = motoristas.find((m: any) => m.email === userEmail);
-        
-        return motorista && 
-               c.motorista === motorista.nome && 
-               (c.status === 'Concluída' || c.status === 'No Show');
-      }).length
+  const corridasEfetuadas = userLevel === 'Motorista' 
+    ? corridasDoMotorista.filter(c => c.status === 'Concluída' || c.status === 'No Show').length
+    : 0;
+
+  // Calcular corridas pendentes para motoristas
+  const corridasPendentes = userLevel === 'Motorista'
+    ? corridasDoMotorista.filter(c => c.status === 'Aguardando OS' || c.status === 'Aguardando Conferência').length
     : 0;
   
   return <div className="space-y-6">
@@ -109,15 +120,21 @@ export const DashboardHome = ({
             </Card>
           </>}
 
-        <Card>
+        <Card 
+          className={userLevel === 'Motorista' ? 'cursor-pointer hover:bg-gray-50 transition-colors' : ''}
+          onClick={userLevel === 'Motorista' ? () => setShowHistorico(true) : undefined}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Corridas Total</CardTitle>
-            <Route className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-1">
+              <Route className="h-4 w-4 text-muted-foreground" />
+              {userLevel === 'Motorista' && <FileText className="h-3 w-3 text-blue-500" />}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.corridas}</div>
             <p className="text-xs text-muted-foreground">
-              Corridas realizadas
+              {userLevel === 'Motorista' ? 'Clique para ver histórico' : 'Corridas realizadas'}
             </p>
           </CardContent>
         </Card>
@@ -135,6 +152,49 @@ export const DashboardHome = ({
           </CardContent>
         </Card>
 
+        {userLevel === 'Motorista' && <>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Corridas Efetuadas</CardTitle>
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{corridasEfetuadas}</div>
+              <p className="text-xs text-muted-foreground">
+                Concluídas e No Show
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Corridas Pendentes</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{corridasPendentes}</div>
+              <p className="text-xs text-muted-foreground">
+                Aguardando ação
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Valor a Receber</CardTitle>
+              <Calculator className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                R$ {stats.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Corridas aprovadas
+              </p>
+            </CardContent>
+          </Card>
+        </>}
+
         {(userLevel === 'Administrador' || userLevel === 'Financeiro') && <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
@@ -149,27 +209,17 @@ export const DashboardHome = ({
               </p>
             </CardContent>
           </Card>}
-
-        {userLevel === 'Motorista' && <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Corridas Efetuadas</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{corridasEfetuadas}</div>
-              <p className="text-xs text-muted-foreground">
-                Concluídas e No Show
-              </p>
-            </CardContent>
-          </Card>}
       </div>
 
-      {/* Cards informativos por nível de usuário */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          
-          
-        </Card>
-      </div>
+      {/* Diálogo de Histórico para Motoristas */}
+      {userLevel === 'Motorista' && userEmail && (
+        <HistoricoMotoristaDialog
+          open={showHistorico}
+          onOpenChange={setShowHistorico}
+          corridas={corridas}
+          motoristaEmail={userEmail}
+          motoristas={motoristas}
+        />
+      )}
     </div>;
 };
