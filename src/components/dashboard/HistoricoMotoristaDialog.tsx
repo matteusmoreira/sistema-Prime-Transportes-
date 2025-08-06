@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, Clock, MapPin, FileText } from 'lucide-react';
+import { CalendarDays, Clock, MapPin, FileText, FileEdit, Eye } from 'lucide-react';
 import { Corrida } from '@/types/corridas';
 
 interface HistoricoMotoristaDialogProps {
@@ -12,6 +12,8 @@ interface HistoricoMotoristaDialogProps {
   corridas: Corrida[];
   motoristaEmail: string;
   motoristas: any[];
+  onFillOS?: (corrida: Corrida) => void;
+  onViewCorrida?: (corrida: Corrida) => void;
 }
 
 export const HistoricoMotoristaDialog = ({
@@ -19,7 +21,9 @@ export const HistoricoMotoristaDialog = ({
   onOpenChange,
   corridas,
   motoristaEmail,
-  motoristas
+  motoristas,
+  onFillOS,
+  onViewCorrida
 }: HistoricoMotoristaDialogProps) => {
   const [filtroStatus, setFiltroStatus] = useState<string>('todas');
 
@@ -175,6 +179,22 @@ export const HistoricoMotoristaDialog = ({
                           </div>
                         )}
                       </div>
+                    </div>
+
+                    {/* Botões de Ação */}
+                    <div className="flex gap-2 mt-4 pt-4 border-t">
+                      {onViewCorrida && (
+                        <Button size="sm" variant="outline" onClick={() => onViewCorrida(corrida)}>
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver Detalhes
+                        </Button>
+                      )}
+                      {onFillOS && (corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente') && !corrida.preenchidoPorMotorista && (
+                        <Button size="sm" variant="default" onClick={() => onFillOS(corrida)}>
+                          <FileEdit className="h-4 w-4 mr-1" />
+                          Preencher OS
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

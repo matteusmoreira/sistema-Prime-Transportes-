@@ -7,6 +7,8 @@ import { useMotoristas } from '@/hooks/useMotoristas';
 import { useCorridas } from '@/contexts/CorridasContext';
 import { useState } from 'react';
 import { HistoricoMotoristaDialog } from './HistoricoMotoristaDialog';
+import { CorridasDialogs } from '@/components/corridas/CorridasDialogs';
+import { useCorridasDialogs } from '@/hooks/useCorridasDialogs';
 
 interface DashboardHomeProps {
   userLevel: string;
@@ -22,6 +24,44 @@ export const DashboardHome = ({
   const { motoristas } = useMotoristas();
   const { corridas } = useCorridas();
   const [showHistorico, setShowHistorico] = useState(false);
+  
+  // Usar o hook de diálogos de corridas para funcionalidades de OS
+  const {
+    isDialogOpen,
+    setIsDialogOpen,
+    editingCorrida,
+    fillingOS,
+    viewingCorrida,
+    isViewDialogOpen,
+    setIsViewDialogOpen,
+    openOSDialog,
+    openViewDialog,
+    closeDialog
+  } = useCorridasDialogs();
+
+  // Handlers para integração com CorridasContext
+  const handleFormSubmit = (formData: any, documentos: any) => {
+    // Este será usado apenas para edições, não aplicável aqui
+    console.log('Form submit:', formData);
+  };
+
+  const handleOSSubmit = (osData: any, documentos: any) => {
+    // Implementar lógica de submit da OS
+    console.log('OS submit:', osData);
+    closeDialog();
+  };
+
+  const handleFillOS = (corrida: any) => {
+    openOSDialog(corrida);
+  };
+
+  const handleView = (corrida: any) => {
+    openViewDialog(corrida);
+  };
+
+  const handleCancel = () => {
+    closeDialog();
+  };
 
   // Se ainda está carregando dados essenciais, mostrar loading
   if (empresasLoading) {
@@ -198,13 +238,32 @@ export const DashboardHome = ({
 
       {/* Diálogo de Histórico para Motoristas */}
       {userLevel === 'Motorista' && userEmail && (
-        <HistoricoMotoristaDialog
-          open={showHistorico}
-          onOpenChange={setShowHistorico}
-          corridas={corridas}
-          motoristaEmail={userEmail}
-          motoristas={motoristas}
-        />
+        <>
+          <HistoricoMotoristaDialog
+            open={showHistorico}
+            onOpenChange={setShowHistorico}
+            corridas={corridas}
+            motoristaEmail={userEmail}
+            motoristas={motoristas}
+            onFillOS={handleFillOS}
+            onViewCorrida={handleView}
+          />
+          
+          {/* Diálogos de Corridas para funcionalidades de OS */}
+          <CorridasDialogs
+            isDialogOpen={isDialogOpen}
+            setIsDialogOpen={setIsDialogOpen}
+            editingCorrida={editingCorrida}
+            fillingOS={fillingOS}
+            viewingCorrida={viewingCorrida}
+            isViewDialogOpen={isViewDialogOpen}
+            setIsViewDialogOpen={setIsViewDialogOpen}
+            userLevel={userLevel}
+            onFormSubmit={handleFormSubmit}
+            onOSSubmit={handleOSSubmit}
+            onCancel={handleCancel}
+          />
+        </>
       )}
     </div>;
 };
