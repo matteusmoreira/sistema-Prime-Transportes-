@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, Clock, MapPin, DollarSign, FileText } from 'lucide-react';
+import { CalendarDays, Clock, MapPin, FileText } from 'lucide-react';
 import { Corrida } from '@/types/corridas';
 
 interface HistoricoMotoristaDialogProps {
@@ -55,9 +55,6 @@ export const HistoricoMotoristaDialog = ({
     }
   };
 
-  const totalValorReceber = corridasFiltradas
-    .filter(c => c.status === 'Aprovada' || c.status === 'Concluída')
-    .reduce((total, c) => total + (c.valorMotorista || 0), 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -71,7 +68,7 @@ export const HistoricoMotoristaDialog = ({
 
         <div className="space-y-6">
           {/* Resumo */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm">Total de Corridas</CardTitle>
@@ -88,17 +85,6 @@ export const HistoricoMotoristaDialog = ({
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
                   {corridasDoMotorista.filter(c => c.status === 'Concluída' || c.status === 'No Show').length}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Valor a Receber</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">
-                  R$ {totalValorReceber.toFixed(2)}
                 </div>
               </CardContent>
             </Card>
@@ -153,12 +139,6 @@ export const HistoricoMotoristaDialog = ({
                           {getStatusBadge(corrida.status)}
                         </div>
                         <p className="text-sm text-gray-600">{corrida.empresa}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-1 text-green-600 font-semibold">
-                          <DollarSign className="h-4 w-4" />
-                          R$ {(corrida.valorMotorista || 0).toFixed(2)}
-                        </div>
                       </div>
                     </div>
 
