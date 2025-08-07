@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { HistoricoMotoristaDialog } from './HistoricoMotoristaDialog';
 import { CorridasDialogs } from '@/components/corridas/CorridasDialogs';
 import { useCorridasDialogs } from '@/hooks/useCorridasDialogs';
+import { useCorridasLogic } from '@/hooks/useCorridasLogic';
 
 interface DashboardHomeProps {
   userLevel: string;
@@ -39,15 +40,25 @@ export const DashboardHome = ({
     closeDialog
   } = useCorridasDialogs();
 
-  // Handlers para integração com CorridasContext
+  // Integrar lógica de corridas
+  const corridasLogic = useCorridasLogic(userLevel, userEmail);
+
   const handleFormSubmit = (formData: any, documentos: any) => {
     // Este será usado apenas para edições, não aplicável aqui
     console.log('Form submit:', formData);
   };
 
   const handleOSSubmit = (osData: any, documentos: any) => {
-    // Implementar lógica de submit da OS
-    console.log('OS submit:', osData);
+    console.log('=== HANDLE OS SUBMIT ===');
+    console.log('OS Data recebido:', osData);
+    console.log('Documentos recebidos:', documentos);
+    
+    if (fillingOS) {
+      const corridaData = corridasLogic.processFormData(osData, documentos);
+      console.log('Dados processados para fillOS:', corridaData);
+      corridasLogic.fillOS(fillingOS.id, corridaData);
+    }
+    
     closeDialog();
   };
 

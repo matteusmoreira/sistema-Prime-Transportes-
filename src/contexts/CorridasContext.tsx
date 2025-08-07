@@ -211,10 +211,42 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fillOS = async (id: number, osData: Partial<Corrida>) => {
-    setCorridas(prev => prev.map(c => 
-      c.id === id ? { ...c, ...osData, status: 'OS Preenchida' as const, preenchidoPorMotorista: true } : c
-    ));
-    toast.success('Ordem de Serviço preenchida com sucesso!');
+    try {
+      console.log('Preenchendo OS - ID:', id, 'Dados:', osData);
+      
+      // Atualizar no Supabase
+      const { error } = await supabase
+        .from('corridas')
+        .update({
+          ...osData,
+          status: 'OS Preenchida',
+          preenchido_por_motorista: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao preencher OS:', error);
+        toast.error('Erro ao preencher ordem de serviço');
+        return;
+      }
+
+      // Atualizar estado local apenas após sucesso no banco
+      setCorridas(prev => prev.map(c => 
+        c.id === id ? { 
+          ...c, 
+          ...osData, 
+          status: 'OS Preenchida' as const, 
+          preenchidoPorMotorista: true 
+        } : c
+      ));
+      
+      toast.success('Ordem de Serviço preenchida com sucesso!');
+      console.log('OS preenchida com sucesso para corrida:', id);
+    } catch (error) {
+      console.error('Erro ao preencher OS:', error);
+      toast.error('Erro ao preencher ordem de serviço');
+    }
   };
 
   const deleteCorrida = async (id: number) => {
