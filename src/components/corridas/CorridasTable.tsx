@@ -155,7 +155,7 @@ export const CorridasTable = ({
                     <Button size="sm" variant="outline" onClick={() => onView(corrida)}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    {(corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente') && !corrida.preenchidoPorMotorista && (
+                    {(corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente' || corrida.status === 'Aguardando OS') && !corrida.preenchidoPorMotorista && (
                       <Button size="sm" variant="default" onClick={() => onFillOS(corrida)}>
                         <FileEdit className="h-4 w-4" />
                         Preencher OS
