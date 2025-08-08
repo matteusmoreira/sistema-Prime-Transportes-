@@ -214,15 +214,31 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log('Preenchendo OS - ID:', id, 'Dados:', osData);
       
-      // Atualizar no Supabase
+      // Atualizar no Supabase com mapeamento correto de colunas
+      const updatePayload: any = {
+        hora_saida: (osData as any).horaSaida ?? (osData as any).horaInicio ?? null,
+        hora_chegada: (osData as any).horaChegada ?? null,
+        data: (osData as any).data ?? (osData as any).dataServico ?? null,
+        hora_inicio: (osData as any).horaInicio ?? null,
+        data_servico: (osData as any).dataServico ?? null,
+        km_inicial: (osData as any).kmInicial ?? null,
+        km_final: (osData as any).kmFinal ?? null,
+        km_total: (osData as any).kmTotal ?? null,
+        pedagio: (osData as any).pedagio ?? 0,
+        estacionamento: (osData as any).estacionamento ?? 0,
+        hospedagem: (osData as any).hospedagem ?? 0,
+        destino_extra: (osData as any).destinoExtra ?? null,
+        numero_os: (osData as any).numeroOS ?? null,
+        passageiros: (osData as any).passageiros ?? null,
+        observacoes_os: (osData as any).observacoes ?? null,
+        status: 'OS Preenchida',
+        preenchido_por_motorista: true,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('corridas')
-        .update({
-          ...osData,
-          status: 'OS Preenchida',
-          preenchido_por_motorista: true,
-          updated_at: new Date().toISOString()
-        })
+        .update(updatePayload)
         .eq('id', id);
 
       if (error) {
