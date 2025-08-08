@@ -100,27 +100,17 @@ export const CorridasManager = ({
         <h2 className="text-3xl font-bold text-gray-900">
           {userLevel === 'Motorista' ? 'Minhas Corridas' : 'Gerenciar Corridas'}
         </h2>
-        {userLevel !== 'Motorista' && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={resetForm} className="flex items-center space-x-2">
-                <Plus className="h-4 w-4" />
-                <span>Nova Corrida</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Nova Corrida</DialogTitle>
-              </DialogHeader>
-              <CorridaForm
-                editingCorrida={null}
-                onSubmit={handleFormSubmit}
-                onCancel={closeDialog}
-                isFillingOS={false}
-                userLevel={userLevel}
-              />
-            </DialogContent>
-          </Dialog>
+{userLevel !== 'Motorista' && (
+          <Button
+            onClick={() => {
+              resetForm();
+              setIsDialogOpen(true);
+            }}
+            className="flex items-center space-x-2"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Nova Corrida</span>
+          </Button>
         )}
       </div>
 
