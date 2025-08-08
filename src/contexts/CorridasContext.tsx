@@ -110,6 +110,27 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [shouldLoadData, isAuthLoading]);
 
+  // Realtime: Atualiza corridas quando houver mudanças no banco
+  useEffect(() => {
+    const channel = supabase
+      .channel('public:corridas-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'corridas' },
+        (payload) => {
+          console.log('Realtime corridas change:', payload.eventType, payload.new);
+          loadCorridas();
+        }
+      )
+      .subscribe((status) => {
+        console.log('Subscribed to corridas changes:', status);
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const addCorrida = async (corridaData: Omit<Corrida, 'id' | 'status'>) => {
     console.log('Adicionando corrida:', corridaData);
     
