@@ -109,6 +109,48 @@ export const OSForm = ({
             </div>
           </div>
 
+          {/* Dados adicionais cadastrados pelo administrador */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Solicitante</Label>
+              <Input value={corrida.solicitante || 'Não informado'} readOnly className="bg-gray-100" />
+            </div>
+            <div className="space-y-2">
+              <Label>Telefone do Passageiro</Label>
+              <Input value={corrida.telefonePassageiro || 'Não informado'} readOnly className="bg-gray-100" />
+            </div>
+            <div className="space-y-2">
+              <Label>Veículo</Label>
+              <Input value={corrida.veiculo || 'Não informado'} readOnly className="bg-gray-100" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Projeto</Label>
+              <Input value={corrida.projeto || 'Não informado'} readOnly className="bg-gray-100" />
+            </div>
+            <div className="space-y-2">
+              <Label>Motivo</Label>
+              <Input value={corrida.motivo || 'Não informado'} readOnly className="bg-gray-100" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Data do Serviço</Label>
+              <Input value={corrida.dataServico || corrida.data || ''} readOnly className="bg-gray-100" />
+            </div>
+            <div className="space-y-2">
+              <Label>Hora Início</Label>
+              <Input value={corrida.horaInicio || corrida.horaSaida || ''} readOnly className="bg-gray-100" />
+            </div>
+            <div className="space-y-2">
+              <Label>Tipo de Abrangência</Label>
+              <Input value={corrida.tipoAbrangencia || 'Não informado'} readOnly className="bg-gray-100" />
+            </div>
+          </div>
+
           {/* Origem e Destino */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -120,8 +162,6 @@ export const OSForm = ({
               <Input value={formData.destino} readOnly className="bg-gray-100" />
             </div>
           </div>
-
-          {/* Destino Extra */}
           <div className="space-y-2">
             <Label>Destino Extra</Label>
             <Input value={formData.destinoExtra} onChange={e => updateFormData('destinoExtra', e.target.value)} placeholder="Paradas adicionais durante a viagem" />
