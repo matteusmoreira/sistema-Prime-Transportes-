@@ -91,6 +91,7 @@ export const useFinanceiro = () => {
     switch (status) {
       case 'OS Preenchida':
       case 'Pendente':
+      case 'Aguardando Conferência':
         return 'Aguardando Conferência';
       case 'Aprovada':
         return 'Aprovada';
@@ -112,7 +113,7 @@ export const useFinanceiro = () => {
     let corridaStatus: Corrida['status'];
     switch (status) {
       case 'Aguardando Conferência':
-        corridaStatus = 'OS Preenchida';
+        corridaStatus = 'Aguardando Conferência';
         break;
       case 'Aprovada':
         corridaStatus = 'Aprovada';

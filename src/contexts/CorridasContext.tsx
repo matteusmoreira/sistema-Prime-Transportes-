@@ -39,7 +39,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       const corridasFormatted = data?.map(corrida => {
         // Determinar status baseado na presença do motorista
         let status = corrida.status as Corrida['status'];
-        if (status === 'Pendente' || status === 'Aguardando Conferência') {
+        if (status === 'Pendente') {
           status = corrida.motorista ? 'Aguardando OS' : 'Selecionar Motorista';
         }
 
@@ -231,7 +231,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         numero_os: (osData as any).numeroOS ?? null,
         passageiros: (osData as any).passageiros ?? null,
         observacoes_os: (osData as any).observacoes ?? null,
-        status: 'OS Preenchida',
+        status: 'Aguardando Conferência',
         preenchido_por_motorista: true,
         updated_at: new Date().toISOString()
       };
@@ -252,7 +252,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         c.id === id ? { 
           ...c, 
           ...osData, 
-          status: 'OS Preenchida' as const, 
+          status: 'Aguardando Conferência' as const, 
           preenchidoPorMotorista: true 
         } : c
       ));
