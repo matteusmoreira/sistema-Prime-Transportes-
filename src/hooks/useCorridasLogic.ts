@@ -93,6 +93,7 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
       kmTotal: kmTotal,
       valor: parseFloat(formData.valor) || 0,
       valorMotorista: parseFloat(formData.valorMotorista) || 0,
+      veiculo: formData.veiculo,
       centroCusto: formData.centroCusto,
       destinoExtra: formData.destinoExtra,
       pedagio: parseFloat(formData.pedagio) || 0,

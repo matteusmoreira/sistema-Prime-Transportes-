@@ -210,13 +210,8 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-      const newCorrida: Corrida = {
-        ...corridaData,
-        id: data.id,
-        status: status as Corrida['status']
-      };
-
-      setCorridas(prev => [...prev, newCorrida]);
+      // Após inserir, recarregar lista para evitar duplicações por estado local + realtime
+      await loadCorridas();
       toast.success('Corrida cadastrada com sucesso!');
     } catch (error) {
       console.error('Erro ao adicionar corrida:', error);

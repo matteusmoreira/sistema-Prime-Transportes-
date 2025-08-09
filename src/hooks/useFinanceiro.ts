@@ -43,7 +43,7 @@ export const useFinanceiro = () => {
   
   // Filtrar apenas corridas que foram preenchidas pelo motorista
   const corridasParaFinanceiro = corridasOriginais.filter(corrida => 
-    corrida.preenchidoPorMotorista === true
+    corrida.status === 'Aguardando Conferência' || corrida.preenchidoPorMotorista === true
   );
   
   console.log('Corridas filtradas para financeiro:', corridasParaFinanceiro);

@@ -110,14 +110,10 @@ export const OSForm = ({
           </div>
 
           {/* Dados adicionais cadastrados pelo administrador */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Solicitante</Label>
               <Input value={corrida.solicitante || 'Não informado'} readOnly className="bg-gray-100" />
-            </div>
-            <div className="space-y-2">
-              <Label>Telefone do Passageiro</Label>
-              <Input value={corrida.telefonePassageiro || 'Não informado'} readOnly className="bg-gray-100" />
             </div>
             <div className="space-y-2">
               <Label>Veículo</Label>
@@ -139,7 +135,7 @@ export const OSForm = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Data do Serviço</Label>
-              <Input value={corrida.dataServico || corrida.data || ''} readOnly className="bg-gray-100" />
+              <Input value={(corrida.dataServico || corrida.data) ? new Date(corrida.dataServico || corrida.data).toLocaleDateString('pt-BR') : ''} readOnly className="bg-gray-100" />
             </div>
             <div className="space-y-2">
               <Label>Hora Início</Label>
