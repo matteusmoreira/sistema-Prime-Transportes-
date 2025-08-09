@@ -122,6 +122,10 @@ export const CorridaDetails = ({
             <p>{displayValue(corrida.horaInicio || corrida.horaSaida)}</p>
           </div>
           <div>
+            <Label className="font-semibold">Horário de Chegada:</Label>
+            <p>{displayValue(corrida.horaChegada)}</p>
+          </div>
+          <div>
             <Label className="font-semibold">Status:</Label>
             <p>{getStatusBadge(corrida.status)}</p>
           </div>
@@ -152,6 +156,12 @@ export const CorridaDetails = ({
             <Label className="font-semibold">Tipo de Abrangência:</Label>
             <p>{displayValue(corrida.tipoAbrangencia)}</p>
           </div>
+          {hasValue(corrida.destinoExtra) && (
+            <div className="col-span-2">
+              <Label className="font-semibold">Destino Extra:</Label>
+              <p className="mt-1 p-2 bg-gray-50 rounded">{corrida.destinoExtra}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -185,10 +195,88 @@ export const CorridaDetails = ({
         </div>
       </div>
 
-      {hasValue(corrida.destinoExtra) && <div>
-          <Label className="font-semibold">Destino Extra:</Label>
-          <p className="mt-1 p-2 bg-gray-50 rounded">{corrida.destinoExtra}</p>
-        </div>}
+      {/* Tempo e Quilometragem */}
+      {(hasValue(corrida.kmInicial) || hasValue(corrida.kmFinal) || hasValue(corrida.kmTotal) || hasValue(corrida.distanciaPercorrida) || hasValue(corrida.tempoViagem)) && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold border-b pb-2">Tempo e Quilometragem</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="font-semibold">KM Inicial:</Label>
+              <p>{displayValue(corrida.kmInicial)}</p>
+            </div>
+            <div>
+              <Label className="font-semibold">KM Final:</Label>
+              <p>{displayValue(corrida.kmFinal)}</p>
+            </div>
+            <div>
+              <Label className="font-semibold">KM Total:</Label>
+              <p>{displayValue(corrida.kmTotal)}</p>
+            </div>
+            <div>
+              <Label className="font-semibold">Distância Percorrida:</Label>
+              <p>{displayValue(corrida.distanciaPercorrida)}</p>
+            </div>
+            <div>
+              <Label className="font-semibold">Tempo de Viagem:</Label>
+              <p>{displayValue(corrida.tempoViagem)}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custos e Reembolsos */}
+      {(hasValue(corrida.pedagio) || hasValue(corrida.estacionamento) || hasValue(corrida.hospedagem) || hasValue(corrida.outros) || hasValue(corrida.reembolsos)) && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold border-b pb-2">Custos e Reembolsos</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="font-semibold">Pedágio:</Label>
+              <p>R$ {(corrida.pedagio ?? 0).toFixed(2)}</p>
+            </div>
+            <div>
+              <Label className="font-semibold">Estacionamento:</Label>
+              <p>R$ {(corrida.estacionamento ?? 0).toFixed(2)}</p>
+            </div>
+            <div>
+              <Label className="font-semibold">Hospedagem:</Label>
+              <p>R$ {(corrida.hospedagem ?? 0).toFixed(2)}</p>
+            </div>
+            <div>
+              <Label className="font-semibold">Outros:</Label>
+              <p>R$ {(corrida.outros ?? 0).toFixed(2)}</p>
+            </div>
+            <div>
+              <Label className="font-semibold">Reembolsos:</Label>
+              <p>R$ {(corrida.reembolsos ?? 0).toFixed(2)}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Abastecimento */}
+      {(hasValue(corrida.combustivelInicial) || hasValue(corrida.combustivelFinal) || hasValue(corrida.valorCombustivel) || hasValue(corrida.localAbastecimento)) && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold border-b pb-2">Abastecimento</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="font-semibold">Combustível Inicial:</Label>
+              <p>{displayValue(corrida.combustivelInicial)}</p>
+            </div>
+            <div>
+              <Label className="font-semibold">Combustível Final:</Label>
+              <p>{displayValue(corrida.combustivelFinal)}</p>
+            </div>
+            <div>
+              <Label className="font-semibold">Valor de Combustível:</Label>
+              <p>R$ {(corrida.valorCombustivel ?? 0).toFixed(2)}</p>
+            </div>
+            <div>
+              <Label className="font-semibold">Local de Abastecimento:</Label>
+              <p>{displayValue(corrida.localAbastecimento)}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Passageiros */}
       {hasValue(corrida.passageiro || corrida.passageiros) && <div className="space-y-4">
@@ -233,6 +321,20 @@ export const CorridaDetails = ({
             ))}
           </div>
         </div>}
+
+      {hasValue(corrida.observacoesOS) && (
+        <div>
+          <Label className="font-semibold">Observações da OS:</Label>
+          <p className="mt-1 p-2 bg-gray-50 rounded">{corrida.observacoesOS}</p>
+        </div>
+      )}
+
+      {hasValue(corrida.motivoRejeicao) && (
+        <div>
+          <Label className="font-semibold">Motivo da Rejeição:</Label>
+          <p className="mt-1 p-2 bg-gray-50 rounded">{corrida.motivoRejeicao}</p>
+        </div>
+      )}
 
       {hasValue(corrida.observacoes) && <div>
           <Label className="font-semibold">Observações:</Label>
