@@ -55,16 +55,25 @@ export const CorridaDetails = ({
       });
     }
   };
-  // Helper function to check if a field has meaningful data
+  // Helper: value presence (treat 0 as empty for numbers)
   const hasValue = (value: any): boolean => {
-    return value !== null && value !== undefined && value !== '';
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'number') return value > 0;
+    if (typeof value === 'string') return value.trim() !== '';
+    return true;
   };
 
-  // Helper function to display field value or fallback
+  // Helper: display with fallback
   const displayValue = (value: any, fallback: string = 'Não informado'): string => {
     return hasValue(value) ? String(value) : fallback;
   };
-  
+
+  // Currency formatter (pt-BR)
+  const formatCurrency = (value?: number | string): string => {
+    const num = typeof value === 'number' ? value : Number(value);
+    if (!isFinite(num)) return 'R$ 0,00';
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(num);
+  };
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Selecionar Motorista':
@@ -185,12 +194,12 @@ export const CorridaDetails = ({
           {profile?.role !== 'Motorista' && (
             <div>
               <Label className="font-semibold">Valor Total:</Label>
-              <p>R$ {corrida.total?.toFixed(2) || corrida.valor?.toFixed(2) || '0.00'}</p>
+              <p>{formatCurrency((corrida.total ?? 0) > 0 ? corrida.total : corrida.valor)}</p>
             </div>
           )}
           <div>
             <Label className="font-semibold">Valor para o Motorista:</Label>
-            <p>R$ {corrida.valorMotorista?.toFixed(2) || '0.00'}</p>
+            <p>{formatCurrency(corrida.valorMotorista)}</p>
           </div>
         </div>
       </div>
@@ -231,23 +240,23 @@ export const CorridaDetails = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="font-semibold">Pedágio:</Label>
-              <p>R$ {(corrida.pedagio ?? 0).toFixed(2)}</p>
+              <p>{formatCurrency(corrida.pedagio)}</p>
             </div>
             <div>
               <Label className="font-semibold">Estacionamento:</Label>
-              <p>R$ {(corrida.estacionamento ?? 0).toFixed(2)}</p>
+              <p>{formatCurrency(corrida.estacionamento)}</p>
             </div>
             <div>
               <Label className="font-semibold">Hospedagem:</Label>
-              <p>R$ {(corrida.hospedagem ?? 0).toFixed(2)}</p>
+              <p>{formatCurrency(corrida.hospedagem)}</p>
             </div>
             <div>
               <Label className="font-semibold">Outros:</Label>
-              <p>R$ {(corrida.outros ?? 0).toFixed(2)}</p>
+              <p>{formatCurrency(corrida.outros)}</p>
             </div>
             <div>
               <Label className="font-semibold">Reembolsos:</Label>
-              <p>R$ {(corrida.reembolsos ?? 0).toFixed(2)}</p>
+              <p>{formatCurrency(corrida.reembolsos)}</p>
             </div>
           </div>
         </div>
@@ -268,7 +277,7 @@ export const CorridaDetails = ({
             </div>
             <div>
               <Label className="font-semibold">Valor de Combustível:</Label>
-              <p>R$ {(corrida.valorCombustivel ?? 0).toFixed(2)}</p>
+              <p>{formatCurrency(corrida.valorCombustivel)}</p>
             </div>
             <div>
               <Label className="font-semibold">Local de Abastecimento:</Label>
