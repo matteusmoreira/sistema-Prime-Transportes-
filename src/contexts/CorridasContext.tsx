@@ -220,10 +220,59 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateCorrida = async (id: number, updatedData: Partial<Corrida>) => {
-    setCorridas(prev => prev.map(c => 
-      c.id === id ? { ...c, ...updatedData } : c
-    ));
-    toast.success('Corrida atualizada com sucesso!');
+    try {
+      // Mapear campos do app -> colunas do banco
+      const map: Record<string, string> = {
+        empresaId: 'empresa_id',
+        centroCusto: 'centro_custo',
+        telefonePassageiro: 'telefone_passageiro',
+        horaSaida: 'hora_saida',
+        horaChegada: 'hora_chegada',
+        valorMotorista: 'valor_motorista',
+        dataServico: 'data_servico',
+        horaInicio: 'hora_inicio',
+        distanciaPercorrida: 'distancia_percorrida',
+        motivoRejeicao: 'motivo_rejeicao',
+        tipoAbrangencia: 'tipo_abrangencia',
+        tempoViagem: 'tempo_viagem',
+        observacoesOS: 'observacoes_os',
+        preenchidoPorMotorista: 'preenchido_por_motorista',
+        numeroOS: 'numero_os',
+        kmInicial: 'km_inicial',
+        kmFinal: 'km_final',
+        kmTotal: 'km_total',
+        combustivelInicial: 'combustivel_inicial',
+        combustivelFinal: 'combustivel_final',
+        valorCombustivel: 'valor_combustivel',
+        localAbastecimento: 'local_abastecimento',
+        destinoExtra: 'destino_extra',
+      };
+
+      const payload: Record<string, any> = { updated_at: new Date().toISOString() };
+      Object.entries(updatedData).forEach(([key, value]) => {
+        if (value === undefined) return;
+        const dbKey = map[key] ?? key;
+        payload[dbKey] = value as any;
+      });
+
+      const { error } = await supabase
+        .from('corridas')
+        .update(payload)
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao atualizar corrida no banco:', error);
+        toast.error('Erro ao atualizar corrida');
+        return;
+      }
+
+      // Atualiza estado local após sucesso
+      setCorridas(prev => prev.map(c => (c.id === id ? { ...c, ...updatedData } : c)));
+      toast.success('Corrida atualizada com sucesso!');
+    } catch (err) {
+      console.error('Falha ao atualizar corrida:', err);
+      toast.error('Erro ao atualizar corrida');
+    }
   };
 
   const fillOS = async (id: number, osData: Partial<Corrida>) => {
@@ -332,24 +381,70 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const approveCorrida = async (id: number) => {
-    setCorridas(prev => prev.map(c => 
-      c.id === id ? { ...c, status: 'Aprovada' as const } : c
-    ));
-    toast.success('Corrida aprovada com sucesso!');
+    try {
+      const { error } = await supabase
+        .from('corridas')
+        .update({ status: 'Aprovada', updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao aprovar corrida:', error);
+        toast.error('Erro ao aprovar corrida');
+        return;
+      }
+
+      setCorridas(prev => prev.map(c => 
+        c.id === id ? { ...c, status: 'Aprovada' as const } : c
+      ));
+      toast.success('Corrida aprovada com sucesso!');
+    } catch (err) {
+      console.error('Falha ao aprovar corrida:', err);
+      toast.error('Erro ao aprovar corrida');
+    }
   };
 
   const rejectCorrida = async (id: number, motivo: string) => {
-    setCorridas(prev => prev.map(c => 
-      c.id === id ? { ...c, status: 'Rejeitada' as const, motivoRejeicao: motivo } : c
-    ));
-    toast.error('Corrida rejeitada!');
+    try {
+      const { error } = await supabase
+        .from('corridas')
+        .update({ status: 'Rejeitada', motivo_rejeicao: motivo, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao rejeitar corrida:', error);
+        toast.error('Erro ao rejeitar corrida');
+        return;
+      }
+
+      setCorridas(prev => prev.map(c => 
+        c.id === id ? { ...c, status: 'Rejeitada' as const, motivoRejeicao: motivo } : c
+      ));
+      toast.error('Corrida rejeitada!');
+    } catch (err) {
+      console.error('Falha ao rejeitar corrida:', err);
+      toast.error('Erro ao rejeitar corrida');
+    }
   };
 
   const updateStatus = async (id: number, status: Corrida['status']) => {
-    setCorridas(prev => prev.map(c => 
-      c.id === id ? { ...c, status } : c
-    ));
-    toast.success('Status atualizado com sucesso!');
+    try {
+      const { error } = await supabase
+        .from('corridas')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao atualizar status:', error);
+        toast.error('Erro ao atualizar status');
+        return;
+      }
+
+      setCorridas(prev => prev.map(c => (c.id === id ? { ...c, status } : c)));
+      toast.success('Status atualizado com sucesso!');
+    } catch (err) {
+      console.error('Falha ao atualizar status:', err);
+      toast.error('Erro ao atualizar status');
+    }
   };
 
   const selectMotorista = async (corridaId: number, motoristaName: string, veiculo?: string) => {
