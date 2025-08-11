@@ -17,7 +17,7 @@ export const OSBasicFields = ({
         </div>
         <div className="space-y-2">
           <Label>N° da O.S</Label>
-          <Input value={formData.numeroOS || ''} readOnly className="bg-gray-100" placeholder={formData.numeroOS ? '' : 'Não informado'} />
+          <Input value={formData.numeroOS || ''} readOnly className="bg-gray-100" placeholder="Será preenchida automaticamente!" />
         </div>
       </div>
 

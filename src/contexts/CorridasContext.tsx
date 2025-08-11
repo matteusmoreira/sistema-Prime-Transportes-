@@ -230,6 +230,16 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log('Preenchendo OS - ID:', id, 'Dados:', osData);
       
+      // Gerar número da OS automaticamente (5 dígitos) se não vier do formulário
+      let numeroOSFinal = (osData as any).numeroOS as string | undefined;
+      if (!numeroOSFinal || String(numeroOSFinal).trim() === '') {
+        const existingNumbers = corridas
+          .map(c => parseInt((c.numeroOS || '').toString(), 10))
+          .filter(n => !isNaN(n));
+        const next = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+        numeroOSFinal = String(next).padStart(5, '0');
+      }
+      
       // Atualizar no Supabase com mapeamento correto de colunas
       const updatePayload: any = {
         hora_saida: (osData as any).horaSaida ?? (osData as any).horaInicio ?? null,
@@ -244,7 +254,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         estacionamento: (osData as any).estacionamento ?? 0,
         hospedagem: (osData as any).hospedagem ?? 0,
         destino_extra: (osData as any).destinoExtra ?? null,
-        numero_os: (osData as any).numeroOS ?? null,
+        numero_os: numeroOSFinal,
         passageiros: (osData as any).passageiros ?? null,
         observacoes_os: (osData as any).observacoes ?? null,
         status: 'Aguardando Conferência',
@@ -268,6 +278,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         c.id === id ? { 
           ...c, 
           ...osData, 
+          numeroOS: numeroOSFinal!,
           status: 'Aguardando Conferência' as const, 
           preenchidoPorMotorista: true 
         } : c
