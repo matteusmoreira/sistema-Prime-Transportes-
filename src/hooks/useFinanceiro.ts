@@ -41,9 +41,9 @@ export const useFinanceiro = () => {
   
   console.log('Corridas originais no financeiro:', corridasOriginais);
   
-  // Filtrar apenas corridas que foram preenchidas pelo motorista
+  // Filtrar apenas corridas que foram preenchidas pelo motorista (status, flag ou número de OS gerado)
   const corridasParaFinanceiro = corridasOriginais.filter(corrida => 
-    corrida.status === 'Aguardando Conferência' || corrida.preenchidoPorMotorista === true
+    corrida.status === 'Aguardando Conferência' || corrida.preenchidoPorMotorista === true || (!!corrida.numeroOS && String(corrida.numeroOS).trim() !== '')
   );
   
   console.log('Corridas filtradas para financeiro:', corridasParaFinanceiro);
