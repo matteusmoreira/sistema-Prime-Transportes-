@@ -155,6 +155,7 @@ export type Database = {
           km_inicial: number | null
           km_total: number | null
           local_abastecimento: string | null
+          medicao_nota_fiscal: string
           motivo: string | null
           motivo_rejeicao: string | null
           motorista: string | null
@@ -172,6 +173,7 @@ export type Database = {
           reembolsos: number | null
           solicitante: string
           status: Database["public"]["Enums"]["corrida_status"] | null
+          status_pagamento: string
           telefone_passageiro: string | null
           tempo_viagem: string | null
           tipo_abrangencia: string | null
@@ -204,6 +206,7 @@ export type Database = {
           km_inicial?: number | null
           km_total?: number | null
           local_abastecimento?: string | null
+          medicao_nota_fiscal?: string
           motivo?: string | null
           motivo_rejeicao?: string | null
           motorista?: string | null
@@ -221,6 +224,7 @@ export type Database = {
           reembolsos?: number | null
           solicitante: string
           status?: Database["public"]["Enums"]["corrida_status"] | null
+          status_pagamento?: string
           telefone_passageiro?: string | null
           tempo_viagem?: string | null
           tipo_abrangencia?: string | null
@@ -253,6 +257,7 @@ export type Database = {
           km_inicial?: number | null
           km_total?: number | null
           local_abastecimento?: string | null
+          medicao_nota_fiscal?: string
           motivo?: string | null
           motivo_rejeicao?: string | null
           motorista?: string | null
@@ -270,6 +275,7 @@ export type Database = {
           reembolsos?: number | null
           solicitante?: string
           status?: Database["public"]["Enums"]["corrida_status"] | null
+          status_pagamento?: string
           telefone_passageiro?: string | null
           tempo_viagem?: string | null
           tipo_abrangencia?: string | null

@@ -53,6 +53,8 @@ export interface Corrida {
   projeto?: string;
   motivo?: string;
   preenchidoPorMotorista?: boolean;
+  statusPagamento?: 'Pendente' | 'Pago';
+  medicaoNotaFiscal?: 'Medição' | 'Nota Fiscal';
 }
 
 export interface CorridasContextType {

@@ -1,4 +1,4 @@
-
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useCorridas } from '../contexts/CorridasContext';
 import { type Corrida } from '../types/corridas';
@@ -34,6 +34,7 @@ export interface CorridaFinanceiro {
   kmInicial?: number;
   kmFinal?: number;
   solicitante?: string;
+  tipoAbrangencia?: string;
 }
 
 export const useFinanceiro = () => {
@@ -49,42 +50,50 @@ export const useFinanceiro = () => {
   console.log('Corridas filtradas para financeiro:', corridasParaFinanceiro);
   
   // Converter corridas do formato original para o formato do financeiro com TODOS os dados
-  const corridas: CorridaFinanceiro[] = corridasParaFinanceiro.map(corrida => {
-    const statusMapeado = mapStatusToFinanceiro(corrida.status);
-    console.log(`Mapeando corrida ${corrida.id}: status original "${corrida.status}" -> status financeiro "${statusMapeado}"`);
-    
-    return {
-      id: corrida.id,
-      empresa: corrida.empresa,
-      motorista: corrida.motorista || '',
-      dataServico: corrida.dataServico || corrida.data,
-      origem: corrida.origem,
-      destino: corrida.destino,
-      kmTotal: corrida.kmTotal || 0,
-      valor: corrida.valor || 0,
-      valorMotorista: corrida.valorMotorista || 0,
-      status: statusMapeado,
-      statusPagamento: 'Pendente', // Valor padrão
-      medicaoNotaFiscal: 'Medição', // Valor padrão
-      observacoes: corrida.observacoes,
-      centroCusto: corrida.centroCusto || '',
-      pedagio: corrida.pedagio || 0,
-      estacionamento: corrida.estacionamento || 0,
-      hospedagem: corrida.hospedagem || 0,
-      passageiros: corrida.passageiros || corrida.passageiro,
-      destinoExtra: corrida.destinoExtra || '',
-      numeroOS: corrida.numeroOS || '',
-      projeto: corrida.projeto,
-      motivo: corrida.motivo,
-      horaInicio: corrida.horaInicio || corrida.horaSaida,
-      tipoAbrangencia: corrida.tipoAbrangencia,
-      kmInicial: corrida.kmInicial,
-      kmFinal: corrida.kmFinal,
-      solicitante: corrida.solicitante
-    };
-  });
+  const baseCorridas: CorridaFinanceiro[] = useMemo(() => {
+    return corridasParaFinanceiro.map(corrida => {
+      const statusMapeado = mapStatusToFinanceiro(corrida.status);
+      console.log(`Mapeando corrida ${corrida.id}: status original "${corrida.status}" -> status financeiro "${statusMapeado}"`);
+      
+      return {
+        id: corrida.id,
+        empresa: corrida.empresa,
+        motorista: corrida.motorista || '',
+        dataServico: (corrida as any).dataServico || corrida.data,
+        origem: corrida.origem,
+        destino: corrida.destino,
+        kmTotal: corrida.kmTotal || 0,
+        valor: corrida.valor || 0,
+        valorMotorista: corrida.valorMotorista || 0,
+        status: statusMapeado,
+        statusPagamento: (corrida as any).statusPagamento || 'Pendente',
+        medicaoNotaFiscal: (corrida as any).medicaoNotaFiscal || 'Medição',
+        observacoes: corrida.observacoes,
+        centroCusto: corrida.centroCusto || '',
+        pedagio: corrida.pedagio || 0,
+        estacionamento: corrida.estacionamento || 0,
+        hospedagem: corrida.hospedagem || 0,
+        passageiros: (corrida as any).passageiros || (corrida as any).passageiro,
+        destinoExtra: corrida.destinoExtra || '',
+        numeroOS: corrida.numeroOS || '',
+        projeto: corrida.projeto,
+        motivo: corrida.motivo,
+        horaInicio: (corrida as any).horaInicio || (corrida as any).horaSaida,
+        tipoAbrangencia: (corrida as any).tipoAbrangencia,
+        kmInicial: corrida.kmInicial,
+        kmFinal: corrida.kmFinal,
+        solicitante: corrida.solicitante
+      };
+    });
+  }, [corridasParaFinanceiro]);
 
-  console.log('Corridas mapeadas para CorridaFinanceiro:', corridas);
+  const [corridas, setCorridas] = useState<CorridaFinanceiro[]>(baseCorridas);
+  
+  useEffect(() => {
+    setCorridas(baseCorridas);
+  }, [baseCorridas]);
+
+  console.log('Corridas mapeadas para CorridaFinanceiro:', baseCorridas);
 
   // Função para mapear status entre os tipos
   function mapStatusToFinanceiro(status: Corrida['status']): CorridaFinanceiro['status'] {
@@ -95,6 +104,8 @@ export const useFinanceiro = () => {
         return 'Aguardando Conferência';
       case 'Aprovada':
         return 'Aprovada';
+      case 'No Show':
+        return 'No Show';
       case 'Rejeitada':
         return 'Revisar';
       case 'Cancelada':
@@ -136,6 +147,7 @@ export const useFinanceiro = () => {
     
     console.log('Status mapeado para contexto:', corridaStatus);
     updateCorridaStatus(corridaId, corridaStatus);
+    setCorridas(prev => prev.map(c => c.id === corridaId ? { ...c, status } : c));
     console.log('=== FIM FINANCEIRO UPDATE STATUS ===');
     toast.success(`Status alterado para ${status}!`);
   };
@@ -143,21 +155,27 @@ export const useFinanceiro = () => {
   const updatePaymentStatus = (corridaId: number, statusPagamento: CorridaFinanceiro['statusPagamento']) => {
     console.log('=== FINANCEIRO UPDATE PAYMENT STATUS ===');
     console.log('Atualizando status de pagamento da corrida:', corridaId, 'para:', statusPagamento);
-    
-    // Por enquanto, apenas mostrar o toast - a persistência seria implementada posteriormente
-    toast.success(`Status de pagamento alterado para ${statusPagamento}!`);
-    
+
+    // Atualiza UI imediatamente
+    setCorridas(prev => prev.map(c => c.id === corridaId ? { ...c, statusPagamento } : c));
+    // Persiste no banco
+    updateCorridaOriginal(corridaId, { statusPagamento });
+
     console.log('=== FIM FINANCEIRO UPDATE PAYMENT STATUS ===');
+    toast.success(`Status de pagamento alterado para ${statusPagamento}!`);
   };
 
   const updateMedicaoNotaFiscalStatus = (corridaId: number, medicaoNotaFiscal: CorridaFinanceiro['medicaoNotaFiscal']) => {
     console.log('=== FINANCEIRO UPDATE MEDIÇÃO/NOTA FISCAL STATUS ===');
     console.log('Atualizando status de medição/nota fiscal da corrida:', corridaId, 'para:', medicaoNotaFiscal);
     
-    // Por enquanto, apenas mostrar o toast - a persistência seria implementada posteriormente
-    toast.success(`Status de medição/nota fiscal alterado para ${medicaoNotaFiscal}!`);
+    // Atualiza UI imediatamente
+    setCorridas(prev => prev.map(c => c.id === corridaId ? { ...c, medicaoNotaFiscal } : c));
+    // Persiste no banco
+    updateCorridaOriginal(corridaId, { medicaoNotaFiscal });
     
     console.log('=== FIM FINANCEIRO UPDATE MEDIÇÃO/NOTA FISCAL STATUS ===');
+    toast.success(`Status de medição/nota fiscal alterado para ${medicaoNotaFiscal}!`);
   };
 
   const updateCorrida = (corridaId: number, formData: any) => {
@@ -178,9 +196,11 @@ export const useFinanceiro = () => {
 
   const getStats = () => {
     const pendingCount = corridas.filter(c => c.status === 'Em Análise').length;
-    const approvedCount = corridas.filter(c => c.status === 'Aprovada').length;
+    const approvedCount = corridas.filter(c => c.status === 'Aprovada' || c.status === 'No Show').length;
     const rejectedCount = corridas.filter(c => c.status === 'Revisar').length;
-    const totalValue = corridas.filter(c => c.status === 'Aprovada').reduce((sum, c) => sum + c.valor, 0);
+    const totalValue = corridas
+      .filter(c => c.status === 'Aprovada' || c.status === 'No Show')
+      .reduce((sum, c) => sum + c.valor, 0);
 
     return { pendingCount, approvedCount, rejectedCount, totalValue };
   };

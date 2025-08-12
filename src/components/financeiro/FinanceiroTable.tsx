@@ -42,7 +42,7 @@ export const FinanceiroTable = ({
       case 'Cancelada':
         return <Badge className="bg-red-100 text-red-800 border-red-300 hover:bg-red-200">{status}</Badge>;
       case 'No Show':
-        return <Badge className="bg-green-700 text-white border-green-700 hover:bg-green-800">{status}</Badge>;
+        return <Badge className="bg-green-100 text-green-800 border-green-300 hover:bg-green-200">{status}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }

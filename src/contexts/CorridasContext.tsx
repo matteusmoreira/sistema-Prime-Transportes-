@@ -82,6 +82,8 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           tipoAbrangencia: corrida.tipo_abrangencia || '',
           tempoViagem: corrida.tempo_viagem || '',
           observacoesOS: corrida.observacoes_os || '',
+          statusPagamento: (corrida.status_pagamento as Corrida['statusPagamento']) || 'Pendente',
+          medicaoNotaFiscal: (corrida.medicao_nota_fiscal as Corrida['medicaoNotaFiscal']) || 'Medição',
           preenchidoPorMotorista: corrida.preenchido_por_motorista || false,
           numeroOS: corrida.numero_os || '',
           total: corrida.total || 0,
@@ -246,6 +248,8 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         valorCombustivel: 'valor_combustivel',
         localAbastecimento: 'local_abastecimento',
         destinoExtra: 'destino_extra',
+        statusPagamento: 'status_pagamento',
+        medicaoNotaFiscal: 'medicao_nota_fiscal',
       };
 
       const payload: Record<string, any> = { updated_at: new Date().toISOString() };
