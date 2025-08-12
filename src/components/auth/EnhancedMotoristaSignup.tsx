@@ -194,39 +194,7 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
   // Create motorista record after successful signup
   const createMotoristaRecord = async (userId: string) => {
     try {
-      // Upload documents
-      const documentosUpload = [];
-      for (const doc of documentos) {
-        if (doc.arquivo) {
-          const fileName = `${userId}/${Date.now()}_${doc.arquivo.name}`;
-          await uploadFile(doc.arquivo, 'motorista-documentos', fileName);
-          
-          documentosUpload.push({
-            nome: doc.nome,
-            tipo: doc.nome,
-            descricao: doc.descricao,
-            url: fileName
-          });
-        }
-      }
-
-      // Upload photos
-      const fotosUpload = [];
-      for (const foto of fotosVeiculo) {
-        if (foto.arquivo) {
-          const fileName = `${userId}/${Date.now()}_${foto.arquivo.name}`;
-          await uploadFile(foto.arquivo, 'motorista-fotos', fileName);
-          
-          fotosUpload.push({
-            nome: foto.nome,
-            nome_original: foto.arquivo.name,
-            url: fileName,
-            tamanho: foto.tamanho
-          });
-        }
-      }
-
-      // Create motorista record
+      // 1) Cria o registro do motorista primeiro (evita que erros de upload bloqueiem o cadastro)
       const { data: motoristaData, error: motoristaError } = await supabase
         .from('motoristas')
         .insert([{
@@ -244,30 +212,61 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
 
       if (motoristaError) throw motoristaError;
 
-      // Insert documents
-      if (documentosUpload.length > 0) {
-        const { error: docError } = await supabase
-          .from('motorista_documentos')
-          .insert(documentosUpload.map(doc => ({
-            ...doc,
-            motorista_id: motoristaData.id
-          })));
+      // 2) Upload e vínculo dos documentos (best-effort)
+      for (const doc of documentos) {
+        if (!doc.arquivo) continue;
+        try {
+          const fileName = `${userId}/${Date.now()}_${doc.arquivo.name}`;
+          await uploadFile(doc.arquivo, 'motorista-documentos', fileName);
 
-        if (docError) throw docError;
+          // Atenção: a tabela possui colunas (nome, tipo, url, motorista_id)
+          const { error: docError } = await supabase
+            .from('motorista_documentos')
+            .insert({
+              motorista_id: motoristaData.id,
+              nome: doc.nome,
+              tipo: doc.descricao || doc.nome,
+              url: fileName
+            });
+
+          if (docError) {
+            console.warn('Falha ao salvar metadados do documento:', docError);
+            toast.warning(`Documento "${doc.nome}" enviado mas não cadastrado.`);
+          }
+        } catch (err) {
+          console.warn('Erro no upload do documento:', err);
+          toast.warning(`Falha ao enviar documento: ${doc.nome}`);
+        }
       }
 
-      // Insert photos
-      if (fotosUpload.length > 0) {
-        const { error: photoError } = await supabase
-          .from('motorista_fotos')
-          .insert(fotosUpload.map(foto => ({
-            ...foto,
-            motorista_id: motoristaData.id
-          })));
+      // 3) Upload e vínculo das fotos (best-effort)
+      for (const foto of fotosVeiculo) {
+        if (!foto.arquivo) continue;
+        try {
+          const fileName = `${userId}/${Date.now()}_${foto.arquivo.name}`;
+          await uploadFile(foto.arquivo, 'motorista-fotos', fileName);
 
-        if (photoError) throw photoError;
+          const { error: photoError } = await supabase
+            .from('motorista_fotos')
+            .insert({
+              motorista_id: motoristaData.id,
+              nome: foto.nome,
+              nome_original: foto.arquivo.name,
+              url: fileName,
+              tamanho: foto.tamanho
+            });
+
+          if (photoError) {
+            console.warn('Falha ao salvar metadados da foto:', photoError);
+            toast.warning(`Foto "${foto.nome}" enviada mas não cadastrada.`);
+          }
+        } catch (err) {
+          console.warn('Erro no upload da foto:', err);
+          toast.warning(`Falha ao enviar foto: ${foto.nome}`);
+        }
       }
 
+      return motoristaData;
     } catch (error) {
       console.error('Erro ao criar registro do motorista:', error);
       throw error;
