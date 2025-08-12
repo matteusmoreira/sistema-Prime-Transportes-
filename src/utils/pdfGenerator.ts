@@ -15,7 +15,13 @@ export const generateVoucherPDF = async (voucher: VoucherData) => {
   doc.setFont('helvetica', 'bold');
   doc.text('VOUCHER DE TRANSPORTE', pageWidth / 2, yPosition, { align: 'center' });
   
-  yPosition += 20;
+  // Gerado em abaixo do título
+  yPosition += 10;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, pageWidth / 2, yPosition, { align: 'center' });
+  
+  yPosition += 12;
   
   // Linha horizontal
   doc.setLineWidth(0.5);
@@ -160,17 +166,6 @@ export const generateVoucherPDF = async (voucher: VoucherData) => {
   addField('VALOR TOTAL', `R$ ${valorTotal.toFixed(2)}`);
   
   
-  // Rodapé
-  const pageHeight = doc.internal.pageSize.height;
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-
-  // Linha separadora acima do rodapé
-  doc.setLineWidth(0.3);
-  doc.line(margin, pageHeight - 32, pageWidth - margin, pageHeight - 32);
-
-  doc.text('Este voucher é válido apenas para o serviço descrito acima.', pageWidth / 2, pageHeight - 20, { align: 'center' });
-  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, pageWidth / 2, pageHeight - 12, { align: 'center' });
   
   // Salvar o PDF
   const fileName = `voucher_${voucher.id}_${new Date(voucher.dataServico).toISOString().split('T')[0]}.pdf`;
