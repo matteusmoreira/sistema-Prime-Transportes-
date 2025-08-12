@@ -31,7 +31,7 @@ export const generateVoucherPDF = async (voucher: VoucherData) => {
   yPosition += 10;
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text('CNPJ: XX.XXX.XXX/XXXX-XX', margin, yPosition);
+  doc.text('CNPJ: 55.727.209/0001-43', margin, yPosition);
   
   yPosition += 20;
   
@@ -54,6 +54,9 @@ export const generateVoucherPDF = async (voucher: VoucherData) => {
   addField('Data do Serviço', new Date(voucher.dataServico).toLocaleDateString('pt-BR'));
   addField('Empresa', voucher.empresa);
   addField('Motorista', voucher.motorista);
+  if (voucher.veiculo) {
+    addField('Veículo', voucher.veiculo);
+  }
   addField('Centro de Custo', voucher.centroCusto);
   
   if (voucher.numeroOS) {
@@ -62,6 +65,14 @@ export const generateVoucherPDF = async (voucher: VoucherData) => {
   
   if (voucher.solicitante) {
     addField('Solicitante', voucher.solicitante);
+  }
+  
+  if (voucher.projeto) {
+    addField('Projeto', voucher.projeto);
+  }
+  
+  if (voucher.motivo) {
+    addField('Motivo', voucher.motivo);
   }
   
   yPosition += 10;
@@ -112,7 +123,7 @@ export const generateVoucherPDF = async (voucher: VoucherData) => {
   addField('KM Total', `${voucher.kmTotal} km`);
   
   if (voucher.tipoAbrangencia) {
-    addField('Tipo Abrangência', voucher.tipoAbrangencia);
+    addField('Tipo de Abrangência', voucher.tipoAbrangencia);
   }
   
   yPosition += 10;
@@ -148,32 +159,18 @@ export const generateVoucherPDF = async (voucher: VoucherData) => {
   doc.setFont('helvetica', 'bold');
   addField('VALOR TOTAL', `R$ ${valorTotal.toFixed(2)}`);
   
-  // Projeto/Motivo (se existir)
-  if (voucher.projeto || voucher.motivo) {
-    yPosition += 10;
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('INFORMAÇÕES ADICIONAIS', margin, yPosition);
-    yPosition += 10;
-    
-    doc.setFontSize(10);
-    if (voucher.projeto) {
-      addField('Projeto', voucher.projeto);
-    }
-    
-    if (voucher.motivo) {
-      addField('Motivo', voucher.motivo);
-    }
-  }
   
   // Rodapé
-  yPosition = doc.internal.pageSize.height - 40;
+  const pageHeight = doc.internal.pageSize.height;
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text('Este voucher é válido apenas para o serviço descrito acima.', pageWidth / 2, yPosition, { align: 'center' });
-  
-  yPosition += 8;
-  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, pageWidth / 2, yPosition, { align: 'center' });
+
+  // Linha separadora acima do rodapé
+  doc.setLineWidth(0.3);
+  doc.line(margin, pageHeight - 32, pageWidth - margin, pageHeight - 32);
+
+  doc.text('Este voucher é válido apenas para o serviço descrito acima.', pageWidth / 2, pageHeight - 20, { align: 'center' });
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, pageWidth / 2, pageHeight - 12, { align: 'center' });
   
   // Salvar o PDF
   const fileName = `voucher_${voucher.id}_${new Date(voucher.dataServico).toISOString().split('T')[0]}.pdf`;

@@ -7,6 +7,7 @@ export interface VoucherData {
   id: number;
   empresa: string;
   motorista: string;
+  veiculo?: string;
   dataServico: string;
   origem: string;
   destino: string;
@@ -43,6 +44,7 @@ export const useVoucher = () => {
       id: corrida.id,
       empresa: corrida.empresa,
       motorista: corrida.motorista || '',
+      veiculo: corrida.veiculo || '',
       dataServico: corrida.dataServico || corrida.data,
       origem: corrida.origem,
       destino: corrida.destino,
