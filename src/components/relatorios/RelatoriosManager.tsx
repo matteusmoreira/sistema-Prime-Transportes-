@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { FileText, Download, Filter, Calendar, Building2, Users, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { exportCorridasToCSV, exportCorridasToPDF } from '@/utils/reportExports';
+import { useCorridas } from '@/contexts/CorridasContext';
+import type { Corrida } from '@/types/corridas';
 
 interface Relatorio {
   id: number;
@@ -19,6 +22,13 @@ interface Relatorio {
   geradoPor: string;
   status: 'Gerado' | 'Processando' | 'Erro';
   tamanho: string;
+  data: Corrida[];
+  filtrosSnapshot: {
+    dataInicio: string;
+    dataFim: string;
+    empresa: string;
+    motorista: string;
+  };
 }
 
 interface DadosRelatorio {
@@ -42,59 +52,97 @@ export const RelatoriosManager = () => {
     motorista: ''
   });
 
-  const [dadosRelatorio] = useState<DadosRelatorio>({
-    totalCorridas: 0,
-    corridasAprovadas: 0,
-    corridasReprovadas: 0,
-    valorTotal: 0,
-    empresasAtendidas: 0,
-    motoristasAtivos: 0,
-    kmRodados: 0
+const { corridas } = useCorridas();
+
+const empresas = useMemo(() => {
+  const set = new Set<string>();
+  corridas.forEach(c => { if (c.empresa) set.add(c.empresa); });
+  return ['Todas', ...Array.from(set)];
+}, [corridas]);
+
+const motoristas = useMemo(() => {
+  const set = new Set<string>();
+  corridas.forEach(c => { if (c.motorista) set.add(c.motorista); });
+  return ['Todos', ...Array.from(set)];
+}, [corridas]);
+
+const filteredCorridas: Corrida[] = useMemo(() => {
+  const start = filtros.dataInicio ? new Date(filtros.dataInicio) : null;
+  const end = filtros.dataFim ? new Date(filtros.dataFim) : null;
+
+  return corridas.filter(c => {
+    const dataServ = new Date(c.dataServico || c.data);
+    const inDate = (!start || dataServ >= start) && (!end || dataServ <= end!);
+    const inEmpresa = !filtros.empresa || filtros.empresa === 'Todas' || c.empresa === filtros.empresa;
+    const inMotorista = !filtros.motorista || filtros.motorista === 'Todos' || c.motorista === filtros.motorista;
+    return inDate && inEmpresa && inMotorista;
   });
+}, [corridas, filtros]);
 
-  const empresas = ['Todas'];
-  const motoristas = ['Todos'];
+const dadosRelatorio: DadosRelatorio = useMemo(() => {
+  const totalCorridas = filteredCorridas.length;
+  const corridasAprovadas = filteredCorridas.filter(c => c.status === 'Aprovada' || c.status === 'No Show').length;
+  const corridasReprovadas = filteredCorridas.filter(c => c.status === 'Rejeitada').length;
+  const valorTotal = filteredCorridas.reduce((sum, c) => sum + (Number(c.valor) || 0) + (Number(c.pedagio) || 0) + (Number(c.estacionamento) || 0) + (Number(c.hospedagem) || 0), 0);
+  const empresasAtendidas = new Set(filteredCorridas.map(c => c.empresa).filter(Boolean)).size;
+  const motoristasAtivos = new Set(filteredCorridas.map(c => c.motorista).filter(Boolean)).size;
+  const kmRodados = filteredCorridas.reduce((sum, c) => sum + (Number(c.kmTotal) || 0), 0);
+  return { totalCorridas, corridasAprovadas, corridasReprovadas, valorTotal, empresasAtendidas, motoristasAtivos, kmRodados };
+}, [filteredCorridas]);
 
-  const handleGerarRelatorio = (tipo: 'corridas' | 'financeiro' | 'motoristas') => {
-    if (!filtros.dataInicio || !filtros.dataFim) {
-      toast.error('Selecione o período para gerar o relatório');
-      return;
-    }
+const handleGerarRelatorio = (tipo: 'corridas' | 'financeiro' | 'motoristas') => {
+  if (!filtros.dataInicio || !filtros.dataFim) {
+    toast.error('Selecione o período para gerar o relatório');
+    return;
+  }
 
-    const novoRelatorio: Relatorio = {
-      id: relatorios.length + 1,
-      tipo: tipo === 'corridas' ? 'Corridas' : tipo === 'financeiro' ? 'Financeiro' : 'Motoristas',
-      nome: `Relatório de ${tipo === 'corridas' ? 'Corridas' : tipo === 'financeiro' ? 'Financeiro' : 'Motoristas'} - ${new Date().toLocaleDateString('pt-BR')}`,
-      periodo: `${new Date(filtros.dataInicio).toLocaleDateString('pt-BR')} - ${new Date(filtros.dataFim).toLocaleDateString('pt-BR')}`,
-      geradoEm: new Date().toISOString(),
-      geradoPor: 'Admin System',
-      status: 'Processando',
-      tamanho: '-'
-    };
+  const periodo = `${new Date(filtros.dataInicio).toLocaleDateString('pt-BR')} - ${new Date(filtros.dataFim).toLocaleDateString('pt-BR')}`;
 
-    setRelatorios([novoRelatorio, ...relatorios]);
-    toast.success('Relatório sendo gerado...');
-
-    // Simular processamento
-    setTimeout(() => {
-      setRelatorios(prev => prev.map(r => 
-        r.id === novoRelatorio.id 
-          ? { ...r, status: 'Gerado' as const, tamanho: `${(Math.random() * 3 + 1).toFixed(1)} MB` }
-          : r
-      ));
-      toast.success('Relatório gerado com sucesso!');
-    }, 3000);
+  const novoRelatorio: Relatorio = {
+    id: relatorios.length + 1,
+    tipo: tipo === 'corridas' ? 'Corridas' : tipo === 'financeiro' ? 'Financeiro' : 'Motoristas',
+    nome: `Relatório de ${tipo === 'corridas' ? 'Corridas' : tipo === 'financeiro' ? 'Financeiro' : 'Motoristas'} - ${new Date().toLocaleDateString('pt-BR')}`,
+    periodo,
+    geradoEm: new Date().toISOString(),
+    geradoPor: 'Admin System',
+    status: 'Processando',
+    tamanho: `${filteredCorridas.length} itens`,
+    data: filteredCorridas,
+    filtrosSnapshot: { ...filtros }
   };
 
-  const handleDownload = (relatorio: Relatorio, formato: 'excel' | 'pdf') => {
-    if (relatorio.status !== 'Gerado') {
-      toast.error('Relatório ainda não está disponível para download');
-      return;
+  setRelatorios([novoRelatorio, ...relatorios]);
+  toast.success('Relatório sendo gerado...');
+
+  setTimeout(() => {
+    setRelatorios(prev => prev.map(r => r.id === novoRelatorio.id ? { ...r, status: 'Gerado' } : r));
+    toast.success('Relatório gerado com sucesso!');
+  }, 1200);
+};
+
+const handleDownload = async (relatorio: Relatorio, formato: 'excel' | 'pdf') => {
+  if (relatorio.status !== 'Gerado') {
+    toast.error('Relatório ainda não está disponível para download');
+    return;
+  }
+
+  try {
+    if (formato === 'excel') {
+      exportCorridasToCSV(relatorio.data, `${relatorio.nome}.csv`);
+    } else {
+      await exportCorridasToPDF(relatorio.data, {
+        titulo: relatorio.tipo,
+        periodo: relatorio.periodo,
+        filtros: relatorio.filtrosSnapshot,
+        fileName: `${relatorio.nome}.pdf`
+      });
     }
-    
     toast.success(`Download do relatório em ${formato.toUpperCase()} iniciado`);
-    // Aqui seria implementada a lógica real de download
-  };
+  } catch (e) {
+    console.error(e);
+    toast.error('Falha ao exportar relatório');
+  }
+};
 
   const getStatusBadge = (status: string) => {
     const variants: { [key: string]: "default" | "secondary" | "destructive" } = {
