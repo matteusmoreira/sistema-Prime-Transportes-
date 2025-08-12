@@ -181,11 +181,22 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
     return fotosVeiculo.reduce((total, foto) => total + foto.tamanho, 0);
   };
 
+  // Helpers para arquivos
+  const sanitizeFileName = (fileName: string): string => {
+    return fileName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9._-]/g, '_')
+      .replace(/_{2,}/g, '_')
+      .replace(/^_|_$/g, '')
+      .toLowerCase();
+  };
+
   // Upload file utility
   const uploadFile = async (file: File, bucket: string, path: string) => {
     const { data, error } = await supabase.storage
       .from(bucket)
-      .upload(path, file);
+      .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
 
     if (error) throw error;
     return data;
@@ -213,37 +224,45 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
       if (motoristaError) throw motoristaError;
 
       // 2) Upload e vínculo dos documentos (best-effort)
+      let docIndex = 0;
       for (const doc of documentos) {
-        if (!doc.arquivo) continue;
+        if (!doc.arquivo) { docIndex++; continue; }
         try {
-          const fileName = `${userId}/${Date.now()}_${doc.arquivo.name}`;
+          const originalName = sanitizeFileName(doc.arquivo.name);
+          const fileName = `${userId}/${Date.now()}_${docIndex}_${originalName}`;
           await uploadFile(doc.arquivo, 'motorista-documentos', fileName);
+
+          const nomeDoc = (doc.nome && doc.nome.trim()) ? doc.nome.trim() : `Documento ${docIndex + 1}`;
+          const tipoDoc = (doc.descricao && doc.descricao.trim()) ? doc.descricao.trim() : nomeDoc;
 
           // Atenção: a tabela possui colunas (nome, tipo, url, motorista_id)
           const { error: docError } = await supabase
             .from('motorista_documentos')
             .insert({
               motorista_id: motoristaData.id,
-              nome: doc.nome,
-              tipo: doc.descricao || doc.nome,
+              nome: nomeDoc,
+              tipo: tipoDoc,
               url: fileName
             });
 
           if (docError) {
             console.warn('Falha ao salvar metadados do documento:', docError);
-            toast.warning(`Documento "${doc.nome}" enviado mas não cadastrado.`);
+            toast.warning(`Documento "${nomeDoc}" enviado mas não cadastrado.`);
           }
         } catch (err) {
           console.warn('Erro no upload do documento:', err);
-          toast.warning(`Falha ao enviar documento: ${doc.nome}`);
+          toast.warning(`Falha ao enviar documento: ${doc.nome || `Documento ${docIndex + 1}`}`);
         }
+        docIndex++;
       }
 
       // 3) Upload e vínculo das fotos (best-effort)
+      let photoIndex = 0;
       for (const foto of fotosVeiculo) {
-        if (!foto.arquivo) continue;
+        if (!foto.arquivo) { photoIndex++; continue; }
         try {
-          const fileName = `${userId}/${Date.now()}_${foto.arquivo.name}`;
+          const originalName = sanitizeFileName(foto.arquivo.name);
+          const fileName = `${userId}/${Date.now()}_${photoIndex}_${originalName}`;
           await uploadFile(foto.arquivo, 'motorista-fotos', fileName);
 
           const { error: photoError } = await supabase
@@ -264,6 +283,7 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
           console.warn('Erro no upload da foto:', err);
           toast.warning(`Falha ao enviar foto: ${foto.nome}`);
         }
+        photoIndex++;
       }
 
       return motoristaData;
