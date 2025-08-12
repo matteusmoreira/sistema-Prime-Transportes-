@@ -4,9 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, Lock, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMotoristas } from '@/hooks/useMotoristas';
 
 export const MinhaContaManager = () => {
   const { profile } = useAuth();
+  const { getMotoristaByEmail } = useMotoristas();
+  const telefone = profile?.telefone || (profile?.email ? getMotoristaByEmail(profile.email)?.telefone : undefined);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -56,7 +59,7 @@ export const MinhaContaManager = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Telefone</label>
-                  <p className="text-base font-medium">{profile?.telefone || 'Não informado'}</p>
+                  <p className="text-base font-medium">{telefone || 'Não informado'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Função</label>
