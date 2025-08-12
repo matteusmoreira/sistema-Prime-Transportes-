@@ -131,10 +131,6 @@ export const CorridaDetails = ({
             <p>{displayValue(corrida.horaInicio || corrida.horaSaida)}</p>
           </div>
           <div>
-            <Label className="font-semibold">Horário de Chegada:</Label>
-            <p>{displayValue(corrida.horaChegada)}</p>
-          </div>
-          <div>
             <Label className="font-semibold">Status:</Label>
             <p>{getStatusBadge(corrida.status)}</p>
           </div>
