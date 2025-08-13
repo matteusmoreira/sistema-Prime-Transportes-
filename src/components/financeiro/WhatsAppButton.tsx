@@ -31,8 +31,7 @@ export const WhatsAppButton = ({ corrida }: WhatsAppButtonProps) => {
 📅 *Data do Serviço:* ${dataFormatada}
 🕐 *Horário:* ${horaInicio} às ${horaFim}
 
-👥 *Passageiro:* ${corrida.passageiro}
-📞 *Telefone do Passageiro:* ${corrida.telefonePassageiro || 'Não informado'}
+👥 *Passageiros:* ${corrida.passageiros || 'Não informado'}
 
 📍 *Origem:* ${corrida.origem}
 🎯 *Destino:* ${corrida.destino}
