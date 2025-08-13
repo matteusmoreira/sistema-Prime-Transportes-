@@ -52,3 +52,6 @@ enable_confirmations = false
 
 [functions.create-motorista-account]
 verify_jwt = false
+
+[functions.test-evolution-connection]
+verify_jwt = true

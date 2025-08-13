@@ -97,6 +97,33 @@ export type Database = {
         }
         Relationships: []
       }
+      configuracoes: {
+        Row: {
+          created_at: string
+          evolution_api_key: string
+          evolution_api_url: string
+          evolution_instance_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          evolution_api_key: string
+          evolution_api_url: string
+          evolution_instance_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          evolution_api_key?: string
+          evolution_api_url?: string
+          evolution_instance_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       corrida_documentos: {
         Row: {
           corrida_id: number | null
