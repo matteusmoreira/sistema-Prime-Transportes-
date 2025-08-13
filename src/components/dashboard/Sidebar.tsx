@@ -34,7 +34,6 @@ export const Sidebar = ({
     { id: 'empresas', label: 'Empresas', icon: Building2, roles: ['Administrador', 'Administração'] },
     { id: 'solicitantes', label: 'Solicitantes', icon: Users, roles: ['Administrador', 'Administração'] },
     { id: 'motoristas', label: 'Motoristas', icon: Car, roles: ['Administrador', 'Administração'] },
-    { id: 'cadastro', label: 'Cadastro', icon: Users, roles: ['Administrador'] },
     { id: 'corridas', label: 'Corridas', icon: Route, roles: ['Administrador', 'Administração', 'Motorista'] },
     { id: 'financeiro', label: 'Financeiro', icon: Calculator, roles: ['Administrador', 'Financeiro'] },
     { id: 'voucher', label: 'Voucher', icon: Receipt, roles: ['Administrador', 'Financeiro'] },
@@ -42,6 +41,7 @@ export const Sidebar = ({
     { id: 'relatorios', label: 'Relatórios', icon: FileText, roles: ['Administrador', 'Administração', 'Financeiro'] },
     { id: 'configuracoes', label: 'Configurações', icon: Settings, roles: ['Administrador'] },
     { id: 'minha-conta', label: 'Minha Conta', icon: Users, roles: ['Motorista'] },
+    { id: 'cadastro', label: 'Cadastro', icon: Users, roles: ['Administrador'] },
   ];
 
   const filteredItems = menuItems.filter(item => item.roles.includes(userLevel));
