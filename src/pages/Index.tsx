@@ -56,7 +56,8 @@ const Index = () => {
     <Dashboard 
       userLevel={profile.role} 
       onLogout={signOut} 
-      userEmail={profile.email} 
+      userEmail={profile.email}
+      userName={profile.nome}
     />
   );
 };

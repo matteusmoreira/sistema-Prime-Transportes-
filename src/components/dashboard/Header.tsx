@@ -8,9 +8,10 @@ interface HeaderProps {
   onLogout: () => void;
   onToggleSidebar: () => void;
   userEmail?: string;
+  userName?: string;
 }
 
-export const Header = ({ userLevel, onLogout, onToggleSidebar, userEmail }: HeaderProps) => {
+export const Header = ({ userLevel, onLogout, onToggleSidebar, userEmail, userName }: HeaderProps) => {
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -28,7 +29,7 @@ export const Header = ({ userLevel, onLogout, onToggleSidebar, userEmail }: Head
         
         <div className="flex items-center space-x-4">
           <div className="text-sm text-gray-600">
-            Bem-vindo, <span className="font-semibold">{userLevel}</span>
+            Bem-vindo, <span className="font-semibold">{userName || userLevel}</span>
             {userEmail && <div className="text-xs text-gray-500">{userEmail}</div>}
           </div>
           

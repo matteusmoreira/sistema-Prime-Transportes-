@@ -20,9 +20,10 @@ interface DashboardProps {
   userLevel: string;
   onLogout: () => void;
   userEmail?: string;
+  userName?: string;
 }
 
-export const Dashboard = ({ userLevel, onLogout, userEmail }: DashboardProps) => {
+export const Dashboard = ({ userLevel, onLogout, userEmail, userName }: DashboardProps) => {
   const [activeSection, setActiveSection] = useState('home');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -74,6 +75,7 @@ export const Dashboard = ({ userLevel, onLogout, userEmail }: DashboardProps) =>
           onLogout={onLogout}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           userEmail={userEmail}
+          userName={userName}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
           {renderContent()}
