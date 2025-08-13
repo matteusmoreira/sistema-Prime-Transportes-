@@ -348,20 +348,33 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
       // Salvar documentos/comprovantes se existirem
       const documentos = (osData as any).documentos;
+      console.log('📎 Documentos recebidos para salvar:', documentos);
+      
       if (documentos && documentos.length > 0) {
+        let documentosSalvos = 0;
+        
         for (const documento of documentos) {
+          console.log('📄 Processando documento:', documento.nome, 'Arquivo:', !!documento.arquivo);
+          
           if (documento.arquivo) {
             try {
               // Upload do arquivo para o storage
-              const fileName = `${id}_OS_${Date.now()}_${documento.nome.replace(/\s+/g, '_')}`;
+              const sanitizedName = documento.nome.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+              const fileName = `${id}_OS_${Date.now()}_${sanitizedName}`;
+              
+              console.log('⬆️ Fazendo upload do arquivo:', fileName);
+              
               const { error: uploadError } = await supabase.storage
                 .from('corrida-documentos')
                 .upload(fileName, documento.arquivo);
 
               if (uploadError) {
-                console.error('Erro ao fazer upload do comprovante:', uploadError);
+                console.error('❌ Erro ao fazer upload do comprovante:', uploadError);
+                toast.error(`Erro ao fazer upload do comprovante ${documento.nome}`);
                 continue;
               }
+
+              console.log('✅ Upload realizado com sucesso, salvando registro na tabela...');
 
               // Salvar registro do documento na tabela
               const { error: docInsertError } = await supabase
@@ -369,21 +382,33 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
                 .insert({
                   corrida_id: id,
                   nome: documento.nome,
-                  descricao: documento.descricao,
-                  url: fileName // Store the file path
+                  descricao: documento.descricao || `Comprovante de ${documento.nome}`,
+                  url: fileName
                 });
 
               if (docInsertError) {
-                console.error('Erro ao salvar registro do comprovante:', docInsertError);
+                console.error('❌ Erro ao salvar registro do comprovante:', docInsertError);
+                toast.error(`Erro ao salvar registro do comprovante ${documento.nome}`);
                 continue;
               }
 
-              console.log('Comprovante salvo com sucesso:', documento.nome);
+              documentosSalvos++;
+              console.log('✅ Comprovante salvo com sucesso:', documento.nome);
+              
             } catch (docError) {
-              console.error('Erro ao processar comprovante:', documento.nome, docError);
+              console.error('❌ Erro ao processar comprovante:', documento.nome, docError);
+              toast.error(`Erro ao processar comprovante ${documento.nome}`);
             }
+          } else {
+            console.log('⚠️ Documento sem arquivo:', documento.nome);
           }
         }
+        
+        if (documentosSalvos > 0) {
+          toast.success(`${documentosSalvos} comprovante(s) salvo(s) com sucesso!`);
+        }
+      } else {
+        console.log('ℹ️ Nenhum documento para salvar');
       }
 
       // Atualizar estado local apenas após sucesso no banco
