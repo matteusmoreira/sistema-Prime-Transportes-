@@ -245,7 +245,6 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         destinoExtra: 'destino_extra',
         statusPagamento: 'status_pagamento',
         medicaoNotaFiscal: 'medicao_nota_fiscal',
-        passageiros: 'passageiros',
       };
 
       const payload: Record<string, any> = { updated_at: new Date().toISOString() };
@@ -254,6 +253,12 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         const dbKey = map[key] ?? key;
         payload[dbKey] = value as any;
       });
+
+      // Handle passageiros field - map to both passageiro (required) and passageiros (optional)
+      if (updatedData.passageiros !== undefined) {
+        payload.passageiro = updatedData.passageiros || '';
+        payload.passageiros = updatedData.passageiros || '';
+      }
 
       console.log('=== DEBUG updateCorrida ===');
       console.log('ID da corrida:', id);
