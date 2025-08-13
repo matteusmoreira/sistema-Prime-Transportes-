@@ -159,6 +159,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           valor_motorista: corridaData.valorMotorista,
           total: corridaData.total,
           passageiro: corridaData.passageiros || '',
+          passageiros: corridaData.passageiros || '',
         })
         .select()
         .single();
@@ -244,6 +245,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         destinoExtra: 'destino_extra',
         statusPagamento: 'status_pagamento',
         medicaoNotaFiscal: 'medicao_nota_fiscal',
+        passageiros: 'passageiros',
       };
 
       const payload: Record<string, any> = { updated_at: new Date().toISOString() };
@@ -253,6 +255,11 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         payload[dbKey] = value as any;
       });
 
+      console.log('=== DEBUG updateCorrida ===');
+      console.log('ID da corrida:', id);
+      console.log('Dados recebidos para atualizar:', updatedData);
+      console.log('Payload que será enviado para o banco:', payload);
+
       const { error } = await supabase
         .from('corridas')
         .update(payload)
@@ -260,9 +267,12 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('Erro ao atualizar corrida no banco:', error);
+        console.error('Payload que causou erro:', payload);
         toast.error('Erro ao atualizar corrida');
         return;
       }
+
+      console.log('Corrida atualizada com sucesso no banco');
 
       // Atualiza estado local após sucesso
       setCorridas(prev => prev.map(c => (c.id === id ? { ...c, ...updatedData } : c)));
