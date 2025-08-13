@@ -5,17 +5,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { Truck, Mail, Lock, User, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { Database } from '@/integrations/supabase/types';
 import { EnhancedMotoristaSignup } from '@/components/auth/EnhancedMotoristaSignup';
 
-type UserRole = Database['public']['Enums']['user_role'];
+
 
 export const Auth = () => {
-  const { signIn, signUp, resetPassword, user } = useAuth();
+  const { signIn, resetPassword, user } = useAuth();
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(false);
@@ -26,11 +26,6 @@ export const Auth = () => {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   
-  // Signup form
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupPassword, setSignupPassword] = useState('');
-  const [signupNome, setSignupNome] = useState('');
-  const [signupRole, setSignupRole] = useState<UserRole>('Motorista');
   
   // Reset password form
   const [resetEmail, setResetEmail] = useState('');
@@ -57,25 +52,6 @@ export const Auth = () => {
     setLoading(false);
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    const { error } = await signUp(signupEmail, signupPassword, signupNome, signupRole);
-
-    if (error) {
-      if (error.message.includes('User already registered')) {
-        toast.error('Usuário já cadastrado. Tente fazer login.');
-      } else {
-        toast.error(`Erro no cadastro: ${error.message}`);
-      }
-    } else {
-      toast.success('Cadastro realizado! Verifique seu email para confirmar a conta.');
-      setActiveTab('signin');
-    }
-    
-    setLoading(false);
-  };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,62 +132,64 @@ export const Auth = () => {
             </TabsContent>
             
             <TabsContent value="signup">
-              {!showEnhancedSignup ? (
-                <div className="space-y-6">
-                  <div className="text-center space-y-4">
-                    <h3 className="text-xl font-semibold text-gray-900">Cadastro de Motorista</h3>
-                    <p className="text-gray-600">
-                      Complete o cadastro com seus documentos e informações do veículo
-                    </p>
-                  </div>
-                  
-                  <div className="flex justify-center">
-                    <Button
-                      type="button"
-                      size="lg"
-                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                      onClick={() => setShowEnhancedSignup(true)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="bg-white/20 p-2 rounded-lg">
-                          <Truck className="h-6 w-6" />
-                        </div>
-                        <div className="text-left">
-                          <div className="font-semibold text-lg">Iniciar Cadastro</div>
-                          <div className="text-sm text-blue-100">
-                            Cadastro completo como motorista
-                          </div>
+              <div className="space-y-6">
+                <div className="text-center space-y-4">
+                  <h3 className="text-xl font-semibold text-gray-900">Cadastro de Motorista</h3>
+                  <p className="text-gray-600">
+                    Complete o cadastro com seus documentos e informações do veículo
+                  </p>
+                </div>
+                
+                <div className="flex justify-center">
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    onClick={() => setShowEnhancedSignup(true)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="bg-white/20 p-2 rounded-lg">
+                        <Truck className="h-6 w-6" />
+                      </div>
+                      <div className="text-left">
+                        <div className="font-semibold text-lg">Iniciar Cadastro</div>
+                        <div className="text-sm text-blue-100">
+                          Cadastro completo como motorista
                         </div>
                       </div>
-                    </Button>
-                  </div>
-                  
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="bg-blue-100 p-2 rounded-full flex-shrink-0">
-                        <User className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div className="text-sm text-blue-800">
-                        <p className="font-medium mb-1">Você precisará dos seguintes documentos:</p>
-                        <ul className="list-disc list-inside space-y-1 text-blue-700">
-                          <li>CNH (Carteira de Motorista)</li>
-                          <li>CPF e RG</li>
-                          <li>Comprovante de endereço</li>
-                          <li>Fotos do veículo</li>
-                          <li>Documentos do veículo (CRLV)</li>
-                        </ul>
-                      </div>
+                    </div>
+                  </Button>
+                </div>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-blue-100 p-2 rounded-full flex-shrink-0">
+                      <User className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">Você precisará dos seguintes documentos:</p>
+                      <ul className="list-disc list-inside space-y-1 text-blue-700">
+                        <li>CNH (Carteira de Motorista)</li>
+                        <li>CPF e RG</li>
+                        <li>Comprovante de endereço</li>
+                        <li>Fotos do veículo</li>
+                        <li>Documentos do veículo (CRLV)</li>
+                      </ul>
                     </div>
                   </div>
                 </div>
-              ) : (
-                <EnhancedMotoristaSignup
-                  onSuccess={() => {
-                    setShowEnhancedSignup(false);
-                    setActiveTab('signin');
-                  }}
-                  onBack={() => setShowEnhancedSignup(false)}
-                />
+              </div>
+              
+              {showEnhancedSignup && (
+                <div className="mt-6">
+                  <EnhancedMotoristaSignup
+                    onSuccess={() => {
+                      setShowEnhancedSignup(false);
+                      setActiveTab('signin');
+                    }}
+                    onBack={() => setShowEnhancedSignup(false)}
+                  />
+                </div>
               )}
             </TabsContent>
             

@@ -45,6 +45,12 @@ export const Sidebar = ({
   ];
 
   const filteredItems = menuItems.filter(item => item.roles.includes(userLevel));
+  
+  // Debug: verificar quais itens estão sendo filtrados
+  console.log('=== SIDEBAR DEBUG ===');
+  console.log('UserLevel no sidebar:', userLevel);
+  console.log('Items filtrados:', filteredItems.map(item => item.label));
+  console.log('=== FIM SIDEBAR DEBUG ===');
 
   return (
     <div className={cn(
