@@ -179,8 +179,22 @@ export const useFinanceiro = () => {
   };
 
   const updateCorrida = (corridaId: number, formData: any) => {
-    console.log('Atualizando corrida no financeiro:', corridaId, 'com dados:', formData);
+    console.log('=== FINANCEIRO UPDATE CORRIDA ===');
+    console.log('ID da corrida:', corridaId);
+    console.log('Dados recebidos do formulário:', formData);
+    console.log('Tipo dos dados:', typeof formData);
+    console.log('Keys dos dados:', Object.keys(formData));
+    
     updateCorridaOriginal(corridaId, formData);
+    
+    // Atualizar também o estado local do financeiro
+    setCorridas(prev => prev.map(c => 
+      c.id === corridaId 
+        ? { ...c, ...formData }
+        : c
+    ));
+    
+    console.log('=== FIM FINANCEIRO UPDATE CORRIDA ===');
     toast.success('Corrida atualizada com sucesso!');
   };
 

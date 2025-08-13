@@ -108,7 +108,8 @@ export const CorridaEditDialog = ({
   const handleSave = () => {
     if (!corrida) return;
     
-    console.log('Salvando dados:', formData);
+    console.log('=== FORMULÁRIO CORRIDA EDIT ===');
+    console.log('Dados brutos do formulário:', formData);
     
     const updatedData = {
       ...formData,
@@ -122,7 +123,10 @@ export const CorridaEditDialog = ({
       kmFinal: parseInt(formData.kmFinal) || 0
     };
 
-    console.log('Dados processados para salvar:', updatedData);
+    console.log('Dados processados para enviar:', updatedData);
+    console.log('ID da corrida a ser atualizada:', corrida.id);
+    console.log('=== FIM FORMULÁRIO CORRIDA EDIT ===');
+    
     onSave(corrida.id, updatedData);
     onOpenChange(false);
   };
