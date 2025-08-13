@@ -52,9 +52,7 @@ ${corrida.observacoes ? `📝 *Observações:* ${corrida.observacoes}` : ''}
 ${corrida.observacoesOS ? `📋 *Observações da OS:* ${corrida.observacoesOS}` : ''}
 
 ---
-Por favor, confirme o recebimento desta mensagem.
-
-Obrigado! 🙏`;
+ATT, Prime Transportes`;
   };
 
   const [message, setMessage] = useState(createFormattedMessage());
