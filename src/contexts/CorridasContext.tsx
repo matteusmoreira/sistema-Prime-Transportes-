@@ -163,6 +163,8 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           total: corridaData.total,
           passageiro: corridaData.passageiros || '',
           passageiros: corridaData.passageiros || '',
+          numero_os: corridaData.numeroOS || '', // Adicionar numeroOS
+          destino_extra: corridaData.destinoExtra || '', // Adicionar destinoExtra
         })
         .select()
         .single();

@@ -133,7 +133,7 @@ export const OSForm = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Data do Serviço</Label>
               <Input value={(corrida.dataServico || corrida.data) ? (corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')) : ''} readOnly className="bg-gray-100" />
@@ -142,9 +142,16 @@ export const OSForm = ({
               <Label>Hora Início</Label>
               <Input value={formatTimeToAmPm(corrida.horaInicio || corrida.horaSaida || '')} readOnly className="bg-gray-100" />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Tipo de Abrangência</Label>
               <Input value={corrida.tipoAbrangencia || 'Não informado'} readOnly className="bg-gray-100" />
+            </div>
+            <div className="space-y-2">
+              <Label>Nº da Ordem de Serviço</Label>
+              <Input value={corrida.numeroOS || 'Será gerado automaticamente'} readOnly className="bg-gray-100" />
             </div>
           </div>
 
