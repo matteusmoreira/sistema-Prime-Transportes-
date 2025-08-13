@@ -24,12 +24,26 @@ export const FinanceiroManager = () => {
   };
 
   const handleEdit = (corrida: CorridaFinanceiro) => {
+    console.log('=== CLICOU PARA EDITAR CORRIDA ===');
+    console.log('Corrida selecionada para edição:', corrida);
+    console.log('ID da corrida:', corrida.id);
+    console.log('Status da corrida:', corrida.status);
+    console.log('=== FIM CLICOU PARA EDITAR ===');
+    
     setSelectedCorrida(corrida);
     setIsEditDialogOpen(true);
   };
 
   const handleSave = (corridaId: number, formData: any) => {
+    console.log('=== HANDLE SAVE FINANCEIRO MANAGER ===');
+    console.log('Corridor ID recebido:', corridaId);
+    console.log('Form data recebido:', formData);
+    console.log('Tipos dos campos:', Object.keys(formData).map(key => ({ key, type: typeof formData[key], value: formData[key] })));
+    console.log('=== CHAMANDO UPDATE CORRIDA ===');
+    
     updateCorrida(corridaId, formData);
+    
+    console.log('=== FIM HANDLE SAVE FINANCEIRO MANAGER ===');
   };
 
   const handleApprove = (corrida: CorridaFinanceiro) => {

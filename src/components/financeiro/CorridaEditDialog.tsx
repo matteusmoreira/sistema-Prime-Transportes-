@@ -55,8 +55,12 @@ export const CorridaEditDialog = ({
 
   // Atualizar o formulário sempre que a corrida mudar ou o diálogo abrir
   useEffect(() => {
-    console.log('Atualizando dados do formulário:', corrida);
+    console.log('=== USEEFFECT CORRIDA EDIT DIALOG ===');
+    console.log('Corrida recebida:', corrida);
+    console.log('Dialog está aberto:', isOpen);
+    
     if (corrida && isOpen) {
+      console.log('Atualizando dados do formulário com corrida:', corrida);
       setFormData({
         empresa: corrida.empresa || '',
         motorista: corrida.motorista || '',
@@ -82,7 +86,9 @@ export const CorridaEditDialog = ({
         kmFinal: corrida.kmFinal?.toString() || '',
         solicitante: corrida.solicitante || ''
       });
+      console.log('Form data após atualização:', formData);
     }
+    console.log('=== FIM USEEFFECT CORRIDA EDIT DIALOG ===');
   }, [corrida, isOpen]);
 
   // Limpar comprovantes quando o diálogo fechar
@@ -106,29 +112,42 @@ export const CorridaEditDialog = ({
   };
 
   const handleSave = () => {
-    if (!corrida) return;
-    
-    console.log('=== FORMULÁRIO CORRIDA EDIT ===');
-    console.log('Dados brutos do formulário:', formData);
-    
-    const updatedData = {
-      ...formData,
-      kmTotal: parseInt(formData.kmTotal) || 0,
-      valor: parseFloat(formData.valor) || 0,
-      valorMotorista: parseFloat(formData.valorMotorista) || 0,
-      pedagio: parseFloat(formData.pedagio) || 0,
-      estacionamento: parseFloat(formData.estacionamento) || 0,
-      hospedagem: parseFloat(formData.hospedagem) || 0,
-      kmInicial: parseInt(formData.kmInicial) || 0,
-      kmFinal: parseInt(formData.kmFinal) || 0
-    };
+    try {
+      if (!corrida) {
+        console.error('ERRO: Nenhuma corrida selecionada para salvar');
+        return;
+      }
+      
+      console.log('=== FORMULÁRIO CORRIDA EDIT ===');
+      console.log('Dados brutos do formulário:', formData);
+      
+      const updatedData = {
+        ...formData,
+        kmTotal: parseInt(formData.kmTotal) || 0,
+        valor: parseFloat(formData.valor) || 0,
+        valorMotorista: parseFloat(formData.valorMotorista) || 0,
+        pedagio: parseFloat(formData.pedagio) || 0,
+        estacionamento: parseFloat(formData.estacionamento) || 0,
+        hospedagem: parseFloat(formData.hospedagem) || 0,
+        kmInicial: parseInt(formData.kmInicial) || 0,
+        kmFinal: parseInt(formData.kmFinal) || 0
+      };
 
-    console.log('Dados processados para enviar:', updatedData);
-    console.log('ID da corrida a ser atualizada:', corrida.id);
-    console.log('=== FIM FORMULÁRIO CORRIDA EDIT ===');
-    
-    onSave(corrida.id, updatedData);
-    onOpenChange(false);
+      console.log('Dados processados para enviar:', updatedData);
+      console.log('ID da corrida a ser atualizada:', corrida.id);
+      console.log('=== CHAMANDO ONSAVE ===');
+      
+      onSave(corrida.id, updatedData);
+      
+      console.log('=== FECHANDO DIALOG ===');
+      onOpenChange(false);
+      console.log('=== FIM FORMULÁRIO CORRIDA EDIT ===');
+    } catch (error) {
+      console.error('=== ERRO NO HANDLE SAVE ===');
+      console.error('Error:', error);
+      console.error('Stack:', error instanceof Error ? error.stack : 'No stack');
+      console.error('=== FIM ERRO NO HANDLE SAVE ===');
+    }
   };
 
   if (!corrida) return null;
