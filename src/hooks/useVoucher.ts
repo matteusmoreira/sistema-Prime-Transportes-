@@ -54,7 +54,7 @@ export const useVoucher = () => {
       pedagio: corrida.pedagio || 0,
       estacionamento: corrida.estacionamento || 0,
       hospedagem: corrida.hospedagem || 0,
-      passageiros: corrida.passageiros || corrida.passageiro || '',
+      passageiros: corrida.passageiros || '',
       destinoExtra: corrida.destinoExtra || '',
       numeroOS: corrida.numeroOS || '',
       projeto: corrida.projeto,

@@ -12,8 +12,6 @@ export interface Corrida {
   solicitante: string;
   empresa: string;
   empresaId: number;
-  passageiro: string;
-  telefonePassageiro: string;
   origem: string;
   destino: string;
   data: string;
@@ -49,7 +47,7 @@ export interface Corrida {
   centroCusto: string; // Removido o '?' para tornar obrigatório
   destinoExtra?: string;
   numeroOS?: string;
-  passageiros?: string;
+  passageiros: string;
   projeto?: string;
   motivo?: string;
   preenchidoPorMotorista?: boolean;

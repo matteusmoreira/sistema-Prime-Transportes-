@@ -284,17 +284,13 @@ export const CorridaDetails = ({
       )}
 
       {/* Passageiros */}
-      {hasValue(corrida.passageiro || corrida.passageiros) && <div className="space-y-4">
+      {hasValue(corrida.passageiros) && <div className="space-y-4">
           <h3 className="text-lg font-semibold border-b pb-2">Passageiros</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div>
             <div>
               <Label className="font-semibold">Lista de Passageiros:</Label>
-              <pre className="mt-1 p-2 bg-gray-50 rounded whitespace-pre-wrap">{corrida.passageiro || corrida.passageiros}</pre>
+              <pre className="mt-1 p-2 bg-gray-50 rounded whitespace-pre-wrap">{corrida.passageiros}</pre>
             </div>
-            {hasValue(corrida.telefonePassageiro) && <div>
-              <Label className="font-semibold">Telefone do Passageiro:</Label>
-              <p>{corrida.telefonePassageiro}</p>
-            </div>}
           </div>
         </div>}
 

@@ -73,7 +73,7 @@ export const useFinanceiro = () => {
         pedagio: corrida.pedagio || 0,
         estacionamento: corrida.estacionamento || 0,
         hospedagem: corrida.hospedagem || 0,
-        passageiros: (corrida as any).passageiros || (corrida as any).passageiro,
+        passageiros: (corrida as any).passageiros || '',
         destinoExtra: corrida.destinoExtra || '',
         numeroOS: corrida.numeroOS || '',
         projeto: corrida.projeto,

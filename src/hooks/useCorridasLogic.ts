@@ -76,8 +76,7 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
       empresaId: empresaId,
       solicitante: formData.solicitante,
       motorista: motoristaName, // Nome do motorista (automaticamente associado se for motorista logado)
-      passageiro: formData.passageiros || '',
-      telefonePassageiro: '',
+      passageiros: formData.passageiros || '',
       origem: formData.origem,
       destino: formData.destino,
       data: formData.dataServico || new Date().toISOString().split('T')[0],
@@ -100,7 +99,6 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
       estacionamento: parseFloat(formData.estacionamento) || 0,
       hospedagem: parseFloat(formData.hospedagem) || 0,
       numeroOS: formData.numeroOS,
-      passageiros: formData.passageiros,
       projeto: formData.projeto,
       motivo: formData.motivo,
       documentos: documentos

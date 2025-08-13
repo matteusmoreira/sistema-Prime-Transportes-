@@ -45,7 +45,7 @@ export const OSForm = ({
     pedagio: corrida.pedagio?.toString() || '',
     estacionamento: corrida.estacionamento?.toString() || '',
     hospedagem: corrida.hospedagem?.toString() || '',
-    passageiros: corrida.passageiros || corrida.passageiro || '',
+    passageiros: corrida.passageiros || '',
     observacoes: corrida.observacoes || ''
   });
   const [documentos, setDocumentos] = useState<DocumentoUpload[]>([]);

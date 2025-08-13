@@ -23,7 +23,7 @@ export const useFormData = (editingCorrida: Corrida | null) => {
     estacionamento: editingCorrida?.estacionamento?.toString() || '',
     hospedagem: editingCorrida?.hospedagem?.toString() || '',
     numeroOS: editingCorrida?.numeroOS || '',
-    passageiros: editingCorrida?.passageiros || editingCorrida?.passageiro || '',
+    passageiros: editingCorrida?.passageiros || '',
     projeto: editingCorrida?.projeto || '',
     motivo: editingCorrida?.motivo || '',
     veiculo: editingCorrida?.veiculo || ''

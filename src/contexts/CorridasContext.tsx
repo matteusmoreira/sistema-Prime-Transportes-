@@ -49,8 +49,6 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           empresaId: corrida.empresa_id || 0,
           centroCusto: corrida.centro_custo || '',
           solicitante: corrida.solicitante || '',
-          passageiro: corrida.passageiro || '',
-          telefonePassageiro: corrida.telefone_passageiro || '',
           origem: corrida.origem || '',
           destino: corrida.destino || '',
           data: corrida.data || '',
@@ -89,7 +87,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           total: corrida.total || 0,
           localAbastecimento: corrida.local_abastecimento || '',
           destinoExtra: corrida.destino_extra || '',
-          passageiros: corrida.passageiros || '',
+          passageiros: corrida.passageiros || corrida.passageiro || '',
           documentos: Array.isArray(corrida.corrida_documentos) ? corrida.corrida_documentos : []
         };
       }) || [];
@@ -146,8 +144,6 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           empresa_id: corridaData.empresaId,
           centro_custo: corridaData.centroCusto,
           solicitante: corridaData.solicitante,
-          passageiro: corridaData.passageiro,
-          telefone_passageiro: corridaData.telefonePassageiro,
           origem: corridaData.origem,
           destino: corridaData.destino,
           data: corridaData.data,
@@ -162,8 +158,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           valor: corridaData.valor,
           valor_motorista: corridaData.valorMotorista,
           total: corridaData.total,
-          tipo_abrangencia: corridaData.tipoAbrangencia,
-          destino_extra: corridaData.destinoExtra
+          passageiro: corridaData.passageiros || '',
         })
         .select()
         .single();
@@ -227,7 +222,6 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       const map: Record<string, string> = {
         empresaId: 'empresa_id',
         centroCusto: 'centro_custo',
-        telefonePassageiro: 'telefone_passageiro',
         horaSaida: 'hora_saida',
         horaChegada: 'hora_chegada',
         valorMotorista: 'valor_motorista',
