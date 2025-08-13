@@ -107,9 +107,25 @@ export const CorridasTable = ({
   };
 
   const canEdit = (corrida: Corrida) => {
-    if (userLevel === 'Administrador') return true;
-    if (userLevel === 'Financeiro' && corrida.status === 'Aguardando Conferência') return true;
-    return false;
+    console.log('=== CAN EDIT CHECK ===');
+    console.log('UserLevel:', userLevel);
+    console.log('Corrida status:', corrida.status);
+    console.log('Corrida ID:', corrida.id);
+    
+    let result = false;
+    if (userLevel === 'Administrador') {
+      result = true;
+      console.log('Administrador pode editar');
+    } else if (userLevel === 'Financeiro' && corrida.status === 'Aguardando Conferência') {
+      result = true;
+      console.log('Financeiro pode editar corrida em conferência');
+    } else {
+      console.log('Não pode editar - UserLevel:', userLevel, 'Status:', corrida.status);
+    }
+    
+    console.log('canEdit resultado:', result);
+    console.log('=== FIM CAN EDIT CHECK ===');
+    return result;
   };
 
   // Verificar se corridas é válido e tem itens
