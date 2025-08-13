@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download } from 'lucide-react';
+import { Download, Car, Building, Hotel, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { CorridaFinanceiro } from '@/hooks/useFinanceiro';
@@ -45,6 +45,20 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange }: CorridaView
 
     loadDocumentos();
   }, [corrida?.id, isOpen]);
+
+  const getDocumentIcon = (nome: string) => {
+    const nomeNormalizado = nome.toLowerCase();
+    if (nomeNormalizado.includes('pedagio') || nomeNormalizado.includes('pedágio')) {
+      return <Car className="h-5 w-5 text-blue-600" />;
+    }
+    if (nomeNormalizado.includes('estacionamento')) {
+      return <Building className="h-5 w-5 text-green-600" />;
+    }
+    if (nomeNormalizado.includes('hospedagem')) {
+      return <Hotel className="h-5 w-5 text-purple-600" />;
+    }
+    return <CreditCard className="h-5 w-5 text-gray-600" />;
+  };
 
   const handleDownloadDocument = async (documento: any) => {
     try {
@@ -169,18 +183,43 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange }: CorridaView
               <CardTitle>Valores e Quilometragem</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-4">
+                {/* Quilometragem */}
                 <div>
-                  <Label className="font-semibold">KM Total:</Label>
-                  <p>{corrida.kmTotal} km</p>
+                  <h4 className="font-medium text-sm text-gray-700 mb-3">Quilometragem</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <Label className="font-semibold">KM Inicial:</Label>
+                      <p className="text-lg">{corrida.kmInicial || 0} km</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">KM Final:</Label>
+                      <p className="text-lg">{corrida.kmFinal || 0} km</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">Cálculo:</Label>
+                      <p className="text-sm text-gray-600">{corrida.kmFinal || 0} - {corrida.kmInicial || 0}</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">KM Total:</Label>
+                      <p className="text-lg font-bold text-blue-600">{corrida.kmTotal} km</p>
+                    </div>
+                  </div>
                 </div>
+                
+                {/* Valores */}
                 <div>
-                  <Label className="font-semibold">Valor Total:</Label>
-                  <p>R$ {corrida.valor.toFixed(2)}</p>
-                </div>
-                <div>
-                  <Label className="font-semibold">Valor para Motorista:</Label>
-                  <p>R$ {corrida.valorMotorista?.toFixed(2) || '0.00'}</p>
+                  <h4 className="font-medium text-sm text-gray-700 mb-3">Valores</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="font-semibold">Valor Total:</Label>
+                      <p className="text-lg font-bold text-green-600">R$ {corrida.valor.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">Valor para Motorista:</Label>
+                      <p className="text-lg">R$ {corrida.valorMotorista?.toFixed(2) || '0.00'}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -192,17 +231,26 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange }: CorridaView
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label className="font-semibold">Pedágio:</Label>
-                  <p>R$ {corrida.pedagio.toFixed(2)}</p>
+                <div className="flex items-center space-x-2">
+                  <Car className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <Label className="font-semibold">Pedágio:</Label>
+                    <p className="text-lg">R$ {corrida.pedagio.toFixed(2)}</p>
+                  </div>
                 </div>
-                <div>
-                  <Label className="font-semibold">Estacionamento:</Label>
-                  <p>R$ {corrida.estacionamento.toFixed(2)}</p>
+                <div className="flex items-center space-x-2">
+                  <Building className="h-5 w-5 text-green-600" />
+                  <div>
+                    <Label className="font-semibold">Estacionamento:</Label>
+                    <p className="text-lg">R$ {corrida.estacionamento.toFixed(2)}</p>
+                  </div>
                 </div>
-                <div>
-                  <Label className="font-semibold">Hospedagem:</Label>
-                  <p>R$ {corrida.hospedagem.toFixed(2)}</p>
+                <div className="flex items-center space-x-2">
+                  <Hotel className="h-5 w-5 text-purple-600" />
+                  <div>
+                    <Label className="font-semibold">Hospedagem:</Label>
+                    <p className="text-lg">R$ {corrida.hospedagem.toFixed(2)}</p>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -253,11 +301,17 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange }: CorridaView
                   {documentos.map(doc => (
                     <div key={doc.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
                       <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-base">{doc.nome}</p>
-                          {doc.descricao && (
-                            <p className="text-sm text-gray-600 mt-1">{doc.descricao}</p>
-                          )}
+                        <div className="flex items-center space-x-3 flex-1">
+                          {getDocumentIcon(doc.nome)}
+                          <div>
+                            <p className="font-medium text-base">{doc.nome}</p>
+                            {doc.descricao && (
+                              <p className="text-sm text-gray-600 mt-1">{doc.descricao}</p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1">
+                              Adicionado em {new Date(doc.created_at).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
                         </div>
                         {doc.url && (
                           <Button
