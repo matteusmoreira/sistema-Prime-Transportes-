@@ -1,11 +1,9 @@
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
 import { Corrida } from '@/types/corridas';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useCorridaDocuments } from '@/hooks/useCorridaDocuments';
+import { DocumentViewer } from './DocumentViewer';
 import { formatTimeToAmPm } from '@/utils/timeFormatter';
 
 interface CorridaDetailsProps {
@@ -16,46 +14,7 @@ export const CorridaDetails = ({
   corrida
 }: CorridaDetailsProps) => {
   const { profile } = useAuth();
-  const { toast } = useToast();
-
-  const handleDownloadDocument = async (documento: any) => {
-    try {
-      // If URL starts with http, it's already a public URL
-      if (documento.url.startsWith('http')) {
-        window.open(documento.url, '_blank');
-        return;
-      }
-
-      // Otherwise, try to get from storage bucket
-      const { data, error } = await supabase.storage
-        .from('corrida-documentos')
-        .download(documento.url);
-
-      if (error) throw error;
-
-      // Create download link
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = documento.nome;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast({
-        title: "Download realizado",
-        description: `${documento.nome} foi baixado com sucesso`
-      });
-    } catch (error) {
-      console.error('Erro no download:', error);
-      toast({
-        title: "Erro no download",
-        description: "Não foi possível baixar o documento",
-        variant: "destructive"
-      });
-    }
-  };
+  const { documentos, loading, downloadDocumento } = useCorridaDocuments(corrida?.id || null);
   // Helper: value presence (treat 0 as empty for numbers)
   const hasValue = (value: any): boolean => {
     if (value === null || value === undefined) return false;
@@ -295,34 +254,12 @@ export const CorridaDetails = ({
           </div>
         </div>}
 
-      {corrida.documentos && corrida.documentos.length > 0 && <div className="space-y-4">
-          <h3 className="text-lg font-semibold border-b pb-2">Documentos</h3>
-          <div className="grid gap-4">
-            {corrida.documentos.map(doc => (
-              <div key={doc.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="font-medium text-base">{doc.nome}</p>
-                    {doc.descricao && (
-                      <p className="text-sm text-gray-600 mt-1">{doc.descricao}</p>
-                    )}
-                  </div>
-                  {doc.url && (
-                    <Button
-                      onClick={() => handleDownloadDocument(doc)}
-                      size="sm"
-                      variant="outline"
-                      className="ml-4"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Baixar
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>}
+      <DocumentViewer
+        documentos={documentos}
+        loading={loading}
+        onDownload={downloadDocumento}
+        title="Documentos da Corrida"
+      />
 
       {hasValue(corrida.observacoesOS) && (
         <div>

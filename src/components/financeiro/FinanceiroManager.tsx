@@ -74,63 +74,92 @@ export const FinanceiroManager = () => {
   };
 
   const processarDocumentos = async (corridaId: number, documentos: any[]) => {
-    console.log('📎 Processando documentos para corrida:', corridaId);
-    let documentosSalvos = 0;
+    console.log('📄 INICIANDO PROCESSAMENTO DE DOCUMENTOS');
+    console.log('Corrida ID:', corridaId);
+    console.log('Documentos recebidos:', documentos);
     
-    for (const documento of documentos) {
-      console.log('📄 Processando documento:', documento.nome, 'Arquivo:', !!documento.arquivo);
+    if (!documentos || documentos.length === 0) {
+      console.log('📄 Nenhum documento para processar');
+      return;
+    }
+
+    const sucessos: string[] = [];
+    const erros: string[] = [];
+
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
       
-      if (documento.arquivo) {
+      for (const documento of documentos) {
+        if (!documento.arquivo) {
+          console.log('⚠️ Documento sem arquivo, pulando:', documento.nome);
+          continue;
+        }
+
+        console.log('📤 Fazendo upload do documento:', documento.nome);
+        
         try {
-          // Upload do arquivo para o storage
-          const sanitizedName = documento.nome.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
-          const fileName = `${corridaId}_EDIT_${Date.now()}_${sanitizedName}`;
-          
-          console.log('⬆️ Fazendo upload do arquivo:', fileName);
-          
-          const { supabase } = await import('@/integrations/supabase/client');
-          const { error: uploadError } = await supabase.storage
+          // 1. Upload do arquivo para o storage
+          const fileExtension = documento.arquivo.name.split('.').pop();
+          const fileName = `${corridaId}/${documento.nome.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${fileExtension}`;
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
             .from('corrida-documentos')
             .upload(fileName, documento.arquivo);
 
           if (uploadError) {
-            console.error('❌ Erro ao fazer upload do comprovante:', uploadError);
-            toast.error(`Erro ao fazer upload do comprovante ${documento.nome}`);
+            console.error('❌ Erro no upload do arquivo:', uploadError);
+            erros.push(`${documento.nome}: ${uploadError.message}`);
             continue;
           }
 
-          console.log('✅ Upload realizado com sucesso, salvando registro na tabela...');
+          console.log('✅ Arquivo enviado com sucesso:', uploadData.path);
 
-          // Salvar registro do documento na tabela
-          const { error: docInsertError } = await supabase
+          // 2. Salvar metadata no banco
+          const { error: dbError } = await supabase
             .from('corrida_documentos')
             .insert({
               corrida_id: corridaId,
               nome: documento.nome,
-              descricao: documento.descricao || `Comprovante de ${documento.nome}`,
-              url: fileName
+              descricao: documento.descricao,
+              url: uploadData.path
             });
 
-          if (docInsertError) {
-            console.error('❌ Erro ao salvar registro do comprovante:', docInsertError);
-            toast.error(`Erro ao salvar registro do comprovante ${documento.nome}`);
+          if (dbError) {
+            console.error('❌ Erro ao salvar no banco:', dbError);
+            erros.push(`${documento.nome}: ${dbError.message}`);
+            // Tentar limpar o arquivo do storage em caso de erro
+            await supabase.storage.from('corrida-documentos').remove([uploadData.path]);
             continue;
           }
 
-          documentosSalvos++;
-          console.log('✅ Comprovante salvo com sucesso:', documento.nome);
+          console.log('✅ Documento salvo com sucesso no banco:', documento.nome);
+          sucessos.push(documento.nome);
           
         } catch (docError) {
-          console.error('❌ Erro ao processar comprovante:', documento.nome, docError);
-          toast.error(`Erro ao processar comprovante ${documento.nome}`);
+          console.error('❌ Erro no processamento do documento:', documento.nome, docError);
+          erros.push(`${documento.nome}: Erro inesperado`);
         }
-      } else {
-        console.log('⚠️ Documento sem arquivo:', documento.nome);
       }
-    }
-    
-    if (documentosSalvos > 0) {
-      toast.success(`${documentosSalvos} comprovante(s) salvo(s) com sucesso!`);
+
+      console.log('📄 PROCESSAMENTO DE DOCUMENTOS CONCLUÍDO');
+      console.log('✅ Sucessos:', sucessos);
+      console.log('❌ Erros:', erros);
+      
+      // Mostrar feedback
+      if (sucessos.length > 0) {
+        toast.success(`${sucessos.length} comprovante(s) anexado(s) com sucesso!`);
+      }
+      if (erros.length > 0) {
+        toast.error(`Erro em ${erros.length} comprovante(s). Verifique os logs.`);
+      }
+      
+      // Incrementar o trigger para recarregar documentos
+      setDocumentsUpdateTrigger(prev => prev + 1);
+      console.log('🔄 Trigger de atualização incrementado para forçar reload');
+      
+    } catch (error) {
+      console.error('❌ Erro geral no processamento de documentos:', error);
+      toast.error('Erro inesperado no processamento de documentos');
     }
   };
 

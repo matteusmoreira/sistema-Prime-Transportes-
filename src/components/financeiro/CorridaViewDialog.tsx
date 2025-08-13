@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Car, Building, Hotel, CreditCard } from 'lucide-react';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { Car, Building, Hotel } from 'lucide-react';
 import type { CorridaFinanceiro } from '@/hooks/useFinanceiro';
+import { useCorridaDocuments } from '@/hooks/useCorridaDocuments';
+import { DocumentViewer } from '@/components/corridas/DocumentViewer';
 
 interface CorridaViewDialogProps {
   corrida: CorridaFinanceiro | null;
@@ -17,86 +16,17 @@ interface CorridaViewDialogProps {
 }
 
 export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpdateTrigger }: CorridaViewDialogProps) => {
-  const [documentos, setDocumentos] = useState<any[]>([]);
+  const { documentos, loading, downloadDocumento, forceReload } = useCorridaDocuments(
+    isOpen ? corrida?.id || null : null
+  );
 
-  // Carregar documentos da corrida
-  useEffect(() => {
-    const loadDocumentos = async () => {
-      if (!corrida?.id || !isOpen) {
-        console.log('📄 Não carregando documentos - corrida:', !!corrida, 'isOpen:', isOpen);
-        setDocumentos([]);
-        return;
-      }
-
-      try {
-        console.log('🔍 Carregando documentos para corrida ID:', corrida.id);
-        
-        const { data, error } = await supabase
-          .from('corrida_documentos')
-          .select('*')
-          .eq('corrida_id', corrida.id)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('❌ Erro ao carregar documentos da corrida', corrida.id, ':', error);
-          return;
-        }
-
-        console.log('✅ Documentos carregados para corrida', corrida.id, ':', data);
-        setDocumentos(data || []);
-      } catch (error) {
-        console.error('❌ Erro no catch ao carregar documentos:', error);
-      }
-    };
-
-    loadDocumentos();
-  }, [corrida?.id, isOpen, documentsUpdateTrigger]);
-
-  const getDocumentIcon = (nome: string) => {
-    const nomeNormalizado = nome.toLowerCase();
-    if (nomeNormalizado.includes('pedagio') || nomeNormalizado.includes('pedágio')) {
-      return <Car className="h-5 w-5 text-blue-600" />;
+  // Forçar reload quando documentsUpdateTrigger mudar
+  React.useEffect(() => {
+    if (documentsUpdateTrigger && documentsUpdateTrigger > 0) {
+      console.log('🔄 Trigger de atualização de documentos detectado:', documentsUpdateTrigger);
+      forceReload();
     }
-    if (nomeNormalizado.includes('estacionamento')) {
-      return <Building className="h-5 w-5 text-green-600" />;
-    }
-    if (nomeNormalizado.includes('hospedagem')) {
-      return <Hotel className="h-5 w-5 text-purple-600" />;
-    }
-    return <CreditCard className="h-5 w-5 text-gray-600" />;
-  };
-
-  const handleDownloadDocument = async (documento: any) => {
-    try {
-      // If URL starts with http, it's already a public URL
-      if (documento.url.startsWith('http')) {
-        window.open(documento.url, '_blank');
-        return;
-      }
-
-      // Otherwise, try to get from storage bucket
-      const { data, error } = await supabase.storage
-        .from('corrida-documentos')
-        .download(documento.url);
-
-      if (error) throw error;
-
-      // Create download link
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = documento.nome;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast.success(`${documento.nome} foi baixado com sucesso`);
-    } catch (error) {
-      console.error('Erro no download:', error);
-      toast.error('Não foi possível baixar o documento');
-    }
-  };
+  }, [documentsUpdateTrigger, forceReload]);
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Aguardando Conferência':
@@ -296,61 +226,12 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
             </CardContent>
           </Card>
 
-          {/* Documentos */}
-          {documentos && documentos.length > 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Comprovantes e Documentos ({documentos.length})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4">
-                  {documentos.map(doc => (
-                    <div key={doc.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3 flex-1">
-                          {getDocumentIcon(doc.nome)}
-                          <div>
-                            <p className="font-medium text-base">{doc.nome}</p>
-                            {doc.descricao && (
-                              <p className="text-sm text-gray-600 mt-1">{doc.descricao}</p>
-                            )}
-                            <p className="text-xs text-gray-500 mt-1">
-                              Adicionado em {new Date(doc.created_at).toLocaleDateString('pt-BR')}
-                            </p>
-                          </div>
-                        </div>
-                        {doc.url && (
-                          <Button
-                            onClick={() => handleDownloadDocument(doc)}
-                            size="sm"
-                            variant="outline"
-                            className="ml-4"
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            Baixar
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            // Mostrar card mesmo quando não há documentos para clareza
-            <Card>
-              <CardHeader>
-                <CardTitle>Comprovantes e Documentos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-gray-500">
-                  <CreditCard className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>Nenhum comprovante anexado</p>
-                  <p className="text-sm mt-1">Os comprovantes anexados pelo motorista aparecerão aqui</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <DocumentViewer
+            documentos={documentos}
+            loading={loading}
+            onDownload={downloadDocumento}
+            title="Comprovantes e Documentos"
+          />
         </div>
       </DialogContent>
     </Dialog>
