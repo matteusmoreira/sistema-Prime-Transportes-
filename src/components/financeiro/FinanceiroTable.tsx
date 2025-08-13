@@ -223,7 +223,17 @@ export const FinanceiroTable = ({
                   <Button size="sm" variant="outline" onClick={() => onView(corrida)}>
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => onEdit(corrida)}>
+                  <Button size="sm" variant="outline" onClick={() => {
+                    console.log('=== CLIQUE NO BOTÃO EDITAR DA TABELA ===');
+                    console.log('Corrida clicada:', corrida);
+                    console.log('ID da corrida:', corrida.id);
+                    try {
+                      onEdit(corrida);
+                      console.log('=== CHAMOU ONEDIT COM SUCESSO ===');
+                    } catch (error) {
+                      console.error('=== ERRO NO ONEDIT ===', error);
+                    }
+                  }}>
                     <Edit className="h-4 w-4" />
                   </Button>
                   <WhatsAppButton corrida={corrida} />
