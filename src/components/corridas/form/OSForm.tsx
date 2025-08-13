@@ -10,7 +10,7 @@ import { Corrida, DocumentoUpload } from '@/types/corridas';
 import { useEmpresas } from '@/hooks/useEmpresas';
 import { OSBasicFields } from './OSBasicFields';
 import { OSCostFields } from './OSCostFields';
-import { formatTimeToAmPm } from '@/utils/timeFormatter';
+import { formatTimeToAmPm, removeSecondsFromTime } from '@/utils/timeFormatter';
 interface OSFormProps {
   corrida: Corrida;
   onSubmit: (formData: any, documentos: DocumentoUpload[]) => void;
@@ -33,7 +33,7 @@ export const OSForm = ({
       minute: '2-digit'
     }),
     numeroOS: corrida.numeroOS || '',
-    horaSaida: corrida.horaSaida || corrida.horaInicio || '',
+    horaSaida: removeSecondsFromTime(corrida.horaSaida || corrida.horaInicio || ''),
     horaChegada: '',
     data: corrida.dataServico || corrida.data || new Date().toISOString().split('T')[0],
     kmInicio: corrida.kmInicial?.toString() || '',

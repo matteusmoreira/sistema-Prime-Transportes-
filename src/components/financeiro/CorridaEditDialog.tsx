@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileText } from 'lucide-react';
 import type { CorridaFinanceiro } from '@/hooks/useFinanceiro';
+import { removeSecondsFromTime } from '@/utils/timeFormatter';
 
 interface CorridaEditDialogProps {
   corrida: CorridaFinanceiro | null;
@@ -80,8 +81,8 @@ export const CorridaEditDialog = ({
         observacoes: corrida.observacoes || '',
         projeto: corrida.projeto || '',
         motivo: corrida.motivo || '',
-        horaInicio: corrida.horaInicio || '',
-        horaFim: corrida.horaFim || '',
+        horaInicio: removeSecondsFromTime(corrida.horaInicio || ''),
+        horaFim: removeSecondsFromTime(corrida.horaFim || ''),
         kmInicial: corrida.kmInicial?.toString() || '',
         kmFinal: corrida.kmFinal?.toString() || '',
         solicitante: corrida.solicitante || ''

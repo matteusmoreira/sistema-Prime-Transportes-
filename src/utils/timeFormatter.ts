@@ -21,3 +21,20 @@ export const formatTimeToAmPm = (time: string): string => {
   
   return `${hours12.toString().padStart(2, '0')}:${minutes} ${period}`;
 };
+
+/**
+ * Remove segundos de uma hora
+ * @param time - Hora no formato HH:mm ou HH:mm:ss
+ * @returns Hora formatada no formato HH:mm (sem segundos)
+ */
+export const removeSecondsFromTime = (time: string): string => {
+  if (!time) return '';
+  
+  // Remove seconds if present (HH:mm:ss -> HH:mm)
+  const timeParts = time.split(':');
+  if (timeParts.length >= 2) {
+    return `${timeParts[0]}:${timeParts[1]}`;
+  }
+  
+  return time;
+};
