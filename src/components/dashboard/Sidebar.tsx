@@ -34,6 +34,7 @@ export const Sidebar = ({
     { id: 'empresas', label: 'Empresas', icon: Building2, roles: ['Administrador', 'Administração'] },
     { id: 'solicitantes', label: 'Solicitantes', icon: Users, roles: ['Administrador', 'Administração'] },
     { id: 'motoristas', label: 'Motoristas', icon: Car, roles: ['Administrador', 'Administração'] },
+    { id: 'cadastro', label: 'Cadastro', icon: Users, roles: ['Administrador'] },
     { id: 'corridas', label: 'Corridas', icon: Route, roles: ['Administrador', 'Administração', 'Motorista'] },
     { id: 'financeiro', label: 'Financeiro', icon: Calculator, roles: ['Administrador', 'Financeiro'] },
     { id: 'voucher', label: 'Voucher', icon: Receipt, roles: ['Administrador', 'Financeiro'] },

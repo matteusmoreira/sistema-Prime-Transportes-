@@ -111,7 +111,7 @@ export const Auth = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="signin">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Cadastrar</TabsTrigger>
+              <TabsTrigger value="signup">Motorista</TabsTrigger>
               <TabsTrigger value="reset">Recuperar</TabsTrigger>
             </TabsList>
             
@@ -157,36 +157,50 @@ export const Auth = () => {
             
             <TabsContent value="signup">
               {!showEnhancedSignup ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div className="text-center space-y-4">
-                    <h3 className="text-lg font-medium">Escolha seu tipo de cadastro</h3>
-                    <div className="grid grid-cols-1 gap-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="h-auto p-4 text-left"
-                        onClick={() => setShowEnhancedSignup(true)}
-                      >
-                        <div>
-                          <div className="font-medium">Motorista Completo</div>
-                          <div className="text-sm text-gray-500 mt-1">
-                            Cadastro completo com documentos, CNH e fotos do veículo
+                    <h3 className="text-xl font-semibold text-gray-900">Cadastro de Motorista</h3>
+                    <p className="text-gray-600">
+                      Complete o cadastro com seus documentos e informações do veículo
+                    </p>
+                  </div>
+                  
+                  <div className="flex justify-center">
+                    <Button
+                      type="button"
+                      size="lg"
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                      onClick={() => setShowEnhancedSignup(true)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white/20 p-2 rounded-lg">
+                          <Truck className="h-6 w-6" />
+                        </div>
+                        <div className="text-left">
+                          <div className="font-semibold text-lg">Iniciar Cadastro</div>
+                          <div className="text-sm text-blue-100">
+                            Cadastro completo como motorista
                           </div>
                         </div>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="h-auto p-4 text-left"
-                        onClick={() => setActiveTab('simple-signup')}
-                      >
-                        <div>
-                          <div className="font-medium">Outros Usuários</div>
-                          <div className="text-sm text-gray-500 mt-1">
-                            Cadastro simples para administração, financeiro, etc.
-                          </div>
-                        </div>
-                      </Button>
+                      </div>
+                    </Button>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-blue-100 p-2 rounded-full flex-shrink-0">
+                        <User className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div className="text-sm text-blue-800">
+                        <p className="font-medium mb-1">Você precisará dos seguintes documentos:</p>
+                        <ul className="list-disc list-inside space-y-1 text-blue-700">
+                          <li>CNH (Carteira de Motorista)</li>
+                          <li>CPF e RG</li>
+                          <li>Comprovante de endereço</li>
+                          <li>Fotos do veículo</li>
+                          <li>Documentos do veículo (CRLV)</li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -201,83 +215,6 @@ export const Auth = () => {
               )}
             </TabsContent>
             
-            <TabsContent value="simple-signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-nome" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Nome Completo
-                  </Label>
-                  <Input
-                    id="signup-nome"
-                    type="text"
-                    placeholder="Seu nome completo"
-                    value={signupNome}
-                    onChange={(e) => setSignupNome(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email" className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Email
-                  </Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={signupEmail}
-                    onChange={(e) => setSignupEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="flex items-center gap-2">
-                    <Lock className="h-4 w-4" />
-                    Senha
-                  </Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    placeholder="Mínimo 6 caracteres"
-                    value={signupPassword}
-                    onChange={(e) => setSignupPassword(e.target.value)}
-                    minLength={6}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-role">Tipo de Usuário</Label>
-                  <Select value={signupRole} onValueChange={(value: UserRole) => setSignupRole(value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Administração">Administração</SelectItem>
-                      <SelectItem value="Financeiro">Financeiro</SelectItem>
-                      <SelectItem value="Administrador">Administrador</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex space-x-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => setActiveTab('signup')}
-                  >
-                    Voltar
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    className="flex-1" 
-                    disabled={loading}
-                  >
-                    {loading ? 'Cadastrando...' : 'Cadastrar'}
-                  </Button>
-                </div>
-              </form>
-            </TabsContent>
             
             <TabsContent value="reset">
               <form onSubmit={handleResetPassword} className="space-y-4">
