@@ -123,6 +123,7 @@ export const CorridaEditDialog = ({
       
       console.log('=== FORMULÁRIO CORRIDA EDIT ===');
       console.log('Dados brutos do formulário:', formData);
+      console.log('Comprovantes anexados:', comprovantes);
       
       const updatedData = {
         ...formData,
@@ -136,11 +137,36 @@ export const CorridaEditDialog = ({
         kmFinal: parseInt(formData.kmFinal) || 0
       };
 
+      // Preparar documentos para envio
+      const documentos = [];
+      if (comprovantes.pedagio) {
+        documentos.push({
+          nome: 'Comprovante de Pedágio',
+          descricao: 'Comprovante de pedágio',
+          arquivo: comprovantes.pedagio
+        });
+      }
+      if (comprovantes.estacionamento) {
+        documentos.push({
+          nome: 'Comprovante de Estacionamento',
+          descricao: 'Comprovante de estacionamento',
+          arquivo: comprovantes.estacionamento
+        });
+      }
+      if (comprovantes.hospedagem) {
+        documentos.push({
+          nome: 'Comprovante de Hospedagem',
+          descricao: 'Comprovante de hospedagem',
+          arquivo: comprovantes.hospedagem
+        });
+      }
+
       console.log('Dados processados para enviar:', updatedData);
+      console.log('Documentos para enviar:', documentos);
       console.log('ID da corrida a ser atualizada:', corrida.id);
       console.log('=== CHAMANDO ONSAVE ===');
       
-      await onSave(corrida.id, updatedData);
+      await onSave(corrida.id, { ...updatedData, documentos });
       
       console.log('=== FECHANDO DIALOG ===');
       onOpenChange(false);

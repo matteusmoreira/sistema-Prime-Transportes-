@@ -13,38 +13,44 @@ interface CorridaViewDialogProps {
   corrida: CorridaFinanceiro | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  documentsUpdateTrigger?: number;
 }
 
-export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange }: CorridaViewDialogProps) => {
+export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpdateTrigger }: CorridaViewDialogProps) => {
   const [documentos, setDocumentos] = useState<any[]>([]);
 
   // Carregar documentos da corrida
   useEffect(() => {
     const loadDocumentos = async () => {
       if (!corrida?.id || !isOpen) {
+        console.log('📄 Não carregando documentos - corrida:', !!corrida, 'isOpen:', isOpen);
         setDocumentos([]);
         return;
       }
 
       try {
+        console.log('🔍 Carregando documentos para corrida ID:', corrida.id);
+        
         const { data, error } = await supabase
           .from('corrida_documentos')
           .select('*')
-          .eq('corrida_id', corrida.id);
+          .eq('corrida_id', corrida.id)
+          .order('created_at', { ascending: false });
 
         if (error) {
-          console.error('Erro ao carregar documentos:', error);
+          console.error('❌ Erro ao carregar documentos da corrida', corrida.id, ':', error);
           return;
         }
 
+        console.log('✅ Documentos carregados para corrida', corrida.id, ':', data);
         setDocumentos(data || []);
       } catch (error) {
-        console.error('Erro ao carregar documentos:', error);
+        console.error('❌ Erro no catch ao carregar documentos:', error);
       }
     };
 
     loadDocumentos();
-  }, [corrida?.id, isOpen]);
+  }, [corrida?.id, isOpen, documentsUpdateTrigger]);
 
   const getDocumentIcon = (nome: string) => {
     const nomeNormalizado = nome.toLowerCase();
@@ -291,10 +297,10 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange }: CorridaView
           </Card>
 
           {/* Documentos */}
-          {documentos && documentos.length > 0 && (
+          {documentos && documentos.length > 0 ? (
             <Card>
               <CardHeader>
-                <CardTitle>Comprovantes e Documentos</CardTitle>
+                <CardTitle>Comprovantes e Documentos ({documentos.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4">
@@ -327,6 +333,20 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange }: CorridaView
                       </div>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            // Mostrar card mesmo quando não há documentos para clareza
+            <Card>
+              <CardHeader>
+                <CardTitle>Comprovantes e Documentos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-gray-500">
+                  <CreditCard className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Nenhum comprovante anexado</p>
+                  <p className="text-sm mt-1">Os comprovantes anexados pelo motorista aparecerão aqui</p>
                 </div>
               </CardContent>
             </Card>
