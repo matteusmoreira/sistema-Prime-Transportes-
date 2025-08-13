@@ -485,7 +485,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       updateCorrida,
       fillOS,
       deleteCorrida,
-    approveCorrida,
+      approveCorrida,
     rejectCorrida,
     updateStatus,
     selectMotorista,
