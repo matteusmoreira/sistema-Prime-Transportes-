@@ -57,9 +57,29 @@ export const CorridasManager = ({
   console.log('=== FIM CORRIDAS FILTRADAS FINAL ===');
 
   const handleEditClick = (corrida: any) => {
-    if (handleEdit(corrida)) {
-      openEditDialog(corrida);
+    console.log('=== HANDLE EDIT CLICK CORRIDAS MANAGER ===');
+    console.log('Corrida recebida:', corrida);
+    console.log('ID da corrida:', corrida.id);
+    console.log('Status da corrida:', corrida.status);
+    console.log('UserLevel:', userLevel);
+    
+    try {
+      console.log('=== CHAMANDO HANDLE EDIT ===');
+      const canEdit = handleEdit(corrida);
+      console.log('handleEdit retornou:', canEdit);
+      
+      if (canEdit) {
+        console.log('=== CHAMANDO OPEN EDIT DIALOG ===');
+        openEditDialog(corrida);
+        console.log('=== OPEN EDIT DIALOG CHAMADO COM SUCESSO ===');
+      } else {
+        console.log('=== HANDLE EDIT BLOQUEOU A EDIÇÃO ===');
+      }
+    } catch (error) {
+      console.error('=== ERRO NO HANDLE EDIT CLICK ===', error);
+      console.error('Stack:', error instanceof Error ? error.stack : 'No stack');
     }
+    console.log('=== FIM HANDLE EDIT CLICK ===');
   };
 
   const handleFillOSClick = (corrida: any) => {

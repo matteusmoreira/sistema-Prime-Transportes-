@@ -208,7 +208,19 @@ export const CorridasTable = ({
                   )}
 
                   {canEdit(corrida) && (
-                    <Button size="sm" variant="outline" onClick={() => onEdit(corrida)}>
+                    <Button size="sm" variant="outline" onClick={() => {
+                      console.log('=== CLIQUE BOTÃO EDITAR CORRIDAS TABLE ===');
+                      console.log('Corrida clicada:', corrida);
+                      console.log('ID da corrida:', corrida.id);
+                      console.log('Status da corrida:', corrida.status);
+                      console.log('onEdit function:', typeof onEdit);
+                      try {
+                        onEdit(corrida);
+                        console.log('=== CHAMOU ONEDIT COM SUCESSO ===');
+                      } catch (error) {
+                        console.error('=== ERRO NO ONEDIT ===', error);
+                      }
+                    }}>
                       <Edit className="h-4 w-4" />
                     </Button>
                   )}
