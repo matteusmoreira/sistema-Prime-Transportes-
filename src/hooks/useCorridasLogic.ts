@@ -6,10 +6,6 @@ import { getCorridasByMotorista as getCorridasHelper } from '@/utils/corridaHelp
 import { toast } from 'sonner';
 
 export const useCorridasLogic = (userLevel: string, userEmail: string) => {
-  console.log('=== useCorridasLogic INIT ===');
-  console.log('UserLevel no hook:', userLevel);
-  console.log('UserEmail no hook:', userEmail);
-  
   const { 
     corridas, 
     addCorrida, 
@@ -24,9 +20,6 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
 
   const { empresas } = useEmpresas();
   const { motoristas } = useMotoristas();
-
-  console.log('Total de corridas no contexto:', corridas.length);
-  console.log('Todas as corridas do contexto:', corridas);
 
   const handleEdit = (corrida: any) => {
     if (userLevel === 'Motorista' && corrida.status !== 'Aguardando Conferência') {
@@ -45,14 +38,6 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
   };
 
   const processFormData = (formData: any, documentos: any, empresas: any[], motoristas: any[]) => {
-    console.log('=== DEBUG processFormData ===');
-    console.log('Dados do formulário recebidos:', formData);
-    console.log('Motorista selecionado no formulário:', formData.motorista);
-    console.log('UserLevel no processFormData:', userLevel);
-    console.log('UserEmail no processFormData:', userEmail);
-    console.log('Tipo do campo motorista:', typeof formData.motorista);
-    console.log('Valor exato do motorista:', JSON.stringify(formData.motorista));
-    
     // Buscar empresa para obter o ID
     const empresa = empresas.find((e: any) => e.nome === formData.empresa);
     const empresaId = empresa ? empresa.id : 1;
@@ -63,7 +48,6 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
       const motorista = motoristas.find((m: any) => m.email === userEmail);
       if (motorista) {
         motoristaName = motorista.nome;
-        console.log('Motorista automaticamente associado:', motoristaName);
       }
     }
     
@@ -75,15 +59,14 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
       empresa: formData.empresa,
       empresaId: empresaId,
       solicitante: formData.solicitante,
-      motorista: motoristaName, // Nome do motorista (automaticamente associado se for motorista logado)
+      motorista: motoristaName,
       passageiros: formData.passageiros || '',
       origem: formData.origem,
       destino: formData.destino,
       data: formData.dataServico || new Date().toISOString().split('T')[0],
       horaSaida: formData.horaInicio || '00:00',
-      horaChegada: '00:00', // Campo não mais usado
+      horaChegada: '00:00',
       observacoes: formData.observacoes || '',
-      // Campos adicionais
       dataServico: formData.dataServico,
       horaInicio: formData.horaInicio,
       tipoAbrangencia: formData.tipoAbrangencia,
@@ -104,9 +87,6 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
       documentos: documentos
     };
     
-    console.log('Dados processados para salvar:', corridaData);
-    console.log('=== FIM DEBUG processFormData ===');
-    
     return corridaData;
   };
 
@@ -114,36 +94,10 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
   let corridasFiltradas;
   
   if (userLevel === 'Motorista') {
-    console.log('=== FILTRANDO CORRIDAS PARA MOTORISTA ===');
-    console.log('Chamando getCorridasByMotorista com email:', userEmail);
     corridasFiltradas = getCorridasHelper(corridas, userEmail, motoristas);
-    console.log('Resultado da filtragem - Corridas encontradas:', corridasFiltradas);
-    console.log('Quantidade de corridas do motorista:', corridasFiltradas.length);
-    
-    // Debug adicional para verificar cada corrida
-    corridasFiltradas.forEach((corrida, index) => {
-      console.log(`Corrida ${index + 1} do motorista:`, {
-        id: corrida.id,
-        motorista: corrida.motorista,
-        empresa: corrida.empresa,
-        status: corrida.status,
-        origem: corrida.origem,
-        destino: corrida.destino
-      });
-    });
   } else {
-    console.log('=== USUÁRIO NÃO É MOTORISTA ===');
-    console.log('Retornando todas as corridas para admin/financeiro');
     corridasFiltradas = corridas;
   }
-
-  console.log('=== DEBUG useCorridasLogic FINAL ===');
-  console.log('UserLevel:', userLevel);
-  console.log('UserEmail:', userEmail);
-  console.log('Total de corridas:', corridas.length);
-  console.log('Corridas filtradas:', corridasFiltradas.length);
-  console.log('Array de corridas filtradas que será retornado:', corridasFiltradas);
-  console.log('=== FIM DEBUG useCorridasLogic ===');
 
   const processFormDataWithContext = (formData: any, documentos: any) => {
     return processFormData(formData, documentos, empresas, motoristas);

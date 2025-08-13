@@ -107,44 +107,22 @@ export const CorridasTable = ({
   };
 
   const canEdit = (corrida: Corrida) => {
-    console.log('=== CAN EDIT CHECK ===');
-    console.log('UserLevel:', userLevel);
-    console.log('Corrida status:', corrida.status);
-    console.log('Corrida ID:', corrida.id);
-    
-    let result = false;
-    if (userLevel === 'Administrador') {
-      result = true;
-      console.log('Administrador pode editar');
-    } else if (userLevel === 'Financeiro' && corrida.status === 'Aguardando Conferência') {
-      result = true;
-      console.log('Financeiro pode editar corrida em conferência');
-    } else {
-      console.log('Não pode editar - UserLevel:', userLevel, 'Status:', corrida.status);
-    }
-    
-    console.log('canEdit resultado:', result);
-    console.log('=== FIM CAN EDIT CHECK ===');
-    return result;
+    if (userLevel === 'Administrador') return true;
+    if (userLevel === 'Financeiro' && corrida.status === 'Aguardando Conferência') return true;
+    return false;
   };
 
   // Verificar se corridas é válido e tem itens
   if (!corridas || !Array.isArray(corridas)) {
-    console.log('ERRO: corridas não é um array válido:', corridas);
     return <div>Erro: dados inválidos</div>;
   }
 
   if (corridas.length === 0) {
-    console.log('Lista de corridas está vazia');
     return <div>Nenhuma corrida encontrada</div>;
   }
 
   // Renderização específica para motoristas - apenas campos permitidos
   if (userLevel === 'Motorista') {
-    console.log('=== RENDERIZANDO TABELA PARA MOTORISTA ===');
-    console.log('Corridas que serão renderizadas:', corridas);
-    console.log('Status das corridas:', corridas.map(c => ({ id: c.id, status: c.status, motorista: c.motorista })));
-    
     return (
       <Table>
         <TableHeader>
@@ -224,21 +202,9 @@ export const CorridasTable = ({
                   )}
 
                   {canEdit(corrida) && (
-                    <Button size="sm" variant="outline" onClick={() => {
-                      console.log('=== CLIQUE BOTÃO EDITAR CORRIDAS TABLE ===');
-                      console.log('Corrida clicada:', corrida);
-                      console.log('ID da corrida:', corrida.id);
-                      console.log('Status da corrida:', corrida.status);
-                      console.log('onEdit function:', typeof onEdit);
-                      try {
-                        onEdit(corrida);
-                        console.log('=== CHAMOU ONEDIT COM SUCESSO ===');
-                      } catch (error) {
-                        console.error('=== ERRO NO ONEDIT ===', error);
-                      }
-                    }}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                  <Button size="sm" variant="outline" onClick={() => onEdit(corrida)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
                   )}
 
                   {(userLevel === 'Administrador' || userLevel === 'Financeiro') && corrida.status === 'Aguardando Conferência' && (

@@ -7,6 +7,7 @@ import { CorridasTable } from './CorridasTable';
 import { CorridasDialogs } from './CorridasDialogs';
 import { useCorridasDialogs } from '@/hooks/useCorridasDialogs';
 import { useCorridasLogic } from '@/hooks/useCorridasLogic';
+import { toast } from 'sonner';
 
 interface CorridasManagerProps {
   userLevel?: string;
@@ -17,10 +18,6 @@ export const CorridasManager = ({
   userLevel = 'Administrador',
   userEmail = ''
 }: CorridasManagerProps) => {
-  console.log('=== CORRIDAS MANAGER DEBUG ===');
-  console.log('UserLevel recebido no CorridasManager:', userLevel);
-  console.log('UserEmail recebido no CorridasManager:', userEmail);
-  console.log('=== FIM CORRIDAS MANAGER DEBUG ===');
 
   const {
     isDialogOpen,
@@ -51,35 +48,13 @@ export const CorridasManager = ({
     selectMotorista
   } = useCorridasLogic(userLevel, userEmail);
 
-  console.log('=== CORRIDAS FILTRADAS FINAL ===');
-  console.log('Corridas que serão exibidas na tabela:', corridasFiltradas);
-  console.log('Quantidade de corridas filtradas:', corridasFiltradas.length);
-  console.log('=== FIM CORRIDAS FILTRADAS FINAL ===');
 
   const handleEditClick = (corrida: any) => {
-    console.log('=== HANDLE EDIT CLICK CORRIDAS MANAGER ===');
-    console.log('Corrida recebida:', corrida);
-    console.log('ID da corrida:', corrida.id);
-    console.log('Status da corrida:', corrida.status);
-    console.log('UserLevel:', userLevel);
-    
-    try {
-      console.log('=== CHAMANDO HANDLE EDIT ===');
-      const canEdit = handleEdit(corrida);
-      console.log('handleEdit retornou:', canEdit);
-      
-      if (canEdit) {
-        console.log('=== CHAMANDO OPEN EDIT DIALOG ===');
-        openEditDialog(corrida);
-        console.log('=== OPEN EDIT DIALOG CHAMADO COM SUCESSO ===');
-      } else {
-        console.log('=== HANDLE EDIT BLOQUEOU A EDIÇÃO ===');
-      }
-    } catch (error) {
-      console.error('=== ERRO NO HANDLE EDIT CLICK ===', error);
-      console.error('Stack:', error instanceof Error ? error.stack : 'No stack');
+    if (handleEdit(corrida)) {
+      openEditDialog(corrida);
+    } else {
+      toast.error('Você não tem permissão para editar esta corrida');
     }
-    console.log('=== FIM HANDLE EDIT CLICK ===');
   };
 
   const handleFillOSClick = (corrida: any) => {
