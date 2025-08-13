@@ -82,7 +82,8 @@ export const CorridasManager = ({
       ...osData,
       horaInicio: osData.horaSaida,
       horaFim: osData.horaChegada,
-      dataServico: osData.data
+      dataServico: osData.data,
+      documentos: documentos // Garantir que os documentos sejam passados
     };
 
     fillOS(fillingOS!.id, corridaData);

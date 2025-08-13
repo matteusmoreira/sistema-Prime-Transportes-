@@ -346,6 +346,46 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
+      // Salvar documentos/comprovantes se existirem
+      const documentos = (osData as any).documentos;
+      if (documentos && documentos.length > 0) {
+        for (const documento of documentos) {
+          if (documento.arquivo) {
+            try {
+              // Upload do arquivo para o storage
+              const fileName = `${id}_OS_${Date.now()}_${documento.nome.replace(/\s+/g, '_')}`;
+              const { error: uploadError } = await supabase.storage
+                .from('corrida-documentos')
+                .upload(fileName, documento.arquivo);
+
+              if (uploadError) {
+                console.error('Erro ao fazer upload do comprovante:', uploadError);
+                continue;
+              }
+
+              // Salvar registro do documento na tabela
+              const { error: docInsertError } = await supabase
+                .from('corrida_documentos')
+                .insert({
+                  corrida_id: id,
+                  nome: documento.nome,
+                  descricao: documento.descricao,
+                  url: fileName // Store the file path
+                });
+
+              if (docInsertError) {
+                console.error('Erro ao salvar registro do comprovante:', docInsertError);
+                continue;
+              }
+
+              console.log('Comprovante salvo com sucesso:', documento.nome);
+            } catch (docError) {
+              console.error('Erro ao processar comprovante:', documento.nome, docError);
+            }
+          }
+        }
+      }
+
       // Atualizar estado local apenas após sucesso no banco
       setCorridas(prev => prev.map(c => 
         c.id === id ? { 
