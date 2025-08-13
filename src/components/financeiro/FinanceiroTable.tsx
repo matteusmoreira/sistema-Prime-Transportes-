@@ -29,6 +29,11 @@ export const FinanceiroTable = ({
   onPaymentStatusChange,
   onMedicaoNotaFiscalChange
 }: FinanceiroTableProps) => {
+  console.log('=== FINANCEIRO TABLE RENDERIZADA ===');
+  console.log('Número de corridas:', corridas.length);
+  console.log('Função onEdit recebida:', typeof onEdit);
+  console.log('=== FIM FINANCEIRO TABLE RENDERIZADA ===');
+  
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Aguardando Conferência':
