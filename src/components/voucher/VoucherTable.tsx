@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileText, Mail } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { generateVoucherPDF } from '@/utils/pdfGenerator';
-import { sendVoucherEmail } from '@/utils/emailSender';
+
 import { toast } from 'sonner';
 import type { VoucherData } from '@/hooks/useVoucher';
 
@@ -21,15 +21,6 @@ export const VoucherTable = ({ vouchers }: VoucherTableProps) => {
     }
   };
 
-  const handleSendEmail = async (voucher: VoucherData) => {
-    try {
-      await sendVoucherEmail(voucher);
-      toast.success('Email enviado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao enviar email:', error);
-      toast.error('Erro ao enviar email');
-    }
-  };
 
   if (vouchers.length === 0) {
     return (
@@ -64,24 +55,14 @@ export const VoucherTable = ({ vouchers }: VoucherTableProps) => {
             <TableCell>R$ {voucher.valor.toFixed(2)}</TableCell>
             <TableCell>{voucher.centroCusto}</TableCell>
             <TableCell>
-              <div className="flex space-x-2">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => handleGeneratePDF(voucher)}
-                >
-                  <FileText className="h-4 w-4 mr-1" />
-                  PDF
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => handleSendEmail(voucher)}
-                >
-                  <Mail className="h-4 w-4 mr-1" />
-                  Email
-                </Button>
-              </div>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => handleGeneratePDF(voucher)}
+              >
+                <FileText className="h-4 w-4 mr-1" />
+                PDF
+              </Button>
             </TableCell>
           </TableRow>
         ))}
