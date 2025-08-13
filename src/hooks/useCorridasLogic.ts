@@ -38,6 +38,11 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
   };
 
   const processFormData = (formData: any, documentos: any, empresas: any[], motoristas: any[]) => {
+    console.log('=== DEBUG PROCESS FORM DATA ===');
+    console.log('FormData recebido:', formData);
+    console.log('Campo veiculo no formData:', formData.veiculo);
+    console.log('=== FIM DEBUG PROCESS FORM DATA ===');
+    
     // Buscar empresa para obter o ID
     const empresa = empresas.find((e: any) => e.nome === formData.empresa);
     const empresaId = empresa ? empresa.id : 1;
@@ -86,6 +91,11 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
       motivo: formData.motivo,
       documentos: documentos
     };
+    
+    console.log('=== DEBUG CORRIDA DATA FINAL ===');
+    console.log('CorridaData processado:', corridaData);
+    console.log('Campo veiculo no corridaData:', corridaData.veiculo);
+    console.log('=== FIM DEBUG CORRIDA DATA ===');
     
     return corridaData;
   };

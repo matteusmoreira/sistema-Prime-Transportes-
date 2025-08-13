@@ -132,40 +132,51 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const addCorrida = async (corridaData: Omit<Corrida, 'id' | 'status'>) => {
-    console.log('Adicionando corrida:', corridaData);
+    console.log('=== DEBUG VEICULO ===');
+    console.log('Adicionando corrida - dados recebidos:', corridaData);
+    console.log('Campo veiculo especificamente:', corridaData.veiculo);
+    console.log('Tipo do campo veiculo:', typeof corridaData.veiculo);
+    console.log('=== FIM DEBUG VEICULO ===');
     
     try {
       const status = corridaData.motorista ? 'Aguardando OS' : 'Selecionar Motorista';
       
+      const insertPayload = {
+        empresa: corridaData.empresa,
+        empresa_id: corridaData.empresaId,
+        centro_custo: corridaData.centroCusto,
+        solicitante: corridaData.solicitante,
+        origem: corridaData.origem,
+        destino: corridaData.destino,
+        data: corridaData.dataServico || corridaData.data, // Priorizar dataServico
+        data_servico: corridaData.dataServico || corridaData.data, // Salvar no campo correto
+        hora_saida: corridaData.horaSaida,
+        hora_inicio: corridaData.horaInicio, // Adicionar hora_inicio
+        hora_chegada: corridaData.horaChegada,
+        tipo_abrangencia: corridaData.tipoAbrangencia, // Adicionar tipo_abrangencia
+        observacoes: corridaData.observacoes,
+        status: status as any,
+        motorista: corridaData.motorista,
+        veiculo: corridaData.veiculo,
+        projeto: corridaData.projeto,
+        motivo: corridaData.motivo,
+        valor: corridaData.valor,
+        valor_motorista: corridaData.valorMotorista,
+        total: corridaData.total,
+        passageiro: corridaData.passageiros || '',
+        passageiros: corridaData.passageiros || '',
+        numero_os: corridaData.numeroOS || '', // Adicionar numeroOS
+        destino_extra: corridaData.destinoExtra || '', // Adicionar destinoExtra
+      };
+
+      console.log('=== PAYLOAD PARA INSERT ===');
+      console.log('Payload completo:', insertPayload);
+      console.log('Campo veiculo no payload:', insertPayload.veiculo);
+      console.log('=== FIM PAYLOAD ===');
+      
       const { data, error } = await supabase
         .from('corridas')
-        .insert({
-          empresa: corridaData.empresa,
-          empresa_id: corridaData.empresaId,
-          centro_custo: corridaData.centroCusto,
-          solicitante: corridaData.solicitante,
-          origem: corridaData.origem,
-          destino: corridaData.destino,
-          data: corridaData.dataServico || corridaData.data, // Priorizar dataServico
-          data_servico: corridaData.dataServico || corridaData.data, // Salvar no campo correto
-          hora_saida: corridaData.horaSaida,
-          hora_inicio: corridaData.horaInicio, // Adicionar hora_inicio
-          hora_chegada: corridaData.horaChegada,
-          tipo_abrangencia: corridaData.tipoAbrangencia, // Adicionar tipo_abrangencia
-          observacoes: corridaData.observacoes,
-          status: status as any,
-          motorista: corridaData.motorista,
-          veiculo: corridaData.veiculo,
-          projeto: corridaData.projeto,
-          motivo: corridaData.motivo,
-          valor: corridaData.valor,
-          valor_motorista: corridaData.valorMotorista,
-          total: corridaData.total,
-          passageiro: corridaData.passageiros || '',
-          passageiros: corridaData.passageiros || '',
-          numero_os: corridaData.numeroOS || '', // Adicionar numeroOS
-          destino_extra: corridaData.destinoExtra || '', // Adicionar destinoExtra
-        })
+        .insert(insertPayload)
         .select()
         .single();
 
