@@ -55,3 +55,6 @@ verify_jwt = false
 
 [functions.test-evolution-connection]
 verify_jwt = true
+
+[functions.send-whatsapp-message]
+verify_jwt = false

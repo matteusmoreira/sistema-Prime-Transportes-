@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { MessageCircle, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMotoristas } from '@/hooks/useMotoristas';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WhatsAppButtonProps {
   motorista: string;
@@ -63,29 +64,24 @@ export const WhatsAppButton = ({ motorista, empresa, dataServico, origem, destin
     setIsLoading(true);
     
     try {
-      // Aqui você deve configurar a URL da sua instância Evolution API
-      const evolutionApiUrl = 'https://your-evolution-api-url.com';
-      const instanceName = 'your-instance-name';
-      const apiKey = 'your-api-key';
-      
-      const response = await fetch(`${evolutionApiUrl}/message/sendText/${instanceName}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': apiKey,
-        },
-        body: JSON.stringify({
-          number: phoneNumber.replace(/\D/g, ''), // Remove caracteres não numéricos
-          text: message,
-        }),
+      const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
+        body: {
+          phoneNumber: phoneNumber.replace(/\D/g, ''),
+          message: message
+        }
       });
 
-      if (response.ok) {
+      if (error) {
+        console.error('Erro ao enviar WhatsApp:', error);
+        toast.error('Erro ao enviar mensagem. Verifique as configurações.');
+        return;
+      }
+
+      if (data?.success) {
         toast.success('Mensagem enviada com sucesso!');
         setIsDialogOpen(false);
       } else {
-        const errorData = await response.json();
-        toast.error(`Erro ao enviar mensagem: ${errorData.message || 'Erro desconhecido'}`);
+        toast.error(`Erro ao enviar mensagem: ${data?.message || 'Erro desconhecido'}`);
       }
     } catch (error) {
       console.error('Erro ao enviar WhatsApp:', error);

@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { MotoristaSelectionDialog } from './MotoristaSelectionDialog';
+import { WhatsAppButton } from '@/components/financeiro/WhatsAppButton';
 
 interface CorridasTableProps {
   corridas: Corrida[];
@@ -201,6 +202,16 @@ export const CorridasTable = ({
                   <Button size="sm" variant="outline" onClick={() => onView(corrida)}>
                     <Eye className="h-4 w-4" />
                   </Button>
+
+                  {userLevel === 'Administrador' && corrida.motorista && (
+                    <WhatsAppButton
+                      motorista={corrida.motorista}
+                      empresa={corrida.empresa}
+                      dataServico={corrida.dataServico || corrida.data}
+                      origem={corrida.origem}
+                      destino={corrida.destino}
+                    />
+                  )}
 
                   {canEdit(corrida) && (
                     <Button size="sm" variant="outline" onClick={() => onEdit(corrida)}>
