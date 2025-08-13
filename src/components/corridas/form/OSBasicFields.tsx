@@ -12,7 +12,7 @@ export const OSBasicFields = ({
       {/* Hora OS e Número OS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Hora O.S</Label>
+          <Label>Horário do Preenchimento da OS</Label>
           <Input type="time" value={formData.horaOS} onChange={e => updateFormData('horaOS', e.target.value)} readOnly className="bg-gray-100" />
         </div>
         <div className="space-y-2">
