@@ -23,7 +23,7 @@ export const WhatsAppButton = ({ corrida }: WhatsAppButtonProps) => {
   
   // Criar mensagem formatada com todos os dados da corrida
   const createFormattedMessage = () => {
-    const dataFormatada = new Date(corrida.dataServico || corrida.data).toLocaleDateString('pt-BR');
+    const dataFormatada = corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR');
     const horaInicio = corrida.horaInicio || corrida.horaSaida || 'Não informado';
     
     return `🚗 *DADOS DA CORRIDA* 🚗

@@ -135,7 +135,7 @@ export const OSForm = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Data do Serviço</Label>
-              <Input value={(corrida.dataServico || corrida.data) ? new Date(corrida.dataServico || corrida.data).toLocaleDateString('pt-BR') : ''} readOnly className="bg-gray-100" />
+              <Input value={(corrida.dataServico || corrida.data) ? (corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')) : ''} readOnly className="bg-gray-100" />
             </div>
             <div className="space-y-2">
               <Label>Hora Início</Label>

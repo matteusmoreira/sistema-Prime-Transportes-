@@ -124,7 +124,7 @@ export const CorridaDetails = ({
           </div>
           <div>
             <Label className="font-semibold">Data do Serviço:</Label>
-            <p>{new Date(corrida.dataServico || corrida.data).toLocaleDateString('pt-BR')}</p>
+            <p>{corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')}</p>
           </div>
           <div>
             <Label className="font-semibold">Horário de Início:</Label>

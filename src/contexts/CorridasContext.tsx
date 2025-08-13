@@ -146,9 +146,12 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           solicitante: corridaData.solicitante,
           origem: corridaData.origem,
           destino: corridaData.destino,
-          data: corridaData.data,
+          data: corridaData.dataServico || corridaData.data, // Priorizar dataServico
+          data_servico: corridaData.dataServico || corridaData.data, // Salvar no campo correto
           hora_saida: corridaData.horaSaida,
+          hora_inicio: corridaData.horaInicio, // Adicionar hora_inicio
           hora_chegada: corridaData.horaChegada,
+          tipo_abrangencia: corridaData.tipoAbrangencia, // Adicionar tipo_abrangencia
           observacoes: corridaData.observacoes,
           status: status as any,
           motorista: corridaData.motorista,

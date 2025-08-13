@@ -140,7 +140,7 @@ export const CorridasTable = ({
             console.log(`Renderizando corrida ${index + 1}:`, corrida);
             return (
               <TableRow key={corrida.id}>
-                <TableCell>{new Date(corrida.dataServico || corrida.data).toLocaleDateString('pt-BR')}</TableCell>
+              <TableCell>{corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')}</TableCell>
                 <TableCell className="font-medium">{corrida.empresa}</TableCell>
                 <TableCell>{corrida.origem} → {corrida.destino}</TableCell>
                 <TableCell>{getStatusBadge(corrida.status)}</TableCell>
@@ -184,7 +184,7 @@ export const CorridasTable = ({
         <TableBody>
           {corridas.map(corrida => (
             <TableRow key={corrida.id}>
-              <TableCell>{new Date(corrida.dataServico || corrida.data).toLocaleDateString('pt-BR')}</TableCell>
+              <TableCell>{corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')}</TableCell>
               <TableCell className="font-medium">{corrida.empresa}</TableCell>
               <TableCell>{getMotoristaDisplay(corrida.motorista)}</TableCell>
               <TableCell>{corrida.origem} → {corrida.destino}</TableCell>
