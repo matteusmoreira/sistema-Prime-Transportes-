@@ -226,13 +226,7 @@ export const FinanceiroTable = ({
                   <Button size="sm" variant="outline" onClick={() => onEdit(corrida)}>
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <WhatsAppButton
-                    motorista={corrida.motorista}
-                    empresa={corrida.empresa}
-                    dataServico={corrida.dataServico}
-                    origem={corrida.origem}
-                    destino={corrida.destino}
-                  />
+                  <WhatsAppButton corrida={corrida} />
                 </div>
               </TableCell>
             </TableRow>

@@ -11,28 +11,63 @@ import { useMotoristas } from '@/hooks/useMotoristas';
 import { supabase } from '@/integrations/supabase/client';
 
 interface WhatsAppButtonProps {
-  motorista: string;
-  empresa: string;
-  dataServico: string;
-  origem: string;
-  destino: string;
+  corrida: any; // Vamos receber toda a corrida para pegar todos os dados
 }
 
-export const WhatsAppButton = ({ motorista, empresa, dataServico, origem, destino }: WhatsAppButtonProps) => {
+export const WhatsAppButton = ({ corrida }: WhatsAppButtonProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [message, setMessage] = useState(
-    `Olá ${motorista}!\n\nA corrida da empresa ${empresa} para o dia ${new Date(dataServico).toLocaleDateString('pt-BR')} (${origem} → ${destino}) foi aprovada pelo financeiro.\n\nPor favor, confirme o recebimento desta mensagem.\n\nObrigado!`
-  );
+  
+  // Criar mensagem formatada com todos os dados da corrida
+  const createFormattedMessage = () => {
+    const dataFormatada = new Date(corrida.dataServico || corrida.data).toLocaleDateString('pt-BR');
+    const horaInicio = corrida.horaInicio || corrida.hora_saida || 'Não informado';
+    const horaFim = corrida.horaChegada || corrida.hora_chegada || 'Não informado';
+    
+    return `🚗 *DADOS DA CORRIDA* 🚗
+
+👤 *Motorista:* ${corrida.motorista || 'Não definido'}
+🏢 *Empresa:* ${corrida.empresa}
+📅 *Data do Serviço:* ${dataFormatada}
+🕐 *Horário:* ${horaInicio} às ${horaFim}
+
+👥 *Passageiro:* ${corrida.passageiro}
+📞 *Telefone do Passageiro:* ${corrida.telefonePassageiro || 'Não informado'}
+
+📍 *Origem:* ${corrida.origem}
+🎯 *Destino:* ${corrida.destino}
+${corrida.destinoExtra ? `📍 *Destino Extra:* ${corrida.destinoExtra}` : ''}
+
+🚙 *Veículo:* ${corrida.veiculo || 'Não definido'}
+📋 *Centro de Custo:* ${corrida.centroCusto || 'Não informado'}
+🎯 *Projeto:* ${corrida.projeto || 'Não informado'}
+📝 *Motivo:* ${corrida.motivo || 'Não informado'}
+
+${corrida.kmTotal ? `🛣️ *KM Total:* ${corrida.kmTotal} km` : ''}
+${corrida.tempoViagem ? `⏱️ *Tempo de Viagem:* ${corrida.tempoViagem}` : ''}
+${corrida.tipoAbrangencia ? `🌍 *Tipo de Abrangência:* ${corrida.tipoAbrangencia}` : ''}
+
+💰 *Valor para Motorista:* R$ ${(corrida.valorMotorista || 0).toFixed(2)}
+
+${corrida.observacoes ? `📝 *Observações:* ${corrida.observacoes}` : ''}
+${corrida.observacoesOS ? `📋 *Observações da OS:* ${corrida.observacoesOS}` : ''}
+
+---
+Por favor, confirme o recebimento desta mensagem.
+
+Obrigado! 🙏`;
+  };
+
+  const [message, setMessage] = useState(createFormattedMessage());
   const [isLoading, setIsLoading] = useState(false);
   const { motoristas } = useMotoristas();
 
   // Buscar telefone do motorista e formatar com código do país
   useEffect(() => {
-    console.log('WhatsApp: Buscando telefone para motorista:', motorista);
+    console.log('WhatsApp: Buscando telefone para motorista:', corrida.motorista);
     console.log('WhatsApp: Lista de motoristas:', motoristas);
     
-    const motoristaData = motoristas.find(m => m.nome === motorista);
+    const motoristaData = motoristas.find(m => m.nome === corrida.motorista);
     console.log('WhatsApp: Dados do motorista encontrado:', motoristaData);
     
     if (motoristaData && motoristaData.telefone) {
@@ -46,7 +81,7 @@ export const WhatsAppButton = ({ motorista, empresa, dataServico, origem, destin
     } else {
       console.log('WhatsApp: Motorista não encontrado ou sem telefone');
     }
-  }, [motorista, motoristas]);
+  }, [corrida.motorista, motoristas]);
 
   // Log quando o dialog abre para verificar se o telefone está sendo carregado
   useEffect(() => {
@@ -112,7 +147,7 @@ export const WhatsAppButton = ({ motorista, empresa, dataServico, origem, destin
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Enviar WhatsApp para {motorista}</DialogTitle>
+          <DialogTitle>Enviar WhatsApp para {corrida.motorista}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>

@@ -204,13 +204,7 @@ export const CorridasTable = ({
                   </Button>
 
                   {userLevel === 'Administrador' && corrida.motorista && (
-                    <WhatsAppButton
-                      motorista={corrida.motorista}
-                      empresa={corrida.empresa}
-                      dataServico={corrida.dataServico || corrida.data}
-                      origem={corrida.origem}
-                      destino={corrida.destino}
-                    />
+                    <WhatsAppButton corrida={corrida} />
                   )}
 
                   {canEdit(corrida) && (
