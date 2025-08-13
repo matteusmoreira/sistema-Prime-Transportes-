@@ -178,24 +178,29 @@ export const useFinanceiro = () => {
     toast.success(`Status de medição/nota fiscal alterado para ${medicaoNotaFiscal}!`);
   };
 
-  const updateCorrida = (corridaId: number, formData: any) => {
+  const updateCorrida = async (corridaId: number, formData: any) => {
     console.log('=== FINANCEIRO UPDATE CORRIDA ===');
     console.log('ID da corrida:', corridaId);
     console.log('Dados recebidos do formulário:', formData);
     console.log('Tipo dos dados:', typeof formData);
     console.log('Keys dos dados:', Object.keys(formData));
     
-    updateCorridaOriginal(corridaId, formData);
-    
-    // Atualizar também o estado local do financeiro
-    setCorridas(prev => prev.map(c => 
-      c.id === corridaId 
-        ? { ...c, ...formData }
-        : c
-    ));
-    
-    console.log('=== FIM FINANCEIRO UPDATE CORRIDA ===');
-    toast.success('Corrida atualizada com sucesso!');
+    try {
+      await updateCorridaOriginal(corridaId, formData);
+      
+      // Atualizar também o estado local do financeiro
+      setCorridas(prev => prev.map(c => 
+        c.id === corridaId 
+          ? { ...c, ...formData }
+          : c
+      ));
+      
+      console.log('=== FIM FINANCEIRO UPDATE CORRIDA ===');
+      toast.success('Corrida atualizada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atualizar corrida no financeiro:', error);
+      toast.error('Erro ao atualizar corrida: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
+    }
   };
 
   const approveCorrida = (corrida: CorridaFinanceiro) => {

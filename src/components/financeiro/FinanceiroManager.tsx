@@ -34,16 +34,22 @@ export const FinanceiroManager = () => {
     setIsEditDialogOpen(true);
   };
 
-  const handleSave = (corridaId: number, formData: any) => {
+  const handleSave = async (corridaId: number, formData: any) => {
     console.log('=== HANDLE SAVE FINANCEIRO MANAGER ===');
     console.log('Corridor ID recebido:', corridaId);
     console.log('Form data recebido:', formData);
     console.log('Tipos dos campos:', Object.keys(formData).map(key => ({ key, type: typeof formData[key], value: formData[key] })));
     console.log('=== CHAMANDO UPDATE CORRIDA ===');
     
-    updateCorrida(corridaId, formData);
-    
-    console.log('=== FIM HANDLE SAVE FINANCEIRO MANAGER ===');
+    try {
+      await updateCorrida(corridaId, formData);
+      setIsEditDialogOpen(false);
+      console.log('=== FIM HANDLE SAVE FINANCEIRO MANAGER (SUCESSO) ===');
+    } catch (error) {
+      console.error('Erro no handleSave:', error);
+      console.error('=== FIM HANDLE SAVE FINANCEIRO MANAGER (ERRO) ===');
+      // Não fecha o dialog se houver erro para o usuário poder tentar novamente
+    }
   };
 
   const handleApprove = (corrida: CorridaFinanceiro) => {

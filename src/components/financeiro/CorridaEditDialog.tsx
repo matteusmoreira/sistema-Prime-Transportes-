@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileText } from 'lucide-react';
+import { toast } from 'sonner';
 import type { CorridaFinanceiro } from '@/hooks/useFinanceiro';
 import { removeSecondsFromTime } from '@/utils/timeFormatter';
 
@@ -112,10 +113,11 @@ export const CorridaEditDialog = ({
     setComprovantes(prev => ({ ...prev, [tipo]: file }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     try {
       if (!corrida) {
         console.error('ERRO: Nenhuma corrida selecionada para salvar');
+        toast.error('Erro: Nenhuma corrida selecionada');
         return;
       }
       
@@ -138,7 +140,7 @@ export const CorridaEditDialog = ({
       console.log('ID da corrida a ser atualizada:', corrida.id);
       console.log('=== CHAMANDO ONSAVE ===');
       
-      onSave(corrida.id, updatedData);
+      await onSave(corrida.id, updatedData);
       
       console.log('=== FECHANDO DIALOG ===');
       onOpenChange(false);
@@ -147,6 +149,7 @@ export const CorridaEditDialog = ({
       console.error('=== ERRO NO HANDLE SAVE ===');
       console.error('Error:', error);
       console.error('Stack:', error instanceof Error ? error.stack : 'No stack');
+      toast.error('Erro ao salvar alterações: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
       console.error('=== FIM ERRO NO HANDLE SAVE ===');
     }
   };
