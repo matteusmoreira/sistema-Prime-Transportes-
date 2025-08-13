@@ -9,6 +9,7 @@ import { MessageCircle, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMotoristas } from '@/hooks/useMotoristas';
 import { supabase } from '@/integrations/supabase/client';
+import { formatTimeToAmPm } from '@/utils/timeFormatter';
 
 interface WhatsAppButtonProps {
   corrida: any; // Vamos receber toda a corrida para pegar todos os dados
@@ -24,7 +25,7 @@ export const WhatsAppButton = ({ corrida }: WhatsAppButtonProps) => {
   // Criar mensagem formatada com todos os dados da corrida
   const createFormattedMessage = () => {
     const dataFormatada = corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR');
-    const horaInicio = corrida.horaInicio || corrida.horaSaida || 'Não informado';
+    const horaInicio = formatTimeToAmPm(corrida.horaInicio || corrida.horaSaida || '');
     
     return `🚗 *DADOS DA CORRIDA* 🚗
 

@@ -10,6 +10,7 @@ import { Corrida, DocumentoUpload } from '@/types/corridas';
 import { useEmpresas } from '@/hooks/useEmpresas';
 import { OSBasicFields } from './OSBasicFields';
 import { OSCostFields } from './OSCostFields';
+import { formatTimeToAmPm } from '@/utils/timeFormatter';
 interface OSFormProps {
   corrida: Corrida;
   onSubmit: (formData: any, documentos: DocumentoUpload[]) => void;
@@ -139,7 +140,7 @@ export const OSForm = ({
             </div>
             <div className="space-y-2">
               <Label>Hora Início</Label>
-              <Input value={corrida.horaInicio || corrida.horaSaida || ''} readOnly className="bg-gray-100" />
+              <Input value={formatTimeToAmPm(corrida.horaInicio || corrida.horaSaida || '')} readOnly className="bg-gray-100" />
             </div>
             <div className="space-y-2">
               <Label>Tipo de Abrangência</Label>

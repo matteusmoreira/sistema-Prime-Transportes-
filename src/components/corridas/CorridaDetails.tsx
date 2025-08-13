@@ -6,6 +6,7 @@ import { Corrida } from '@/types/corridas';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { formatTimeToAmPm } from '@/utils/timeFormatter';
 
 interface CorridaDetailsProps {
   corrida: Corrida;
@@ -128,7 +129,7 @@ export const CorridaDetails = ({
           </div>
           <div>
             <Label className="font-semibold">Horário de Início:</Label>
-            <p>{displayValue(corrida.horaInicio || corrida.horaSaida)}</p>
+            <p>{formatTimeToAmPm(corrida.horaInicio || corrida.horaSaida || '')}</p>
           </div>
           <div>
             <Label className="font-semibold">Status:</Label>
