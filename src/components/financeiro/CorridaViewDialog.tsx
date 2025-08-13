@@ -1,7 +1,12 @@
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Download } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import type { CorridaFinanceiro } from '@/hooks/useFinanceiro';
 
 interface CorridaViewDialogProps {
@@ -11,6 +16,67 @@ interface CorridaViewDialogProps {
 }
 
 export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange }: CorridaViewDialogProps) => {
+  const [documentos, setDocumentos] = useState<any[]>([]);
+
+  // Carregar documentos da corrida
+  useEffect(() => {
+    const loadDocumentos = async () => {
+      if (!corrida?.id || !isOpen) {
+        setDocumentos([]);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('corrida_documentos')
+          .select('*')
+          .eq('corrida_id', corrida.id);
+
+        if (error) {
+          console.error('Erro ao carregar documentos:', error);
+          return;
+        }
+
+        setDocumentos(data || []);
+      } catch (error) {
+        console.error('Erro ao carregar documentos:', error);
+      }
+    };
+
+    loadDocumentos();
+  }, [corrida?.id, isOpen]);
+
+  const handleDownloadDocument = async (documento: any) => {
+    try {
+      // If URL starts with http, it's already a public URL
+      if (documento.url.startsWith('http')) {
+        window.open(documento.url, '_blank');
+        return;
+      }
+
+      // Otherwise, try to get from storage bucket
+      const { data, error } = await supabase.storage
+        .from('corrida-documentos')
+        .download(documento.url);
+
+      if (error) throw error;
+
+      // Create download link
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = documento.nome;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success(`${documento.nome} foi baixado com sucesso`);
+    } catch (error) {
+      console.error('Erro no download:', error);
+      toast.error('Não foi possível baixar o documento');
+    }
+  };
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Aguardando Conferência':
@@ -175,6 +241,42 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange }: CorridaView
               )}
             </CardContent>
           </Card>
+
+          {/* Documentos */}
+          {documentos && documentos.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Comprovantes e Documentos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4">
+                  {documentos.map(doc => (
+                    <div key={doc.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium text-base">{doc.nome}</p>
+                          {doc.descricao && (
+                            <p className="text-sm text-gray-600 mt-1">{doc.descricao}</p>
+                          )}
+                        </div>
+                        {doc.url && (
+                          <Button
+                            onClick={() => handleDownloadDocument(doc)}
+                            size="sm"
+                            variant="outline"
+                            className="ml-4"
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Baixar
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </DialogContent>
     </Dialog>
