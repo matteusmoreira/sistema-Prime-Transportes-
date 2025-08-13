@@ -17,75 +17,60 @@ interface WhatsAppButtonProps {
 export const WhatsAppButton = ({ corrida }: WhatsAppButtonProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { motoristas } = useMotoristas();
   
   // Criar mensagem formatada com todos os dados da corrida
   const createFormattedMessage = () => {
     const dataFormatada = new Date(corrida.dataServico || corrida.data).toLocaleDateString('pt-BR');
-    const horaInicio = corrida.horaInicio || corrida.hora_saida || 'Não informado';
-    const horaFim = corrida.horaChegada || corrida.hora_chegada || 'Não informado';
+    const horaInicio = corrida.horaInicio || corrida.horaSaida || 'Não informado';
+    const horaFim = corrida.horaChegada || 'Não informado';
     
     return `🚗 *DADOS DA CORRIDA* 🚗
 
 👤 *Motorista:* ${corrida.motorista || 'Não definido'}
 🏢 *Empresa:* ${corrida.empresa}
 📅 *Data do Serviço:* ${dataFormatada}
-🕐 *Horário:* ${horaInicio} às ${horaFim}
+🕐 *Horário:* ${horaInicio}${horaFim !== 'Não informado' ? ` às ${horaFim}` : ''}
 
 👥 *Passageiros:* ${corrida.passageiros || 'Não informado'}
 
 📍 *Origem:* ${corrida.origem}
-🎯 *Destino:* ${corrida.destino}
-${corrida.destinoExtra ? `📍 *Destino Extra:* ${corrida.destinoExtra}` : ''}
+🎯 *Destino:* ${corrida.destino}${corrida.destinoExtra ? `\n📍 *Destino Extra:* ${corrida.destinoExtra}` : ''}
 
 🚙 *Veículo:* ${corrida.veiculo || 'Não definido'}
 📋 *Centro de Custo:* ${corrida.centroCusto || 'Não informado'}
 🎯 *Projeto:* ${corrida.projeto || 'Não informado'}
 📝 *Motivo:* ${corrida.motivo || 'Não informado'}
+${corrida.numeroOS ? `📋 *Número OS:* ${corrida.numeroOS}` : ''}
 
-${corrida.kmTotal ? `🛣️ *KM Total:* ${corrida.kmTotal} km` : ''}
-${corrida.tempoViagem ? `⏱️ *Tempo de Viagem:* ${corrida.tempoViagem}` : ''}
-${corrida.tipoAbrangencia ? `🌍 *Tipo de Abrangência:* ${corrida.tipoAbrangencia}` : ''}
+${corrida.kmTotal ? `🛣️ *KM Total:* ${corrida.kmTotal} km` : ''}${corrida.tempoViagem ? `\n⏱️ *Tempo de Viagem:* ${corrida.tempoViagem}` : ''}${corrida.tipoAbrangencia ? `\n🌍 *Tipo de Abrangência:* ${corrida.tipoAbrangencia}` : ''}
 
 💰 *Valor para Motorista:* R$ ${(corrida.valorMotorista || 0).toFixed(2)}
-
-${corrida.observacoes ? `📝 *Observações:* ${corrida.observacoes}` : ''}
-${corrida.observacoesOS ? `📋 *Observações da OS:* ${corrida.observacoesOS}` : ''}
+${corrida.observacoes ? `\n📝 *Observações:* ${corrida.observacoes}` : ''}${corrida.observacoesOS ? `\n📋 *Observações da OS:* ${corrida.observacoesOS}` : ''}
 
 ---
 ATT, Prime Transportes`;
   };
 
-  const [message, setMessage] = useState(createFormattedMessage());
-  const [isLoading, setIsLoading] = useState(false);
-  const { motoristas } = useMotoristas();
+  // Atualizar mensagem sempre que a corrida mudar
+  useEffect(() => {
+    setMessage(createFormattedMessage());
+  }, [corrida]);
 
   // Buscar telefone do motorista e formatar com código do país
   useEffect(() => {
-    console.log('WhatsApp: Buscando telefone para motorista:', corrida.motorista);
-    console.log('WhatsApp: Lista de motoristas:', motoristas);
-    
     const motoristaData = motoristas.find(m => m.nome === corrida.motorista);
-    console.log('WhatsApp: Dados do motorista encontrado:', motoristaData);
     
     if (motoristaData && motoristaData.telefone) {
-      console.log('WhatsApp: Telefone original:', motoristaData.telefone);
       // Remove caracteres não numéricos e adiciona 55 na frente
       const numbersOnly = motoristaData.telefone.replace(/\D/g, '');
-      console.log('WhatsApp: Números apenas:', numbersOnly);
       const formattedPhone = `55${numbersOnly}`;
-      console.log('WhatsApp: Telefone formatado:', formattedPhone);
       setPhoneNumber(formattedPhone);
-    } else {
-      console.log('WhatsApp: Motorista não encontrado ou sem telefone');
     }
   }, [corrida.motorista, motoristas]);
 
-  // Log quando o dialog abre para verificar se o telefone está sendo carregado
-  useEffect(() => {
-    if (isDialogOpen) {
-      console.log('WhatsApp: Dialog aberto, telefone atual:', phoneNumber);
-    }
-  }, [isDialogOpen, phoneNumber]);
 
   const sendWhatsAppMessage = async () => {
     if (!phoneNumber || !message) {

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Settings, TestTube } from 'lucide-react';
 import { useConfiguracoes } from '@/hooks/useConfiguracoes';
+import { TestEvolutionButton } from './TestEvolutionButton';
 
 export const ConfiguracoesManager = () => {
   const { configuracoes, loading, saveConfiguracoes, testarConexao } = useConfiguracoes();
@@ -108,23 +109,27 @@ export const ConfiguracoesManager = () => {
             </Button>
 
             {configuracoes && (
-              <Button 
-                variant="outline"
-                onClick={handleTestConnection}
-                disabled={testingConnection}
-              >
-                {testingConnection ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Testando...
-                  </>
-                ) : (
-                  <>
-                    <TestTube className="mr-2 h-4 w-4" />
-                    Testar Conexão
-                  </>
-                )}
-              </Button>
+              <>
+                <Button 
+                  variant="outline"
+                  onClick={handleTestConnection}
+                  disabled={testingConnection}
+                >
+                  {testingConnection ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Testando...
+                    </>
+                  ) : (
+                    <>
+                      <TestTube className="mr-2 h-4 w-4" />
+                      Testar Conexão
+                    </>
+                  )}
+                </Button>
+                
+                <TestEvolutionButton />
+              </>
             )}
           </div>
         </CardContent>
