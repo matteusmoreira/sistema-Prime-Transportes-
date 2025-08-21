@@ -15,11 +15,13 @@ interface OSFormProps {
   corrida: Corrida;
   onSubmit: (formData: any, documentos: DocumentoUpload[]) => void;
   onCancel: () => void;
+  userLevel?: string;
 }
 export const OSForm = ({
   corrida,
   onSubmit,
-  onCancel
+  onCancel,
+  userLevel = 'Administrador'
 }: OSFormProps) => {
   const { empresas } = useEmpresas();
   
@@ -56,6 +58,14 @@ export const OSForm = ({
     estacionamento: null as File | null,
     hospedagem: null as File | null
   });
+  // Função para determinar se o campo deve ser exibido para motoristas
+  const shouldShowField = (fieldName: string): boolean => {
+    if (userLevel !== 'Motorista') return true;
+    
+    const hiddenFields = ['solicitante', 'projeto', 'motivo', 'tipoAbrangencia'];
+    return !hiddenFields.includes(fieldName);
+  };
+
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -112,26 +122,34 @@ export const OSForm = ({
 
           {/* Dados adicionais cadastrados pelo administrador */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Solicitante</Label>
-              <Input value={corrida.solicitante || 'Não informado'} readOnly className="bg-gray-100" />
-            </div>
+            {shouldShowField('solicitante') && (
+              <div className="space-y-2">
+                <Label>Solicitante</Label>
+                <Input value={corrida.solicitante || 'Não informado'} readOnly className="bg-gray-100" />
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Veículo</Label>
               <Input value={corrida.veiculo || 'Não informado'} readOnly className="bg-gray-100" />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Projeto</Label>
-              <Input value={corrida.projeto || 'Não informado'} readOnly className="bg-gray-100" />
+          {(shouldShowField('projeto') || shouldShowField('motivo')) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {shouldShowField('projeto') && (
+                <div className="space-y-2">
+                  <Label>Projeto</Label>
+                  <Input value={corrida.projeto || 'Não informado'} readOnly className="bg-gray-100" />
+                </div>
+              )}
+              {shouldShowField('motivo') && (
+                <div className="space-y-2">
+                  <Label>Motivo</Label>
+                  <Input value={corrida.motivo || 'Não informado'} readOnly className="bg-gray-100" />
+                </div>
+              )}
             </div>
-            <div className="space-y-2">
-              <Label>Motivo</Label>
-              <Input value={corrida.motivo || 'Não informado'} readOnly className="bg-gray-100" />
-            </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -145,10 +163,12 @@ export const OSForm = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Tipo de Abrangência</Label>
-              <Input value={corrida.tipoAbrangencia || 'Não informado'} readOnly className="bg-gray-100" />
-            </div>
+            {shouldShowField('tipoAbrangencia') && (
+              <div className="space-y-2">
+                <Label>Tipo de Abrangência</Label>
+                <Input value={corrida.tipoAbrangencia || 'Não informado'} readOnly className="bg-gray-100" />
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Nº da Ordem de Serviço</Label>
               <Input value={corrida.numeroOS || 'Será gerado automaticamente'} readOnly className="bg-gray-100" />

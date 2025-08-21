@@ -52,6 +52,7 @@ export const CorridasDialogs = ({
               corrida={fillingOS}
               onSubmit={onOSSubmit}
               onCancel={onCancel}
+              userLevel={userLevel}
             />
           ) : (
             <CorridaForm
