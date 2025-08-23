@@ -186,6 +186,30 @@ export const useFinanceiro = () => {
     console.log('Keys dos dados:', Object.keys(formData));
     
     try {
+      // Verificar permissões do usuário atual antes de tentar atualizar
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('👤 Usuário atual:', user?.email);
+      
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        
+        console.log('👤 Role do usuário:', profile?.role);
+        
+        if (!profile?.role || !['Administrador', 'Administração', 'Financeiro'].includes(profile.role)) {
+          const error = `❌ Permissão negada. Role atual: ${profile?.role}. Roles necessários: Administrador, Administração, Financeiro`;
+          console.error(error);
+          toast.error('Você não tem permissão para editar corridas');
+          return;
+        }
+      }
+      
+      console.log('✅ Permissões OK, prosseguindo com a atualização...');
+      
       await updateCorridaOriginal(corridaId, formData);
       
       // Atualizar também o estado local do financeiro
@@ -198,8 +222,24 @@ export const useFinanceiro = () => {
       console.log('=== FIM FINANCEIRO UPDATE CORRIDA ===');
       toast.success('Corrida atualizada com sucesso!');
     } catch (error) {
-      console.error('Erro ao atualizar corrida no financeiro:', error);
-      toast.error('Erro ao atualizar corrida: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
+      console.error('❌ Erro ao atualizar corrida no financeiro:', error);
+      
+      // Mostrar erro mais específico baseado no tipo
+      let errorMessage = 'Erro desconhecido ao atualizar corrida';
+      
+      if (error && typeof error === 'object' && 'message' in error) {
+        const err = error as any;
+        if (err.message?.includes('row-level security')) {
+          errorMessage = 'Erro de permissão: Você não tem autorização para editar esta corrida';
+        } else if (err.message?.includes('permission denied')) {
+          errorMessage = 'Permissão negada para editar corrida';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      toast.error(errorMessage);
+      throw error; // Re-throw para não fechar o dialog
     }
   };
 

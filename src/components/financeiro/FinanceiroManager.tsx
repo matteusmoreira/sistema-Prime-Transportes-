@@ -9,6 +9,7 @@ import { FinanceiroTable } from './FinanceiroTable';
 import { CorridaEditDialog } from './CorridaEditDialog';
 import { CorridaViewDialog } from './CorridaViewDialog';
 import { CorridaRejectDialog } from './CorridaRejectDialog';
+import { UserDebugInfo } from '@/components/debug/UserDebugInfo';
 
 export const FinanceiroManager = () => {
   const { corridas, updateStatus, updatePaymentStatus, updateMedicaoNotaFiscalStatus, approveCorrida, rejectCorrida, getStats, updateCorrida } = useFinanceiro();
@@ -67,8 +68,17 @@ export const FinanceiroManager = () => {
       
       console.log('=== FIM HANDLE SAVE FINANCEIRO MANAGER (SUCESSO) ===');
     } catch (error) {
-      console.error('Erro no handleSave:', error);
+      console.error('❌ Erro no handleSave do FinanceiroManager:', error);
       console.error('=== FIM HANDLE SAVE FINANCEIRO MANAGER (ERRO) ===');
+      
+      // Tratar diferentes tipos de erro
+      if (error && typeof error === 'object' && 'message' in error) {
+        const err = error as any;
+        if (err.message?.includes('row-level security') || err.message?.includes('permission denied')) {
+          toast.error('Erro de permissão: Verifique se você tem autorização para editar corridas');
+        }
+      }
+      
       // Não fecha o dialog se houver erro para o usuário poder tentar novamente
     }
   };
@@ -193,6 +203,9 @@ export const FinanceiroManager = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold text-gray-900">Painel Financeiro</h2>
       </div>
+
+      {/* Debug Info - temporário para identificar problemas de permissão */}
+      <UserDebugInfo show={true} />
 
       <FinanceiroStats {...stats} />
 
