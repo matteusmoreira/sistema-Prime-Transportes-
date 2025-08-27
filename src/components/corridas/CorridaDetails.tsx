@@ -4,6 +4,7 @@ import { Corrida } from '@/types/corridas';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCorridaDocuments } from '@/hooks/useCorridaDocuments';
 import { DocumentViewer } from './DocumentViewer';
+import { WorkflowStatus } from './WorkflowStatus';
 import { formatTimeToAmPm } from '@/utils/timeFormatter';
 
 interface CorridaDetailsProps {
@@ -66,6 +67,8 @@ export const CorridaDetails = ({
   };
 
   return <div className="space-y-6">
+      <WorkflowStatus corrida={corrida} userLevel={profile?.role || ''} />
+      
       {/* Dados Básicos */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold border-b pb-2">Dados Básicos</h3>

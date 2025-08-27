@@ -36,12 +36,8 @@ export const CorridaForm = ({
     console.log('Dados do formulário sendo enviados:', formData);
     onSubmit(formData, documentos);
   };
-  const isReadOnly = (field: string) => {
-    // Se for preenchimento de OS, alguns campos ficam readonly
-    if (isFillingOS && userLevel === 'Motorista') {
-      const readOnlyFields = ['empresa', 'solicitante', 'motorista', 'dataServico'];
-      return readOnlyFields.includes(field);
-    }
+  const isReadOnly = () => {
+    // Permitir edição mais ampla - apenas motoristas têm restrições específicas em OS
     return false;
   };
   return <form onSubmit={handleSubmit} className="space-y-6">
@@ -50,22 +46,22 @@ export const CorridaForm = ({
       {/* Nº da Ordem de Serviço */}
       <div className="space-y-2">
         <Label>Nº da Ordem de Serviço</Label>
-        <Input value={formData.numeroOS} onChange={e => updateFormData('numeroOS', e.target.value)} placeholder="Ex: OS-2024-001" readOnly={isReadOnly('numeroOS')} />
+        <Input value={formData.numeroOS} onChange={e => updateFormData('numeroOS', e.target.value)} placeholder="Ex: OS-2024-001" />
       </div>
 
       {/* Projeto, Motivo e Veículo */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label>Projeto</Label>
-          <Input value={formData.projeto} onChange={e => updateFormData('projeto', e.target.value)} placeholder="Digite o nome do projeto" readOnly={isReadOnly('projeto')} />
+          <Input value={formData.projeto} onChange={e => updateFormData('projeto', e.target.value)} placeholder="Digite o nome do projeto" />
         </div>
         <div className="space-y-2">
           <Label>Motivo</Label>
-          <Input value={formData.motivo} onChange={e => updateFormData('motivo', e.target.value)} placeholder="Digite o motivo da viagem" readOnly={isReadOnly('motivo')} />
+          <Input value={formData.motivo} onChange={e => updateFormData('motivo', e.target.value)} placeholder="Digite o motivo da viagem" />
         </div>
         <div className="space-y-2">
           <Label>Veículo</Label>
-          <Select value={formData.veiculo || ""} onValueChange={(value) => updateFormData('veiculo', value)} disabled={isReadOnly('veiculo')}>
+          <Select value={formData.veiculo || ""} onValueChange={(value) => updateFormData('veiculo', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione o tipo de veículo" />
             </SelectTrigger>
@@ -82,7 +78,7 @@ export const CorridaForm = ({
 
       <DataHorario formData={formData} onFormChange={updateFormData} readOnly={isFillingOS && userLevel === 'Motorista'} />
       
-      <LocalizacaoForm formData={formData} onFormChange={updateFormData} readOnly={isReadOnly} />
+      <LocalizacaoForm formData={formData} onFormChange={updateFormData} />
 
       {/* Quilometragem */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

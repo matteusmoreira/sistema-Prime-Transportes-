@@ -182,33 +182,9 @@ export const useFinanceiro = () => {
     console.log('=== FINANCEIRO UPDATE CORRIDA ===');
     console.log('ID da corrida:', corridaId);
     console.log('Dados recebidos do formulário:', formData);
-    console.log('Tipo dos dados:', typeof formData);
-    console.log('Keys dos dados:', Object.keys(formData));
     
     try {
-      // Verificar permissões do usuário atual antes de tentar atualizar
-      const { supabase } = await import('@/integrations/supabase/client');
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('👤 Usuário atual:', user?.email);
-      
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-        
-        console.log('👤 Role do usuário:', profile?.role);
-        
-        if (!profile?.role || !['Administrador', 'Administração', 'Financeiro'].includes(profile.role)) {
-          const error = `❌ Permissão negada. Role atual: ${profile?.role}. Roles necessários: Administrador, Administração, Financeiro`;
-          console.error(error);
-          toast.error('Você não tem permissão para editar corridas');
-          return;
-        }
-      }
-      
-      console.log('✅ Permissões OK, prosseguindo com a atualização...');
+      console.log('✅ Atualizando corrida no financeiro...');
       
       await updateCorridaOriginal(corridaId, formData);
       

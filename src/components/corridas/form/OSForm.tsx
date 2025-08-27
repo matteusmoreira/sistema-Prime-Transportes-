@@ -24,10 +24,6 @@ export const OSForm = ({
   userLevel = 'Administrador'
 }: OSFormProps) => {
   const { empresas } = useEmpresas();
-  
-  // Buscar o centro de custo da empresa associada à corrida
-  const empresaAssociada = empresas.find(empresa => empresa.nome === corrida.empresa);
-  const centroCustoEmpresa = empresaAssociada?.centroCusto || 'Não informado';
 
   const [formData, setFormData] = useState({
     horaOS: new Date().toLocaleTimeString('pt-BR', {
@@ -41,7 +37,7 @@ export const OSForm = ({
     kmInicio: corrida.kmInicial?.toString() || '',
     kmFinal: corrida.kmFinal?.toString() || '',
     empresa: corrida.empresa,
-    centroCusto: centroCustoEmpresa,
+    centroCusto: corrida.centroCusto || '',
     origem: corrida.origem,
     destino: corrida.destino,
     destinoExtra: corrida.destinoExtra || '',
@@ -115,8 +111,12 @@ export const OSForm = ({
               <Input value={formData.empresa} readOnly className="bg-gray-100" />
             </div>
             <div className="space-y-2">
-              <Label>Centro de Custo</Label>
-              <Input value={formData.centroCusto} readOnly className="bg-gray-100" title={`Centro de custo da empresa: ${formData.centroCusto}`} />
+              <Label>Centro de Custo *</Label>
+              <Input 
+                value={formData.centroCusto} 
+                onChange={(e) => updateFormData('centroCusto', e.target.value)}
+                placeholder="Digite o centro de custo"
+              />
             </div>
           </div>
 

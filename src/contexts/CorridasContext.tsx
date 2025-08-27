@@ -112,6 +112,8 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
   // Realtime: Atualiza corridas quando houver mudanças no banco
   useEffect(() => {
+    if (!shouldLoadData) return;
+
     const channel = supabase
       .channel('public:corridas-changes')
       .on(
@@ -119,6 +121,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         { event: '*', schema: 'public', table: 'corridas' },
         (payload) => {
           console.log('Realtime corridas change:', payload.eventType, payload.new);
+          // Recarregar dados imediatamente após mudança
           loadCorridas();
         }
       )
@@ -129,7 +132,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [shouldLoadData]);
 
   const addCorrida = async (corridaData: Omit<Corrida, 'id' | 'status'>) => {
     console.log('=== DEBUG VEICULO ===');
