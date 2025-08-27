@@ -12,7 +12,6 @@ interface EmpresaFormData {
   email: string;
   endereco: string;
   observacoes: string;
-  centroCusto: string;
 }
 
 interface EmpresaFormProps {
@@ -93,17 +92,6 @@ export const EmpresaForm = ({
             onChange={(e) => onInputChange('endereco', e.target.value)}
           />
         </div>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="centroCusto">Centro de Custo</Label>
-        <Textarea
-          id="centroCusto"
-          value={formData.centroCusto}
-          onChange={(e) => onInputChange('centroCusto', e.target.value)}
-          rows={3}
-          placeholder="Digite o centro de custo da empresa (opcional)"
-        />
       </div>
       
       <div className="space-y-2">

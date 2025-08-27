@@ -40,86 +40,97 @@ export const DadosBasicos = ({ formData, onFormChange, readOnly = false }: Dados
   const handleEmpresaChange = (value: string) => {
     console.log('Empresa selecionada:', value);
     onFormChange('empresa', value);
-    
-    // Buscar a empresa selecionada e preencher automaticamente o centro de custo
-    const empresaSelecionada = empresas.find(empresa => empresa.nome === value);
-    if (empresaSelecionada) {
-      console.log('Centro de custo da empresa:', empresaSelecionada.centroCusto);
-      onFormChange('centroCusto', empresaSelecionada.centroCusto || '');
-    }
   };
 
   if (readOnly) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label>Empresa *</Label>
-          <Input value={formData.empresa} readOnly className="bg-gray-100" />
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label>Empresa *</Label>
+            <Input value={formData.empresa} readOnly className="bg-gray-100" />
+          </div>
+          <div className="space-y-2">
+            <Label>Solicitante *</Label>
+            <Input value={formData.solicitante} readOnly className="bg-gray-100" />
+          </div>
+          <div className="space-y-2">
+            <Label>Motorista</Label>
+            <Input value={formData.motorista} readOnly className="bg-gray-100" />
+          </div>
         </div>
         <div className="space-y-2">
-          <Label>Solicitante *</Label>
-          <Input value={formData.solicitante} readOnly className="bg-gray-100" />
-        </div>
-        <div className="space-y-2">
-          <Label>Motorista</Label>
-          <Input value={formData.motorista} readOnly className="bg-gray-100" />
+          <Label>Centro de Custo *</Label>
+          <Input value={formData.centroCusto} readOnly className="bg-gray-100" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="space-y-2">
-        <Label>Empresa *</Label>
-        <Select value={formData.empresa} onValueChange={handleEmpresaChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione uma empresa" />
-          </SelectTrigger>
-          <SelectContent>
-            {empresas.map(empresa => (
-              <SelectItem key={empresa.id} value={empresa.nome}>
-                {empresa.nome}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>Solicitante *</Label>
-        <Select value={formData.solicitante} onValueChange={value => onFormChange('solicitante', value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione um solicitante" />
-          </SelectTrigger>
-          <SelectContent>
-            {solicitantes.map(solicitante => (
-              <SelectItem key={solicitante.id} value={solicitante.nome}>
-                {solicitante.nome}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>Motorista</Label>
-        <Select value={formData.motorista} onValueChange={handleMotoristaChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione um motorista" />
-          </SelectTrigger>
-          <SelectContent>
-            {motoristasAprovados.length > 0 ? (
-              motoristasAprovados.map(motorista => (
-                <SelectItem key={motorista.id} value={motorista.nome}>
-                  {motorista.nome}
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label>Empresa *</Label>
+          <Select value={formData.empresa} onValueChange={handleEmpresaChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione uma empresa" />
+            </SelectTrigger>
+            <SelectContent>
+              {empresas.map(empresa => (
+                <SelectItem key={empresa.id} value={empresa.nome}>
+                  {empresa.nome}
                 </SelectItem>
-              ))
-            ) : (
-              <SelectItem value="no-motorista" disabled>
-                Nenhum motorista aprovado cadastrado
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Solicitante *</Label>
+          <Select value={formData.solicitante} onValueChange={value => onFormChange('solicitante', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um solicitante" />
+            </SelectTrigger>
+            <SelectContent>
+              {solicitantes.map(solicitante => (
+                <SelectItem key={solicitante.id} value={solicitante.nome}>
+                  {solicitante.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Motorista</Label>
+          <Select value={formData.motorista} onValueChange={handleMotoristaChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um motorista" />
+            </SelectTrigger>
+            <SelectContent>
+              {motoristasAprovados.length > 0 ? (
+                motoristasAprovados.map(motorista => (
+                  <SelectItem key={motorista.id} value={motorista.nome}>
+                    {motorista.nome}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-motorista" disabled>
+                  Nenhum motorista aprovado cadastrado
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Centro de Custo *</Label>
+        <Input
+          value={formData.centroCusto}
+          onChange={(e) => onFormChange('centroCusto', e.target.value)}
+          placeholder="Digite o centro de custo"
+          required
+        />
       </div>
     </div>
   );
