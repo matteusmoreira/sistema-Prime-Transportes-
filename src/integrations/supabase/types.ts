@@ -166,6 +166,7 @@ export type Database = {
           combustivel_inicial: number | null
           created_at: string
           data: string
+          data_edicao_financeiro: string | null
           data_servico: string | null
           destino: string
           destino_extra: string | null
@@ -195,6 +196,7 @@ export type Database = {
           passageiro: string
           passageiros: string | null
           pedagio: number | null
+          preenchido_por_financeiro: boolean | null
           preenchido_por_motorista: boolean | null
           projeto: string | null
           reembolsos: number | null
@@ -206,6 +208,7 @@ export type Database = {
           tipo_abrangencia: string | null
           total: number | null
           updated_at: string
+          usuario_edicao_financeiro: string | null
           valor: number | null
           valor_combustivel: number | null
           valor_motorista: number | null
@@ -217,6 +220,7 @@ export type Database = {
           combustivel_inicial?: number | null
           created_at?: string
           data: string
+          data_edicao_financeiro?: string | null
           data_servico?: string | null
           destino: string
           destino_extra?: string | null
@@ -246,6 +250,7 @@ export type Database = {
           passageiro: string
           passageiros?: string | null
           pedagio?: number | null
+          preenchido_por_financeiro?: boolean | null
           preenchido_por_motorista?: boolean | null
           projeto?: string | null
           reembolsos?: number | null
@@ -257,6 +262,7 @@ export type Database = {
           tipo_abrangencia?: string | null
           total?: number | null
           updated_at?: string
+          usuario_edicao_financeiro?: string | null
           valor?: number | null
           valor_combustivel?: number | null
           valor_motorista?: number | null
@@ -268,6 +274,7 @@ export type Database = {
           combustivel_inicial?: number | null
           created_at?: string
           data?: string
+          data_edicao_financeiro?: string | null
           data_servico?: string | null
           destino?: string
           destino_extra?: string | null
@@ -297,6 +304,7 @@ export type Database = {
           passageiro?: string
           passageiros?: string | null
           pedagio?: number | null
+          preenchido_por_financeiro?: boolean | null
           preenchido_por_motorista?: boolean | null
           projeto?: string | null
           reembolsos?: number | null
@@ -308,6 +316,7 @@ export type Database = {
           tipo_abrangencia?: string | null
           total?: number | null
           updated_at?: string
+          usuario_edicao_financeiro?: string | null
           valor?: number | null
           valor_combustivel?: number | null
           valor_motorista?: number | null

@@ -83,6 +83,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           statusPagamento: (corrida.status_pagamento as Corrida['statusPagamento']) || 'Pendente',
           medicaoNotaFiscal: (corrida.medicao_nota_fiscal as Corrida['medicaoNotaFiscal']) || 'Medição',
           preenchidoPorMotorista: corrida.preenchido_por_motorista || false,
+          preenchidoPorFinanceiro: (corrida as any).preenchido_por_financeiro || false,
           numeroOS: corrida.numero_os || '',
           total: corrida.total || 0,
           localAbastecimento: corrida.local_abastecimento || '',
@@ -170,6 +171,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         passageiros: corridaData.passageiros || '',
         numero_os: corridaData.numeroOS || '', // Adicionar numeroOS
         destino_extra: corridaData.destinoExtra || '', // Adicionar destinoExtra
+        preenchido_por_financeiro: false, // Inicializar como false
       };
 
       console.log('=== PAYLOAD PARA INSERT ===');
@@ -264,6 +266,9 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         destinoExtra: 'destino_extra',
         statusPagamento: 'status_pagamento',
         medicaoNotaFiscal: 'medicao_nota_fiscal',
+        preenchidoPorFinanceiro: 'preenchido_por_financeiro',
+        dataEdicaoFinanceiro: 'data_edicao_financeiro',
+        usuarioEdicaoFinanceiro: 'usuario_edicao_financeiro',
       };
 
       // Campos que não devem ser enviados para o banco

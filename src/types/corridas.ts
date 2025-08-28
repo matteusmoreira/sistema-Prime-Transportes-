@@ -51,6 +51,7 @@ export interface Corrida {
   projeto?: string;
   motivo?: string;
   preenchidoPorMotorista?: boolean;
+  preenchidoPorFinanceiro?: boolean;
   statusPagamento?: 'Pendente' | 'Pago';
   medicaoNotaFiscal?: 'Medição' | 'Nota Fiscal';
 }

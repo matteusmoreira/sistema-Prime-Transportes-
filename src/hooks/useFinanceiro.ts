@@ -40,20 +40,24 @@ export interface CorridaFinanceiro {
 export const useFinanceiro = () => {
   const { corridas: corridasOriginais, updateStatus: updateCorridaStatus, updateCorrida: updateCorridaOriginal } = useCorridas();
   
-  console.log('Corridas originais no financeiro:', corridasOriginais);
-  
-  // Filtrar apenas corridas que foram preenchidas pelo motorista (status, flag ou número de OS gerado)
+  // Filtrar corridas para conferência financeira: incluir recém-cadastradas e já preenchidas
   const corridasParaFinanceiro = corridasOriginais.filter(corrida => 
-    corrida.status === 'Aguardando Conferência' || corrida.preenchidoPorMotorista === true || (!!corrida.numeroOS && String(corrida.numeroOS).trim() !== '')
+    // Incluir corridas já preenchidas pelo motorista
+    corrida.status === 'Aguardando Conferência' || 
+    corrida.preenchidoPorMotorista === true || 
+    (!!corrida.numeroOS && String(corrida.numeroOS).trim() !== '') ||
+    // Incluir corridas recém-cadastradas que ainda não foram preenchidas
+    corrida.status === 'Aguardando OS' ||
+    corrida.status === 'Selecionar Motorista' ||
+    corrida.status === 'Pendente' ||
+    // Incluir corridas editadas pelo financeiro
+    (corrida as any).preenchidoPorFinanceiro === true
   );
-  
-  console.log('Corridas filtradas para financeiro:', corridasParaFinanceiro);
   
   // Converter corridas do formato original para o formato do financeiro com TODOS os dados
   const baseCorridas: CorridaFinanceiro[] = useMemo(() => {
     return corridasParaFinanceiro.map(corrida => {
       const statusMapeado = mapStatusToFinanceiro(corrida.status);
-      console.log(`Mapeando corrida ${corrida.id}: status original "${corrida.status}" -> status financeiro "${statusMapeado}"`);
       
       return {
         id: corrida.id,
@@ -93,8 +97,6 @@ export const useFinanceiro = () => {
     setCorridas(baseCorridas);
   }, [baseCorridas]);
 
-  console.log('Corridas mapeadas para CorridaFinanceiro:', baseCorridas);
-
   // Função para mapear status entre os tipos
   function mapStatusToFinanceiro(status: Corrida['status']): CorridaFinanceiro['status'] {
     switch (status) {
@@ -116,10 +118,6 @@ export const useFinanceiro = () => {
   }
 
   const updateStatus = (corridaId: number, status: CorridaFinanceiro['status']) => {
-    console.log('=== FINANCEIRO UPDATE STATUS ===');
-    console.log('Atualizando status da corrida:', corridaId, 'para:', status);
-    console.log('Corridas antes da atualização:', corridasOriginais);
-    
     // Mapear status do financeiro para o contexto de corridas
     let corridaStatus: Corrida['status'];
     switch (status) {
@@ -145,61 +143,54 @@ export const useFinanceiro = () => {
         corridaStatus = 'Em Análise';
     }
     
-    console.log('Status mapeado para contexto:', corridaStatus);
     updateCorridaStatus(corridaId, corridaStatus);
     setCorridas(prev => prev.map(c => c.id === corridaId ? { ...c, status } : c));
-    console.log('=== FIM FINANCEIRO UPDATE STATUS ===');
     toast.success(`Status alterado para ${status}!`);
   };
 
   const updatePaymentStatus = (corridaId: number, statusPagamento: CorridaFinanceiro['statusPagamento']) => {
-    console.log('=== FINANCEIRO UPDATE PAYMENT STATUS ===');
-    console.log('Atualizando status de pagamento da corrida:', corridaId, 'para:', statusPagamento);
-
     // Atualiza UI imediatamente
     setCorridas(prev => prev.map(c => c.id === corridaId ? { ...c, statusPagamento } : c));
     // Persiste no banco
     updateCorridaOriginal(corridaId, { statusPagamento });
 
-    console.log('=== FIM FINANCEIRO UPDATE PAYMENT STATUS ===');
     toast.success(`Status de pagamento alterado para ${statusPagamento}!`);
   };
 
   const updateMedicaoNotaFiscalStatus = (corridaId: number, medicaoNotaFiscal: CorridaFinanceiro['medicaoNotaFiscal']) => {
-    console.log('=== FINANCEIRO UPDATE MEDIÇÃO/NOTA FISCAL STATUS ===');
-    console.log('Atualizando status de medição/nota fiscal da corrida:', corridaId, 'para:', medicaoNotaFiscal);
-    
     // Atualiza UI imediatamente
     setCorridas(prev => prev.map(c => c.id === corridaId ? { ...c, medicaoNotaFiscal } : c));
     // Persiste no banco
     updateCorridaOriginal(corridaId, { medicaoNotaFiscal });
     
-    console.log('=== FIM FINANCEIRO UPDATE MEDIÇÃO/NOTA FISCAL STATUS ===');
     toast.success(`Status de medição/nota fiscal alterado para ${medicaoNotaFiscal}!`);
   };
 
   const updateCorrida = async (corridaId: number, formData: any) => {
-    console.log('=== FINANCEIRO UPDATE CORRIDA ===');
-    console.log('ID da corrida:', corridaId);
-    console.log('Dados recebidos do formulário:', formData);
-    
     try {
-      console.log('✅ Atualizando corrida no financeiro...');
+      // Adicionar campos de controle de edição financeira
+      const updatedFormData = {
+        ...formData,
+        preenchidoPorFinanceiro: true,
+        dataEdicaoFinanceiro: new Date().toISOString(),
+        usuarioEdicaoFinanceiro: 'Financeiro',
+        // Adicionar observação automática se não houver
+        observacoes: formData.observacoes ? 
+          `${formData.observacoes}\n\n[Editado pelo Financeiro em ${new Date().toLocaleString('pt-BR')}]` :
+          `[Editado pelo Financeiro em ${new Date().toLocaleString('pt-BR')}]`
+      };
       
-      await updateCorridaOriginal(corridaId, formData);
+      await updateCorridaOriginal(corridaId, updatedFormData);
       
       // Atualizar também o estado local do financeiro
       setCorridas(prev => prev.map(c => 
         c.id === corridaId 
-          ? { ...c, ...formData }
+          ? { ...c, ...updatedFormData }
           : c
       ));
       
-      console.log('=== FIM FINANCEIRO UPDATE CORRIDA ===');
-      toast.success('Corrida atualizada com sucesso!');
+      toast.success('Corrida atualizada com sucesso pelo Financeiro!');
     } catch (error) {
-      console.error('❌ Erro ao atualizar corrida no financeiro:', error);
-      
       // Mostrar erro mais específico baseado no tipo
       let errorMessage = 'Erro desconhecido ao atualizar corrida';
       
@@ -220,12 +211,10 @@ export const useFinanceiro = () => {
   };
 
   const approveCorrida = (corrida: CorridaFinanceiro) => {
-    console.log('Aprovando corrida:', corrida.id);
     updateStatus(corrida.id, 'Aprovada');
   };
 
   const rejectCorrida = (corrida: CorridaFinanceiro, motivoReprovacao: string) => {
-    console.log('Rejeitando corrida:', corrida.id, 'motivo:', motivoReprovacao);
     updateStatus(corrida.id, 'Revisar');
   };
 

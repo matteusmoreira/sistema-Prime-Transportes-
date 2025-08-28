@@ -35,14 +35,6 @@ export const CorridasTable = ({
   onReject,
   onSelectMotorista
 }: CorridasTableProps) => {
-  console.log('=== CORRIDAS TABLE DEBUG ===');
-  console.log('UserLevel na tabela:', userLevel);
-  console.log('UserEmail na tabela:', userEmail);
-  console.log('Corridas recebidas na tabela:', corridas);
-  console.log('Quantidade de corridas na tabela:', corridas.length);
-  console.log('Tipo das corridas:', typeof corridas);
-  console.log('É array?', Array.isArray(corridas));
-  console.log('=== FIM CORRIDAS TABLE DEBUG ===');
 
   const [rejectDialog, setRejectDialog] = useState<{ open: boolean; corridaId: number | null }>({ 
     open: false, 
@@ -108,7 +100,8 @@ export const CorridasTable = ({
 
   const canEdit = (corrida: Corrida) => {
     if (userLevel === 'Administrador') return true;
-    if (userLevel === 'Financeiro' && corrida.status === 'Aguardando Conferência') return true;
+    if (userLevel === 'Administração') return true;
+    if (userLevel === 'Financeiro') return true;
     return false;
   };
 
@@ -136,21 +129,28 @@ export const CorridasTable = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {corridas.map((corrida, index) => {
-            console.log(`Renderizando corrida ${index + 1}:`, corrida);
-            return (
-              <TableRow key={corrida.id}>
-              <TableCell>{corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')}</TableCell>
-                <TableCell className="font-medium">{corrida.empresa}</TableCell>
-                <TableCell>{corrida.origem} → {corrida.destino}</TableCell>
-                <TableCell>{getStatusBadge(corrida.status)}</TableCell>
+          {corridas.map((corrida) => (
+            <TableRow key={corrida.id}>
+            <TableCell>{corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')}</TableCell>
+              <TableCell className="font-medium">{corrida.empresa}</TableCell>
+              <TableCell>{corrida.origem} → {corrida.destino}</TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    {getStatusBadge(corrida.status)}
+                    {corrida.preenchidoPorFinanceiro && (
+                      <Badge variant="outline" className="mt-1 text-xs bg-blue-50 text-blue-700 border-blue-300">
+                        Conferenciado pelo Financeiro
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>R$ {(corrida.valorMotorista || 0).toFixed(2)}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
                     <Button size="sm" variant="outline" onClick={() => onView(corrida)}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    {(corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente' || corrida.status === 'Aguardando OS') && !corrida.preenchidoPorMotorista && (
+                    {(corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente' || corrida.status === 'Aguardando OS') && !corrida.preenchidoPorMotorista && !corrida.preenchidoPorFinanceiro && (
                       <Button size="sm" variant="default" onClick={() => onFillOS(corrida)}>
                         <FileEdit className="h-4 w-4" />
                         Preencher OS
@@ -159,8 +159,7 @@ export const CorridasTable = ({
                   </div>
                 </TableCell>
               </TableRow>
-            );
-          })}
+            ))}
         </TableBody>
       </Table>
     );
@@ -190,7 +189,16 @@ export const CorridasTable = ({
               <TableCell>{corrida.origem} → {corrida.destino}</TableCell>
               <TableCell>{corrida.centroCusto || '-'}</TableCell>
               <TableCell>R$ {(corrida.valor || 0).toFixed(2)}</TableCell>
-              <TableCell>{getStatusBadge(corrida.status)}</TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  {getStatusBadge(corrida.status)}
+                  {corrida.preenchidoPorFinanceiro && (
+                    <Badge variant="outline" className="mt-1 text-xs bg-blue-50 text-blue-700 border-blue-300">
+                      Conferenciado pelo Financeiro
+                    </Badge>
+                  )}
+                </div>
+              </TableCell>
               <TableCell>
                 <div className="flex space-x-2">
                   <Button size="sm" variant="outline" onClick={() => onView(corrida)}>
