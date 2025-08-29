@@ -47,14 +47,14 @@ export const AdminDocumentosViewer = ({
 
   useEffect(() => {
     if (open && motorista) {
-      console.log('AdminDocumentosViewer: Carregando documentos para motorista', motorista.id);
+      // ...existing code...
       loadDocumentos();
     }
   }, [open, motorista]);
 
   const loadDocumentos = async () => {
     setLoading(true);
-    console.log('Loading documents for motorista:', motorista.id);
+    // console.log('Loading documents for motorista:', motorista.id);
     
     try {
       // Carregar documentos do banco
@@ -64,7 +64,7 @@ export const AdminDocumentosViewer = ({
         .eq('motorista_id', motorista.id)
         .order('created_at', { ascending: false });
 
-      console.log('Documents query result:', { docsData, docsError });
+      // console.log('Documents query result:', { docsData, docsError });
       if (docsError) throw docsError;
       setDocumentos(docsData || []);
 
@@ -75,7 +75,7 @@ export const AdminDocumentosViewer = ({
         .eq('motorista_id', motorista.id)
         .order('created_at', { ascending: false });
 
-      console.log('Photos query result:', { fotosData, fotosError });
+      // console.log('Photos query result:', { fotosData, fotosError });
       if (fotosError) throw fotosError;
       setFotos(fotosData || []);
 

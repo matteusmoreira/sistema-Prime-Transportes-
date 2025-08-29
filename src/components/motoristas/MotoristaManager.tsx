@@ -96,10 +96,7 @@ export const MotoristaManager = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('=== SUBMIT DO FORMULÁRIO ===');
-    console.log('FormData:', formData);
-    console.log('Documentos antes da conversão:', documentos);
-    console.log('Fotos antes da conversão:', fotosVeiculo);
+    // Removidos logs de debug do submit do formulário (formData, documentos, fotos)
     
     // Validação básica
     if (!formData.nome || !formData.email) {

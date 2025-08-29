@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useMotoristas } from '@/hooks/useMotoristas';
 import { supabase } from '@/integrations/supabase/client';
 import { formatTimeToAmPm } from '@/utils/timeFormatter';
+import { formatCurrency } from '@/utils/format';
 
 interface WhatsAppButtonProps {
   corrida: any; // Vamos receber toda a corrida para pegar todos os dados
@@ -47,10 +48,9 @@ ${corrida.numeroOS ? `📋 *Número OS:* ${corrida.numeroOS}` : ''}
 
 ${corrida.kmTotal ? `🛣️ *KM Total:* ${corrida.kmTotal} km` : ''}${corrida.tempoViagem ? `\n⏱️ *Tempo de Viagem:* ${corrida.tempoViagem}` : ''}${corrida.tipoAbrangencia ? `\n🌍 *Tipo de Abrangência:* ${corrida.tipoAbrangencia}` : ''}
 
-💰 *Valor para Motorista:* R$ ${(corrida.valorMotorista || 0).toFixed(2)}
+💰 *Valor para Motorista:* ${formatCurrency(corrida.valorMotorista || 0)}
 ${corrida.observacoes ? `\n📝 *Observações:* ${corrida.observacoes}` : ''}${corrida.observacoesOS ? `\n📋 *Observações da OS:* ${corrida.observacoesOS}` : ''}
 
----
 ATT, Prime Transportes`;
   };
 

@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calculator, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
+import { formatCurrency } from '@/utils/format';
 
 interface FinanceiroStatsProps {
   pendingCount: number;
@@ -64,7 +65,7 @@ export const FinanceiroStats = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold text-blue-600">R$ {totalValue.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalValue)}</p>
           <p className="text-sm text-gray-600">Aprovado este mês</p>
         </CardContent>
       </Card>

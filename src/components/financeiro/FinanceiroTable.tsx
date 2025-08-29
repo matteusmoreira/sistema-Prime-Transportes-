@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Edit, Eye } from 'lucide-react';
 import { WhatsAppButton } from './WhatsAppButton';
 import type { CorridaFinanceiro } from '@/hooks/useFinanceiro';
+import { formatCurrency } from '@/utils/format';
 
 interface FinanceiroTableProps {
   corridas: CorridaFinanceiro[];
@@ -29,10 +30,7 @@ export const FinanceiroTable = ({
   onPaymentStatusChange,
   onMedicaoNotaFiscalChange
 }: FinanceiroTableProps) => {
-  console.log('=== FINANCEIRO TABLE RENDERIZADA ===');
-  console.log('Número de corridas:', corridas.length);
-  console.log('Função onEdit recebida:', typeof onEdit);
-  console.log('=== FIM FINANCEIRO TABLE RENDERIZADA ===');
+  // Removidos logs de debug de renderização
   
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -137,7 +135,7 @@ export const FinanceiroTable = ({
               <TableCell>{corrida.motorista}</TableCell>
               <TableCell>{corrida.origem} → {corrida.destino}</TableCell>
               <TableCell>{corrida.kmTotal} km</TableCell>
-              <TableCell>R$ {corrida.valor.toFixed(2)}</TableCell>
+              <TableCell>{formatCurrency(corrida.valor ?? 0)}</TableCell>
               <TableCell className="max-w-xs">
                 {corrida.observacoes ? (
                   <Tooltip>
@@ -229,14 +227,12 @@ export const FinanceiroTable = ({
                     <Eye className="h-4 w-4" />
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => {
-                    console.log('=== CLIQUE NO BOTÃO EDITAR DA TABELA ===');
-                    console.log('Corrida clicada:', corrida);
-                    console.log('ID da corrida:', corrida.id);
+                    // Removidos logs de debug de clique no botão Editar
                     try {
                       onEdit(corrida);
-                      console.log('=== CHAMOU ONEDIT COM SUCESSO ===');
+                      // sucesso silencioso
                     } catch (error) {
-                      console.error('=== ERRO NO ONEDIT ===', error);
+                      console.error('Erro ao acionar edição da corrida:', error);
                     }
                   }}>
                     <Edit className="h-4 w-4" />

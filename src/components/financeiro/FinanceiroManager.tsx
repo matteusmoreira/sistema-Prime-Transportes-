@@ -9,7 +9,7 @@ import { FinanceiroTable } from './FinanceiroTable';
 import { CorridaEditDialog } from './CorridaEditDialog';
 import { CorridaViewDialog } from './CorridaViewDialog';
 import { CorridaRejectDialog } from './CorridaRejectDialog';
-import { UserDebugInfo } from '@/components/debug/UserDebugInfo';
+
 
 export const FinanceiroManager = () => {
   const { corridas, updateStatus, updatePaymentStatus, updateMedicaoNotaFiscalStatus, approveCorrida, rejectCorrida, getStats, updateCorrida } = useFinanceiro();
@@ -27,79 +27,79 @@ export const FinanceiroManager = () => {
   };
 
   const handleEdit = (corrida: CorridaFinanceiro) => {
-    console.log('=== CLICOU PARA EDITAR CORRIDA ===');
-    console.log('Corrida selecionada para edição:', corrida);
-    console.log('ID da corrida:', corrida.id);
-    console.log('Status da corrida:', corrida.status);
-    console.log('=== FIM CLICOU PARA EDITAR ===');
-    
+    // Abertura do diálogo de edição de corrida
+     
     setSelectedCorrida(corrida);
     setIsEditDialogOpen(true);
   };
 
   const handleSave = async (dadosBasicos: any, documentos: any) => {
-    if (!selectedCorrida) return;
-    
-    console.log('💾 === HANDLEAVE INICIADO ===');
-    console.log('Corrida selecionada:', selectedCorrida.id);
-    console.log('Dados básicos:', dadosBasicos);
-    
+     if (!selectedCorrida) return;
+     
+    // Salvando alterações no financeiro
+     
     try {
       await updateCorrida(selectedCorrida.id, dadosBasicos, documentos);
       
-      console.log('✅ Edição salva com sucesso');
       setIsEditDialogOpen(false);
       
       // Força recarregamento de documentos e dados se a corrida ainda estiver sendo visualizada
       if (isViewDialogOpen) {
-        console.log('🔄 Forçando reload da visualização...');
         setDocumentsUpdateTrigger(prev => prev + 1);
       }
       
       // Atualizar a corrida selecionada com os novos dados para a visualização
       setSelectedCorrida(prev => prev ? {
-        ...prev,
-        ...dadosBasicos,
-        // Converter campos se necessário
-        empresa: dadosBasicos.empresa,
-        motorista: dadosBasicos.motorista,
-        dataServico: dadosBasicos.dataServico,
-        origem: dadosBasicos.origem,
-        destino: dadosBasicos.destino,
-        kmTotal: dadosBasicos.kmTotal,
-        valor: dadosBasicos.valor,
-        valorMotorista: dadosBasicos.valorMotorista,
-        pedagio: dadosBasicos.pedagio,
-        estacionamento: dadosBasicos.estacionamento,
-        hospedagem: dadosBasicos.hospedagem,
-        passageiros: dadosBasicos.passageiros,
-        centroCusto: dadosBasicos.centroCusto,
-        numeroOS: dadosBasicos.numeroOS,
-        observacoes: dadosBasicos.observacoes
-      } : null);
-      
-    } catch (error) {
-      console.error('❌ Erro no handleSave:', error);
-      
-      // Tratar diferentes tipos de erro
-      if (error && typeof error === 'object' && 'message' in error) {
-        const err = error as any;
-        if (err.message?.includes('row-level security') || err.message?.includes('permission denied')) {
-          toast.error('Erro de permissão: Verifique se você tem autorização para editar corridas');
-        }
-      }
-    }
-    
-    console.log('🏁 === HANDLESAVE FINALIZADO ===');
+       ...prev,
+       ...dadosBasicos,
+       // Converter/espelhar campos principais atualizados
+       empresa: dadosBasicos.empresa,
+       motorista: dadosBasicos.motorista,
+       dataServico: dadosBasicos.dataServico,
+       origem: dadosBasicos.origem,
+       destino: dadosBasicos.destino,
+       destinoExtra: dadosBasicos.destinoExtra,
+       kmTotal: dadosBasicos.kmTotal,
+       valor: dadosBasicos.valor,
+       valorMotorista: dadosBasicos.valorMotorista,
+       pedagio: dadosBasicos.pedagio,
+       estacionamento: dadosBasicos.estacionamento,
+       hospedagem: dadosBasicos.hospedagem,
+       passageiros: dadosBasicos.passageiros,
+       centroCusto: dadosBasicos.centroCusto,
+       numeroOS: dadosBasicos.numeroOS,
+       observacoes: dadosBasicos.observacoes,
+       projeto: dadosBasicos.projeto,
+       motivo: dadosBasicos.motivo,
+       // Novos campos OS/Financeiro
+       veiculo: dadosBasicos.veiculo,
+       tipoAbrangencia: dadosBasicos.tipoAbrangencia,
+       horaInicio: dadosBasicos.horaInicio,
+       horaFim: dadosBasicos.horaFim,
+       kmInicial: dadosBasicos.kmInicial,
+       kmFinal: dadosBasicos.kmFinal,
+       solicitante: dadosBasicos.solicitante
+     } : null);
+     
+   } catch (error) {
+     console.error('❌ Erro no handleSave:', error);
+     
+     // Tratar diferentes tipos de erro
+     if (error && typeof error === 'object' && 'message' in error) {
+       const err = error as any;
+       if (err.message?.includes('row-level security') || err.message?.includes('permission denied')) {
+         toast.error('Erro de permissão: Verifique se você tem autorização para editar corridas');
+       }
+     }
+   }
+   
+    // Fim do fluxo de salvar
   };
 
   const processarDocumentos = async (corridaId: number, documentos: any[]) => {
-    console.log('📄 INICIANDO PROCESSAMENTO DE DOCUMENTOS');
-    console.log('Corrida ID:', corridaId);
-    console.log('Documentos recebidos:', documentos);
-    
+    // Iniciando processamento de documentos
+     
     if (!documentos || documentos.length === 0) {
-      console.log('📄 Nenhum documento para processar');
       return;
     }
 
@@ -111,12 +111,9 @@ export const FinanceiroManager = () => {
       
       for (const documento of documentos) {
         if (!documento.arquivo) {
-          console.log('⚠️ Documento sem arquivo, pulando:', documento.nome);
           continue;
         }
 
-        console.log('📤 Fazendo upload do documento:', documento.nome);
-        
         try {
           // 1. Upload do arquivo para o storage
           const fileExtension = documento.arquivo.name.split('.').pop();
@@ -131,8 +128,6 @@ export const FinanceiroManager = () => {
             erros.push(`${documento.nome}: ${uploadError.message}`);
             continue;
           }
-
-          console.log('✅ Arquivo enviado com sucesso:', uploadData.path);
 
           // 2. Salvar metadata no banco
           const { error: dbError } = await supabase
@@ -152,7 +147,6 @@ export const FinanceiroManager = () => {
             continue;
           }
 
-          console.log('✅ Documento salvo com sucesso no banco:', documento.nome);
           sucessos.push(documento.nome);
           
         } catch (docError) {
@@ -161,10 +155,6 @@ export const FinanceiroManager = () => {
         }
       }
 
-      console.log('📄 PROCESSAMENTO DE DOCUMENTOS CONCLUÍDO');
-      console.log('✅ Sucessos:', sucessos);
-      console.log('❌ Erros:', erros);
-      
       // Mostrar feedback
       if (sucessos.length > 0) {
         toast.success(`${sucessos.length} comprovante(s) anexado(s) com sucesso!`);
@@ -175,7 +165,6 @@ export const FinanceiroManager = () => {
       
       // Incrementar o trigger para recarregar documentos
       setDocumentsUpdateTrigger(prev => prev + 1);
-      console.log('🔄 Trigger de atualização incrementado para forçar reload');
       
     } catch (error) {
       console.error('❌ Erro geral no processamento de documentos:', error);
@@ -214,8 +203,6 @@ export const FinanceiroManager = () => {
         <h2 className="text-3xl font-bold text-gray-900">Painel Financeiro</h2>
       </div>
 
-      {/* Debug Info - temporário para identificar problemas de permissão */}
-      <UserDebugInfo show={true} />
 
       <FinanceiroStats {...stats} />
 

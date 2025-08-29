@@ -134,202 +134,199 @@ export const useMotoristas = () => {
   };
 
   const uploadFile = async (file: File, bucket: string, path: string) => {
-    console.log('Tentando upload:', { bucket, path, fileName: file.name });
-    
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .upload(path, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+     // Removido log de debug de upload
+     
+     const { data, error } = await supabase.storage
+       .from(bucket)
+       .upload(path, file, {
+         cacheControl: '3600',
+         upsert: false
+       });
 
-    if (error) {
-      console.error('Erro no upload:', error);
-      throw error;
-    }
+     if (error) {
+       console.error('Erro no upload:', error);
+       throw error;
+     }
 
-    console.log('Upload realizado com sucesso:', data);
-    return data;
-  };
+     // Removido log de sucesso de upload
+     return data;
+   };
 
-  const addMotorista = async (formData: Omit<Motorista, 'id'> | (Omit<Motorista, 'id' | 'status'> & { status?: 'Pendente' | 'Aprovado' | 'Reprovado' })) => {
-    console.log('=== INICIANDO CADASTRO DE MOTORISTA ===');
-    console.log('Form data recebido:', formData);
-    console.log('Documentos:', formData.documentos);
-    console.log('Fotos:', formData.fotosVeiculo);
-    
-    try {
-      // Verificar se é um admin criando o motorista
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user?.id)
-        .single();
+   const addMotorista = async (formData: Omit<Motorista, 'id'> | (Omit<Motorista, 'id' | 'status'> & { status?: 'Pendente' | 'Aprovado' | 'Reprovado' })) => {
+     // Removidos logs de debug do fluxo de cadastro
+     
+     try {
+       // Verificar se é um admin criando o motorista
+       const { data: { user } } = await supabase.auth.getUser();
+       const { data: profile } = await supabase
+         .from('profiles')
+         .select('role')
+         .eq('id', user?.id)
+         .single();
 
-      let data, motoristaId;
+       let data, motoristaId;
 
-      if (profile?.role === 'Administrador') {
-        // Criar conta via edge function
-        console.log('Admin criando conta via edge function...');
-        const { data: response, error } = await supabase.functions.invoke('create-motorista-account', {
-          body: {
-            email: formData.email,
-            nome: formData.nome,
-            cpf: formData.cpf,
-            telefone: formData.telefone,
-            cnh: formData.cnh,
-            validadeCnh: formData.cnhDataValidade
-          }
-        });
+       if (profile?.role === 'Administrador') {
+         // Criar conta via edge function
+         // Removido log de debug
+         const { data: response, error } = await supabase.functions.invoke('create-motorista-account', {
+           body: {
+             email: formData.email,
+             nome: formData.nome,
+             cpf: formData.cpf,
+             telefone: formData.telefone,
+             cnh: formData.cnh,
+             validadeCnh: formData.cnhDataValidade
+           }
+         });
 
-        if (error) throw error;
-        if (!response.success) throw new Error(response.error);
-        
-        data = response.motorista;
-        motoristaId = data.id;
-        
-        toast.success(response.message);
-      } else {
-        // Criar apenas o registro do motorista (para motoristas se auto-cadastrando)
-        console.log('Criando motorista no banco...');
-        const { data: motoristaData, error } = await supabase
-          .from('motoristas')
-          .insert([{
-            nome: formData.nome,
-            cpf: formData.cpf || null,
-            telefone: formData.telefone || null,
-            email: formData.email,
-            cnh: formData.cnh || null,
-            validade_cnh: formData.cnhDataValidade || null,
-            status: (formData as any).status || 'Pendente'
-          }])
-          .select()
-          .single();
+         if (error) throw error;
+         if (!response.success) throw new Error(response.error);
+         
+         data = response.motorista;
+         motoristaId = data.id;
+         
+         toast.success(response.message);
+       } else {
+         // Criar apenas o registro do motorista (para motoristas se auto-cadastrando)
+         // Removido log de debug
+         const { data: motoristaData, error } = await supabase
+           .from('motoristas')
+           .insert([{
+             nome: formData.nome,
+             cpf: formData.cpf || null,
+             telefone: formData.telefone || null,
+             email: formData.email,
+             cnh: formData.cnh || null,
+             validade_cnh: formData.cnhDataValidade || null,
+             status: (formData as any).status || 'Pendente'
+           }])
+           .select()
+           .single();
 
-        if (error) {
-          console.error('Erro detalhado ao adicionar motorista:', error);
-          
-          // Tratamento específico para erro de CPF duplicado
-          if (error.code === '23505' && error.message.includes('motoristas_cpf_key')) {
-            toast.error('Este CPF já está cadastrado no sistema');
-          } else {
-            toast.error(`Erro ao adicionar motorista: ${error.message}`);
-          }
-          return;
-        }
+         if (error) {
+           console.error('Erro detalhado ao adicionar motorista:', error);
+           
+           // Tratamento específico para erro de CPF duplicado
+           if (error.code === '23505' && error.message.includes('motoristas_cpf_key')) {
+             toast.error('Este CPF já está cadastrado no sistema');
+           } else {
+             toast.error(`Erro ao adicionar motorista: ${error.message}`);
+           }
+           return;
+         }
 
-        data = motoristaData;
-        motoristaId = data.id;
-      }
+         data = motoristaData;
+         motoristaId = data.id;
+       }
 
-      const documentosUploadados: DocumentoMotorista[] = [];
-      const fotosUploadadas: FotoVeiculo[] = [];
+       const documentosUploadados: DocumentoMotorista[] = [];
+       const fotosUploadadas: FotoVeiculo[] = [];
 
-      // Upload dos documentos
-      for (const doc of formData.documentos) {
-        if (doc.arquivo) {
-          try {
-            // Buscar o arquivo original do input file
-            const arquivo = (doc as any).arquivoFile; // Arquivo File real
-            if (arquivo instanceof File) {
-              const sanitizedName = sanitizeFileName(arquivo.name);
-              const fileName = `${motoristaId}-${Date.now()}-${sanitizedName}`;
-              console.log('Upload de documento:', { original: arquivo.name, sanitized: sanitizedName, final: fileName });
-              await uploadFile(arquivo, 'motorista-documentos', fileName);
-              
-              // Salvar referência no banco
-              const { error: docError } = await supabase
-                .from('motorista_documentos')
-                .insert({
-                  motorista_id: motoristaId,
-                  nome: doc.nome,
-                  tipo: doc.descricao,
-                  url: fileName
-                });
+       // Upload dos documentos
+       for (const doc of formData.documentos) {
+         if (doc.arquivo) {
+           try {
+             // Buscar o arquivo original do input file
+             const arquivo = (doc as any).arquivoFile; // Arquivo File real
+             if (arquivo instanceof File) {
+               const sanitizedName = sanitizeFileName(arquivo.name);
+               const fileName = `${motoristaId}-${Date.now()}-${sanitizedName}`;
+               // Removido log de debug de upload de documento
+               await uploadFile(arquivo, 'motorista-documentos', fileName);
+               
+               // Salvar referência no banco
+               const { error: docError } = await supabase
+                 .from('motorista_documentos')
+                 .insert({
+                   motorista_id: motoristaId,
+                   nome: doc.nome,
+                   tipo: doc.descricao,
+                   url: fileName
+                 });
 
-              if (!docError) {
-                documentosUploadados.push({
-                  id: doc.id,
-                  nome: doc.nome,
-                  descricao: doc.descricao,
-                  arquivo: fileName,
-                  dataUpload: new Date().toISOString().split('T')[0]
-                });
-              }
-            }
-          } catch (uploadError) {
-            console.error('Erro no upload do documento:', uploadError);
-            toast.error(`Erro no upload do documento: ${doc.nome}`);
-          }
-        }
-      }
+               if (!docError) {
+                 documentosUploadados.push({
+                   id: doc.id,
+                   nome: doc.nome,
+                   descricao: doc.descricao,
+                   arquivo: fileName,
+                   dataUpload: new Date().toISOString().split('T')[0]
+                 });
+               }
+             }
+           } catch (uploadError) {
+             console.error('Erro no upload do documento:', uploadError);
+             toast.error(`Erro no upload do documento: ${doc.nome}`);
+           }
+         }
+       }
 
-      // Upload das fotos
-      for (const foto of formData.fotosVeiculo) {
-        if (foto.arquivo) {
-          try {
-            const arquivo = (foto as any).arquivoFile; // Arquivo File real
-            if (arquivo instanceof File) {
-              const sanitizedName = sanitizeFileName(arquivo.name);
-              const fileName = `${motoristaId}-${Date.now()}-${sanitizedName}`;
-              console.log('Upload de foto:', { original: arquivo.name, sanitized: sanitizedName, final: fileName });
-              await uploadFile(arquivo, 'motorista-fotos', fileName);
-              
-              // Salvar referência no banco
-              const { error: fotoError } = await supabase
-                .from('motorista_fotos')
-                .insert({
-                  motorista_id: motoristaId,
-                  nome: foto.nome,
-                  nome_original: arquivo.name,
-                  url: fileName,
-                  tamanho: foto.tamanho
-                });
+       // Upload das fotos
+       for (const foto of formData.fotosVeiculo) {
+         if (foto.arquivo) {
+           try {
+             const arquivo = (foto as any).arquivoFile; // Arquivo File real
+             if (arquivo instanceof File) {
+               const sanitizedName = sanitizeFileName(arquivo.name);
+               const fileName = `${motoristaId}-${Date.now()}-${sanitizedName}`;
+               // Removido log de debug de upload de foto
+               await uploadFile(arquivo, 'motorista-fotos', fileName);
+               
+               // Salvar referência no banco
+               const { error: fotoError } = await supabase
+                 .from('motorista_fotos')
+                 .insert({
+                   motorista_id: motoristaId,
+                   nome: foto.nome,
+                   nome_original: arquivo.name,
+                   url: fileName,
+                   tamanho: foto.tamanho
+                 });
 
-              if (!fotoError) {
-                fotosUploadadas.push({
-                  id: foto.id,
-                  nome: foto.nome,
-                  arquivo: fileName,
-                  tamanho: foto.tamanho,
-                  dataUpload: new Date().toISOString().split('T')[0]
-                });
-              }
-            }
-          } catch (uploadError) {
-            console.error('Erro no upload da foto:', uploadError);
-            toast.error(`Erro no upload da foto: ${foto.nome}`);
-          }
-        }
-      }
+               if (!fotoError) {
+                 fotosUploadadas.push({
+                   id: foto.id,
+                   nome: foto.nome,
+                   arquivo: fileName,
+                   tamanho: foto.tamanho,
+                   dataUpload: new Date().toISOString().split('T')[0]
+                 });
+               }
+             }
+           } catch (uploadError) {
+             console.error('Erro no upload da foto:', uploadError);
+             toast.error(`Erro no upload da foto: ${foto.nome}`);
+           }
+         }
+       }
 
-      const newMotorista: Motorista = {
-        id: data.id,
-        nome: data.nome,
-        cpf: data.cpf || '',
-        telefone: data.telefone || '',
-        email: data.email,
-        cnh: data.cnh || '',
-        cnhDataValidade: data.validade_cnh || '',
-        status: (formData as any).status || 'Pendente',
-        documentos: documentosUploadados,
-        fotosVeiculo: fotosUploadadas
-      };
+       const newMotorista: Motorista = {
+         id: data.id,
+         nome: data.nome,
+         cpf: data.cpf || '',
+         telefone: data.telefone || '',
+         email: data.email,
+         cnh: data.cnh || '',
+         cnhDataValidade: data.validade_cnh || '',
+         status: (formData as any).status || 'Pendente',
+         documentos: documentosUploadados,
+         fotosVeiculo: fotosUploadadas
+       };
 
-      setMotoristas(prev => [...prev, newMotorista]);
-      
-      if (profile?.role !== 'Administrador') {
-        toast.success('Motorista cadastrado com sucesso!');
-      }
-    } catch (error) {
-      console.error('Erro ao adicionar motorista:', error);
-      toast.error('Erro ao adicionar motorista');
-    }
-  };
+       setMotoristas(prev => [...prev, newMotorista]);
+       
+       if (profile?.role !== 'Administrador') {
+         toast.success('Motorista cadastrado com sucesso!');
+       }
+     } catch (error) {
+       console.error('Erro ao adicionar motorista:', error);
+       toast.error('Erro ao adicionar motorista');
+     }
+   };
 
-  const updateMotorista = async (id: number, updatedData: Partial<Motorista>) => {
-    console.log('Atualizando motorista:', id, updatedData);
+   const updateMotorista = async (id: number, updatedData: Partial<Motorista>) => {
+   // Removido log de debug de atualização de motorista
     
     try {
       // Atualizar dados básicos do motorista
@@ -372,8 +369,7 @@ export const useMotoristas = () => {
                   url: fileName
                 });
             } catch (uploadError) {
-              console.error('Erro no upload do documento:', uploadError);
-              toast.error(`Erro no upload do documento: ${doc.nome}`);
+              console.error('Erro ao fazer upload do documento:', uploadError);
             }
           }
         }
@@ -395,20 +391,17 @@ export const useMotoristas = () => {
                 .insert({
                   motorista_id: id,
                   nome: foto.nome,
-                  nome_original: arquivo.name,
-                  url: fileName,
-                  tamanho: foto.tamanho
+                  url: fileName
                 });
             } catch (uploadError) {
-              console.error('Erro no upload da foto:', uploadError);
-              toast.error(`Erro no upload da foto: ${foto.nome}`);
+              console.error('Erro ao fazer upload da foto:', uploadError);
             }
           }
         }
       }
 
-      // Recarregar dados atualizados
-      await loadMotoristas();
+      // Atualizar estado local
+      setMotoristas(prev => prev.map(m => m.id === id ? { ...m, ...updatedData } : m));
       toast.success('Motorista atualizado com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar motorista:', error);
@@ -417,12 +410,12 @@ export const useMotoristas = () => {
   };
 
   const deleteMotorista = async (id: number) => {
-    if (!window.confirm('Tem certeza que deseja excluir este motorista? Esta ação removerá TODOS os dados relacionados incluindo documentos, fotos e conta de usuário.')) {
+    if (!confirm('Esta ação irá excluir permanentemente o motorista e todos os dados relacionados (documentos, fotos, perfil de usuário). Tem certeza?')) {
       return;
     }
 
     try {
-      console.log('=== INICIANDO EXCLUSÃO COMPLETA DO MOTORISTA ===', id);
+      // Removido log: início de exclusão
       
       // 1. Buscar dados do motorista primeiro
       const { data: motorista } = await supabase
@@ -436,8 +429,8 @@ export const useMotoristas = () => {
         return;
       }
 
-      console.log('Motorista encontrado:', motorista);
-
+      // Removido log informativo: motorista encontrado
+      
       // 2. Verificar se existem corridas associadas
       const { data: corridas } = await supabase
         .from('corridas')
@@ -455,16 +448,16 @@ export const useMotoristas = () => {
         .select('*')
         .eq('motorista_id', id);
 
-      console.log('Documentos encontrados:', documentos?.length || 0);
-
+      // Removido log informativo: contagem de documentos encontrados
+      
       // 4. Buscar fotos para excluir arquivos do storage
       const { data: fotos } = await supabase
         .from('motorista_fotos')
         .select('*')
         .eq('motorista_id', id);
 
-      console.log('Fotos encontradas:', fotos?.length || 0);
-
+      // Removido log informativo: contagem de fotos encontradas
+      
       // 5. Excluir arquivos de documentos do storage
       if (documentos && documentos.length > 0) {
         for (const doc of documentos) {
@@ -474,11 +467,11 @@ export const useMotoristas = () => {
               await supabase.storage
                 .from('motorista-documentos')
                 .remove([`${id}/${filePath}`]);
-              console.log('Documento removido do storage:', filePath);
-            }
-          } catch (storageError) {
-            console.warn('Erro ao remover documento do storage:', storageError);
-          }
+              // Removido log informativo: documento removido do storage
+             }
+           } catch (storageError) {
+             // console.warn('Erro ao remover documento do storage:', storageError);
+           }
         }
       }
 
@@ -491,11 +484,11 @@ export const useMotoristas = () => {
               await supabase.storage
                 .from('motorista-fotos')
                 .remove([`${id}/${filePath}`]);
-              console.log('Foto removida do storage:', filePath);
-            }
-          } catch (storageError) {
-            console.warn('Erro ao remover foto do storage:', storageError);
-          }
+              // console.warn('Erro ao remover foto do storage:', storageError);
+             }
+           } catch (storageError) {
+             // console.warn('Erro ao remover foto do storage:', storageError);
+           }
         }
       }
 
@@ -509,8 +502,8 @@ export const useMotoristas = () => {
         if (docError) {
           console.error('Erro ao excluir documentos:', docError);
         } else {
-          console.log('Documentos excluídos da tabela');
-        }
+          // Removido log informativo: documentos excluídos da tabela
+         }
       }
 
       // 8. Excluir registros de fotos da tabela
@@ -523,8 +516,8 @@ export const useMotoristas = () => {
         if (fotosError) {
           console.error('Erro ao excluir fotos:', fotosError);
         } else {
-          console.log('Fotos excluídas da tabela');
-        }
+          // Removido log informativo: fotos excluídas da tabela
+         }
       }
 
       // 9. Excluir motorista da tabela
@@ -539,7 +532,7 @@ export const useMotoristas = () => {
         return;
       }
 
-      console.log('Motorista excluído da tabela');
+      // Removido log informativo: motorista excluído da tabela
 
       // 10. Excluir perfil do usuário (se existir)
       if (motorista.user_id) {
@@ -549,27 +542,27 @@ export const useMotoristas = () => {
           .eq('id', motorista.user_id);
 
         if (profileError) {
-          console.warn('Erro ao excluir perfil:', profileError);
+          // console.warn('Erro ao excluir perfil:', profileError);
         } else {
-          console.log('Perfil excluído');
-        }
+          // Removido log informativo: perfil excluído
+         }
 
-        // 11. Tentar excluir usuário de autenticação (usando service role)
-        try {
-          const { error: authError } = await supabase.auth.admin.deleteUser(motorista.user_id);
-          if (authError) {
-            console.warn('Erro ao excluir usuário de autenticação:', authError);
-          } else {
-            console.log('Usuário de autenticação excluído');
-          }
-        } catch (authDeleteError) {
-          console.warn('Não foi possível excluir usuário de autenticação:', authDeleteError);
-        }
+         // 11. Tentar excluir usuário de autenticação (usando service role)
+         try {
+           const { error: authError } = await supabase.auth.admin.deleteUser(motorista.user_id);
+           if (authError) {
+             // console.warn('Erro ao excluir usuário de autenticação:', authError);
+           } else {
+             // Removido log informativo: usuário de autenticação excluído
+           }
+         } catch (authDeleteError) {
+           // console.warn('Não foi possível excluir usuário de autenticação:', authDeleteError);
+         }
       }
 
       // 12. Atualizar estado local
       setMotoristas(prev => prev.filter(m => m.id !== id));
-      console.log('=== EXCLUSÃO COMPLETA FINALIZADA ===');
+      // Removido log: exclusão completa finalizada
       toast.success('Motorista e todos os dados relacionados excluídos com sucesso!');
     } catch (error) {
       console.error('Erro ao excluir motorista:', error);

@@ -68,7 +68,7 @@ export const useSolicitantes = () => {
   }, [shouldLoadData, isAuthLoading]);
 
   const addSolicitante = async (solicitanteData: Omit<Solicitante, 'id'>) => {
-    console.log('Adicionando solicitante:', solicitanteData);
+    // Removido log de debug de criação de solicitante
     
     // Buscar o nome da empresa atualizado
     const empresa = empresas.find(e => e.id === solicitanteData.empresaId);
@@ -112,7 +112,7 @@ export const useSolicitantes = () => {
   };
 
   const updateSolicitante = async (id: number, updatedData: Partial<Solicitante>) => {
-    console.log('Atualizando solicitante:', id, updatedData);
+    // Removido log de debug de atualização de solicitante
     
     try {
       const { data, error } = await supabase

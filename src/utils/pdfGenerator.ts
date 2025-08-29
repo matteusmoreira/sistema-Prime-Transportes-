@@ -1,6 +1,7 @@
 
 import jsPDF from 'jspdf';
 import type { VoucherData } from '@/hooks/useVoucher';
+import { formatCurrency } from '@/utils/format';
 
 export const generateVoucherPDF = async (voucher: VoucherData) => {
   const doc = new jsPDF();
@@ -141,18 +142,18 @@ export const generateVoucherPDF = async (voucher: VoucherData) => {
   yPosition += 10;
   
   doc.setFontSize(10);
-  addField('Valor Principal', `R$ ${voucher.valor.toFixed(2)}`);
+  addField('Valor Principal', `${formatCurrency(voucher.valor)}`);
   
   if (voucher.pedagio > 0) {
-    addField('Pedágio', `R$ ${voucher.pedagio.toFixed(2)}`);
+    addField('Pedágio', `${formatCurrency(voucher.pedagio)}`);
   }
   
   if (voucher.estacionamento > 0) {
-    addField('Estacionamento', `R$ ${voucher.estacionamento.toFixed(2)}`);
+    addField('Estacionamento', `${formatCurrency(voucher.estacionamento)}`);
   }
   
   if (voucher.hospedagem > 0) {
-    addField('Hospedagem', `R$ ${voucher.hospedagem.toFixed(2)}`);
+    addField('Hospedagem', `${formatCurrency(voucher.hospedagem)}`);
   }
   
   const valorTotal = voucher.valor + voucher.pedagio + voucher.estacionamento + voucher.hospedagem;
@@ -163,7 +164,7 @@ export const generateVoucherPDF = async (voucher: VoucherData) => {
   yPosition += 10;
   
   doc.setFont('helvetica', 'bold');
-  addField('VALOR TOTAL', `R$ ${valorTotal.toFixed(2)}`);
+  addField('VALOR TOTAL', `${formatCurrency(valorTotal)}`);
   
   
   

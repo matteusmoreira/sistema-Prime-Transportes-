@@ -18,19 +18,19 @@ export const useCorridaDocuments = (corridaId: number | null) => {
   const [reloadTrigger, setReloadTrigger] = useState(0);
 
   const forceReload = useCallback(() => {
-    console.log('🔄 Forçando recarregamento de documentos');
+    // Removido log de recarregamento forçado
     setReloadTrigger(prev => prev + 1);
   }, []);
 
   const loadDocumentos = useCallback(async () => {
     if (!corridaId) {
-      console.log('📄 useCorridaDocuments: sem corridaId, limpando documentos');
+      // Removido log quando não há corridaId
       setDocumentos([]);
       return;
     }
 
     setLoading(true);
-    console.log('🔍 useCorridaDocuments: Carregando documentos para corrida ID:', corridaId);
+    // Removido log de carregamento
 
     try {
       const { data, error } = await supabase
@@ -45,7 +45,7 @@ export const useCorridaDocuments = (corridaId: number | null) => {
         return;
       }
 
-      console.log('✅ useCorridaDocuments: Documentos carregados:', data?.length || 0);
+      // Removido log de quantidade de documentos carregados
       setDocumentos(data || []);
     } catch (error) {
       console.error('❌ useCorridaDocuments: Erro no catch:', error);
@@ -66,7 +66,7 @@ export const useCorridaDocuments = (corridaId: number | null) => {
     }
 
     try {
-      console.log('📤 useCorridaDocuments: Iniciando upload para:', documento.nome);
+      // Removido log de início de upload
       
       // 1. Upload do arquivo para o storage
       const fileExtension = documento.arquivo.name.split('.').pop();
@@ -81,7 +81,7 @@ export const useCorridaDocuments = (corridaId: number | null) => {
         throw uploadError;
       }
 
-      console.log('✅ useCorridaDocuments: Arquivo enviado com sucesso:', uploadData.path);
+      // Removido log de sucesso de upload
 
       // 2. Salvar metadata no banco
       const { error: dbError } = await supabase
@@ -100,7 +100,7 @@ export const useCorridaDocuments = (corridaId: number | null) => {
         throw dbError;
       }
 
-      console.log('✅ useCorridaDocuments: Documento salvo com sucesso no banco');
+      // Removido log de sucesso no banco
       forceReload();
       return true;
 

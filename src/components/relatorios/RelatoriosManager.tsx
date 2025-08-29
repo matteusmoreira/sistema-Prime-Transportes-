@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Download, Filter, Calendar, Building2, Users, TrendingUp } from 'lucide-react';
+import { formatCurrency } from '@/utils/format';
 import { toast } from 'sonner';
 import { exportCorridasToCSV, exportCorridasToPDF } from '@/utils/reportExports';
 import { useCorridas } from '@/contexts/CorridasContext';
@@ -208,7 +209,7 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel' | 'pdf') =>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-orange-600">R$ {dadosRelatorio.valorTotal.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-orange-600">{formatCurrency(dadosRelatorio.valorTotal)}</p>
             <p className="text-sm text-gray-600">Este mês</p>
           </CardContent>
         </Card>

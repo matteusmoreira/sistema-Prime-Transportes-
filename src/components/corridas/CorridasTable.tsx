@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea';
 import { MotoristaSelectionDialog } from './MotoristaSelectionDialog';
 import { WhatsAppButton } from '@/components/financeiro/WhatsAppButton';
+import { formatCurrency } from '@/utils/format';
 
 interface CorridasTableProps {
   corridas: Corrida[];
@@ -144,7 +145,7 @@ export const CorridasTable = ({
                     )}
                   </div>
                 </TableCell>
-                <TableCell>R$ {(corrida.valorMotorista || 0).toFixed(2)}</TableCell>
+                <TableCell>{formatCurrency(corrida.valorMotorista ?? 0)}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
                     <Button size="sm" variant="outline" onClick={() => onView(corrida)}>
@@ -188,7 +189,7 @@ export const CorridasTable = ({
               <TableCell>{getMotoristaDisplay(corrida.motorista)}</TableCell>
               <TableCell>{corrida.origem} → {corrida.destino}</TableCell>
               <TableCell>{corrida.centroCusto || '-'}</TableCell>
-              <TableCell>R$ {(corrida.valor || 0).toFixed(2)}</TableCell>
+              <TableCell>{formatCurrency(corrida.valor ?? 0)}</TableCell>
               <TableCell>
                 <div className="flex flex-col">
                   {getStatusBadge(corrida.status)}

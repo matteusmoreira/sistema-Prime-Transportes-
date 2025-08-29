@@ -47,52 +47,55 @@ export const MeusDocumentosViewer = ({
 
   const loadDocumentos = async () => {
     setLoading(true);
-    console.log('Loading documents for current user:', user?.id);
     
     try {
-      // First get the motorista ID for the current user
-      const { data: motoristaData, error: motoristaError } = await supabase
-        .from('motoristas')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (motoristaError || !motoristaData) {
-        console.log('Motorista not found for user:', user?.id);
+      if (!user?.id) {
+        setDocumentos([]);
+        setFotos([]);
         return;
       }
 
-      const motoristaId = motoristaData.id;
-      console.log('Found motorista ID:', motoristaId);
+      // Buscar o motorista associado ao usuário logado
+      const { data: motorista, error: motoristaError } = await supabase
+        .from('motoristas')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
-      // Load documents
+      if (motoristaError || !motorista) {
+        // console.error('Motorista não encontrado para o usuário:', user.id, motoristaError);
+        setDocumentos([]);
+        setFotos([]);
+        return;
+      }
+
+      const motoristaId = motorista.id;
+
+      // Carregar documentos do banco
       const { data: docsData, error: docsError } = await supabase
         .from('motorista_documentos')
         .select('*')
         .eq('motorista_id', motoristaId)
         .order('created_at', { ascending: false });
 
-      console.log('Documents query result:', { docsData, docsError });
       if (docsError) throw docsError;
       setDocumentos(docsData || []);
 
-      // Load photos
+      // Carregar fotos do banco
       const { data: fotosData, error: fotosError } = await supabase
         .from('motorista_fotos')
         .select('*')
         .eq('motorista_id', motoristaId)
         .order('created_at', { ascending: false });
 
-      console.log('Photos query result:', { fotosData, fotosError });
       if (fotosError) throw fotosError;
       setFotos(fotosData || []);
-
     } catch (error) {
       console.error('Erro ao carregar documentos:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar os documentos",
-        variant: "destructive"
+        title: 'Erro',
+        description: 'Não foi possível carregar os documentos',
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);

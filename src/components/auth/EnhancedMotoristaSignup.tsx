@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Upload, Image, X, CheckCircle, AlertCircle, Loader2, User, Mail, Lock } from 'lucide-react';
+import { Plus, Trash2, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCpfValidation } from '@/hooks/useCpfValidation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,8 +31,6 @@ interface MotoristaSignupData {
   telefone: string;
   cnh: string;
   cnhDataValidade: string;
-  documentos: DocumentoUpload[];
-  fotosVeiculo: FotoVeiculoUpload[];
 }
 
 interface EnhancedMotoristaSignupProps {
@@ -44,7 +42,7 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
   const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
-  
+
   const [formData, setFormData] = useState<MotoristaSignupData>({
     nome: '',
     email: '',
@@ -53,8 +51,6 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
     telefone: '',
     cnh: '',
     cnhDataValidade: '',
-    documentos: [],
-    fotosVeiculo: []
   });
 
   const [documentos, setDocumentos] = useState<DocumentoUpload[]>([]);
@@ -65,7 +61,7 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
     formData.cpf
   );
 
-  // Format phone number
+  // Helpers de formatação
   const formatPhone = (value: string): string => {
     const numbers = value.replace(/\D/g, '');
     if (numbers.length <= 11) {
@@ -74,13 +70,11 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
     return value;
   };
 
-  // Handle CPF input with formatting
   const handleCpfChange = (value: string) => {
     const formatted = formatCpf(value);
     setFormData(prev => ({ ...prev, cpf: formatted }));
   };
 
-  // Handle phone input with formatting
   const handlePhoneChange = (value: string) => {
     const formatted = formatPhone(value);
     setFormData(prev => ({ ...prev, telefone: formatted }));
@@ -90,31 +84,25 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Document management functions
+  // Gestão de documentos
   const adicionarDocumento = () => {
     const novoDoc: DocumentoUpload = {
       id: Date.now().toString(),
       nome: '',
       descricao: ''
     };
-    const novosDocumentos = [...documentos, novoDoc];
-    setDocumentos(novosDocumentos);
+    setDocumentos(prev => [...prev, novoDoc]);
   };
 
   const atualizarDocumento = (id: string, campo: keyof DocumentoUpload, valor: any) => {
-    const novosDocumentos = documentos.map(doc => doc.id === id ? {
-      ...doc,
-      [campo]: valor
-    } : doc);
-    setDocumentos(novosDocumentos);
+    setDocumentos(prev => prev.map(doc => doc.id === id ? { ...doc, [campo]: valor } : doc));
   };
 
   const removerDocumento = (id: string) => {
-    const novosDocumentos = documentos.filter(doc => doc.id !== id);
-    setDocumentos(novosDocumentos);
+    setDocumentos(prev => prev.filter(doc => doc.id !== id));
   };
 
-  // Photo management functions
+  // Gestão de fotos
   const adicionarFoto = (files: FileList | null) => {
     if (!files) return;
 
@@ -158,15 +146,13 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
     }
 
     if (fotosValidas.length > 0) {
-      const novasFotos = [...fotosVeiculo, ...fotosValidas];
-      setFotosVeiculo(novasFotos);
+      setFotosVeiculo(prev => [...prev, ...fotosValidas]);
       toast.success(`${fotosValidas.length} foto(s) adicionada(s)`);
     }
   };
 
   const removerFoto = (id: string) => {
-    const novasFotos = fotosVeiculo.filter(foto => foto.id !== id);
-    setFotosVeiculo(novasFotos);
+    setFotosVeiculo(prev => prev.filter(f => f.id !== id));
   };
 
   const formatFileSize = (bytes: number) => {
@@ -177,9 +163,7 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getTamanhoTotal = () => {
-    return fotosVeiculo.reduce((total, foto) => total + foto.tamanho, 0);
-  };
+  const getTamanhoTotal = () => fotosVeiculo.reduce((total, foto) => total + foto.tamanho, 0);
 
   // Helpers para arquivos
   const sanitizeFileName = (fileName: string): string => {
@@ -192,7 +176,6 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
       .toLowerCase();
   };
 
-  // Upload file utility
   const uploadFile = async (file: File, bucket: string, path: string) => {
     const { data, error } = await supabase.storage
       .from(bucket)
@@ -202,456 +185,329 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
     return data;
   };
 
-  // Create motorista record after successful signup
-  const createMotoristaRecord = async (userId: string) => {
-    try {
-      // 1) Cria o registro do motorista primeiro (evita que erros de upload bloqueiem o cadastro)
-      const { data: motoristaData, error: motoristaError } = await supabase
-        .from('motoristas')
-        .insert([{
-          user_id: userId,
-          nome: formData.nome,
-          email: formData.email,
-          cpf: formData.cpf,
-          telefone: formData.telefone,
-          cnh: formData.cnh,
-          validade_cnh: formData.cnhDataValidade || null,
-          status: 'Pendente'
-        }])
-        .select()
-        .single();
+  // Cria o registro do motorista e faz o upload dos anexos (best-effort)
+  const createMotoristaRecord = async (userId?: string) => {
+    const { data: motoristaData, error: motoristaError } = await supabase
+      .from('motoristas')
+      .insert([{
+        user_id: userId || null,
+        nome: formData.nome,
+        email: formData.email,
+        cpf: formData.cpf,
+        telefone: formData.telefone,
+        cnh: formData.cnh,
+        validade_cnh: formData.cnhDataValidade || null,
+        status: 'Pendente'
+      }])
+      .select()
+      .single();
 
-      if (motoristaError) throw motoristaError;
+    if (motoristaError) throw motoristaError;
 
-      // 2) Upload e vínculo dos documentos (best-effort)
-      let docIndex = 0;
-      for (const doc of documentos) {
-        if (!doc.arquivo) { docIndex++; continue; }
-        try {
-          const originalName = sanitizeFileName(doc.arquivo.name);
-          const fileName = `${userId}/${Date.now()}_${docIndex}_${originalName}`;
-          await uploadFile(doc.arquivo, 'motorista-documentos', fileName);
+    const motoristaId = motoristaData.id as number;
 
-          const nomeDoc = (doc.nome && doc.nome.trim()) ? doc.nome.trim() : `Documento ${docIndex + 1}`;
-          const tipoDoc = (doc.descricao && doc.descricao.trim()) ? doc.descricao.trim() : nomeDoc;
+    // Upload de documentos (best-effort)
+    let docIndex = 0;
+    for (const doc of documentos) {
+      if (!doc.arquivo) { docIndex++; continue; }
+      try {
+        const originalName = sanitizeFileName(doc.arquivo.name);
+        const fileName = `${Date.now()}_${docIndex}_${originalName}`;
+        const storagePath = `${motoristaId}/${fileName}`;
+        await uploadFile(doc.arquivo, 'motorista-documentos', storagePath);
 
-          // Atenção: a tabela possui colunas (nome, tipo, url, motorista_id)
-          const { error: docError } = await supabase
-            .from('motorista_documentos')
-            .insert({
-              motorista_id: motoristaData.id,
-              nome: nomeDoc,
-              tipo: tipoDoc,
-              url: fileName
-            });
+        const nomeDoc = (doc.nome && doc.nome.trim()) ? doc.nome.trim() : `Documento ${docIndex + 1}`;
+        const tipoDoc = (doc.descricao && doc.descricao.trim()) ? doc.descricao.trim() : nomeDoc;
 
-          if (docError) {
-            console.warn('Falha ao salvar metadados do documento:', docError);
-            toast.warning(`Documento "${nomeDoc}" enviado mas não cadastrado.`);
-          }
-        } catch (err) {
-          console.warn('Erro no upload do documento:', err);
-          toast.warning(`Falha ao enviar documento: ${doc.nome || `Documento ${docIndex + 1}`}`);
+        const { error: docError } = await supabase
+          .from('motorista_documentos')
+          .insert({
+            motorista_id: motoristaId,
+            nome: nomeDoc,
+            tipo: tipoDoc,
+            url: storagePath
+          });
+
+        if (docError) {
+          console.error('Falha ao salvar metadados do documento:', docError);
+          toast.warning(`Documento "${nomeDoc}" enviado mas não cadastrado.`);
         }
+      } catch (err) {
+        console.error('Erro no upload do documento:', err);
+        toast.error('Falha ao enviar um dos documentos.');
+      } finally {
         docIndex++;
       }
-
-      // 3) Upload e vínculo das fotos (best-effort)
-      let photoIndex = 0;
-      for (const foto of fotosVeiculo) {
-        if (!foto.arquivo) { photoIndex++; continue; }
-        try {
-          const originalName = sanitizeFileName(foto.arquivo.name);
-          const fileName = `${userId}/${Date.now()}_${photoIndex}_${originalName}`;
-          await uploadFile(foto.arquivo, 'motorista-fotos', fileName);
-
-          const { error: photoError } = await supabase
-            .from('motorista_fotos')
-            .insert({
-              motorista_id: motoristaData.id,
-              nome: foto.nome,
-              nome_original: foto.arquivo.name,
-              url: fileName,
-              tamanho: foto.tamanho
-            });
-
-          if (photoError) {
-            console.warn('Falha ao salvar metadados da foto:', photoError);
-            toast.warning(`Foto "${foto.nome}" enviada mas não cadastrada.`);
-          }
-        } catch (err) {
-          console.warn('Erro no upload da foto:', err);
-          toast.warning(`Falha ao enviar foto: ${foto.nome}`);
-        }
-        photoIndex++;
-      }
-
-      return motoristaData;
-    } catch (error) {
-      console.error('Erro ao criar registro do motorista:', error);
-      throw error;
     }
+
+    // Upload de fotos (best-effort)
+    let fotoIndex = 0;
+    for (const foto of fotosVeiculo) {
+      if (!foto.arquivo) { fotoIndex++; continue; }
+      try {
+        const originalName = sanitizeFileName(foto.arquivo.name);
+        const fileName = `${Date.now()}_${fotoIndex}_${originalName}`;
+        const storagePath = `${motoristaId}/${fileName}`;
+        await uploadFile(foto.arquivo, 'motorista-fotos', storagePath);
+
+        const { error: fotoError } = await supabase
+          .from('motorista_fotos')
+          .insert({
+            motorista_id: motoristaId,
+            nome: foto.nome || `Foto ${fotoIndex + 1}`,
+            nome_original: foto.arquivo.name,
+            url: storagePath,
+            tamanho: foto.tamanho
+          });
+
+        if (fotoError) {
+          console.error('Falha ao salvar metadados da foto:', fotoError);
+          toast.warning(`Foto "${foto.nome || `Foto ${fotoIndex + 1}`}" enviada mas não cadastrada.`);
+        }
+      } catch (err) {
+        console.error('Erro no upload da foto:', err);
+        toast.error('Falha ao enviar uma das fotos.');
+      } finally {
+        fotoIndex++;
+      }
+    }
+
+    return motoristaId;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validateStep1 = () => {
+    if (!formData.nome.trim()) { toast.error('Informe o nome'); return false; }
+    if (!formData.email.trim()) { toast.error('Informe o email'); return false; }
+    if (!formData.password.trim()) { toast.error('Informe a senha'); return false; }
+    if (!formData.cpf.trim()) { toast.error('Informe o CPF'); return false; }
+    if (!isCpfValid) { toast.error(cpfError || 'CPF inválido'); return false; }
+    if (isDuplicate) { toast.error('CPF já cadastrado'); return false; }
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateStep1()) return;
+
     setLoading(true);
-
     try {
-      // First, create the user account
-      const { error: signUpError } = await signUp(
-        formData.email, 
-        formData.password, 
-        formData.nome, 
-        'Motorista'
-      );
-
-      if (signUpError) {
-        if (signUpError.message.includes('User already registered')) {
-          toast.error('Email já cadastrado. Tente fazer login.');
-        } else {
-          toast.error(`Erro no cadastro: ${signUpError.message}`);
-        }
+      const { error } = await signUp(formData.email, formData.password, formData.nome, 'Motorista');
+      if (error) {
+        console.error('Erro ao criar usuário:', error);
+        toast.error('Não foi possível criar o usuário');
         return;
       }
 
-      // Get the newly created user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        // Create the complete motorista record
-        await createMotoristaRecord(user.id);
+      // Tentar obter usuário logado (pode não existir se exigir confirmação por email)
+      let userId: string | undefined = undefined;
+      try {
+        const { data: userResp } = await supabase.auth.getUser();
+        userId = userResp?.user?.id;
+      } catch (e) {
+        // Sem sessão; prosseguir criando o registro mesmo assim
       }
 
-      toast.success('Cadastro realizado com sucesso! Verifique seu email para confirmar a conta. Seu cadastro está pendente de aprovação.');
-      onSuccess();
+      try {
+        await createMotoristaRecord(userId);
+      } catch (e) {
+        console.error('Erro ao criar registro de motorista:', e);
+        toast.error('Usuário criado, mas ocorreu erro ao salvar dados do motorista.');
+        return;
+      }
 
-    } catch (error: any) {
-      console.error('Erro durante o cadastro:', error);
-      toast.error('Erro ao processar cadastro. Tente novamente.');
+      toast.success('Cadastro iniciado com sucesso! Verifique seu e-mail para confirmar a conta.');
+      onSuccess();
+    } catch (err) {
+      console.error('Erro no processo de cadastro:', err);
+      toast.error('Erro no processo de cadastro');
     } finally {
       setLoading(false);
     }
   };
 
-  // Step 1 validation
-  const isStep1Valid = () => {
-    return formData.nome && formData.email && formData.password && 
-           formData.cpf && isCpfValid && !isDuplicate && formData.telefone;
-  };
-
-  // Step 2 validation
-  const isStep2Valid = () => {
-    return true; // CNH and documents are optional
-  };
-
-  const nextStep = () => {
-    if (step === 1 && isStep1Valid()) {
-      setStep(2);
-    }
-  };
-
-  const prevStep = () => {
-    if (step > 1) {
-      setStep(step - 1);
-    }
-  };
-
+  // UI Simplificada em etapas
   return (
     <div className="space-y-6">
-      {/* Progress indicator */}
-      <div className="flex items-center justify-center space-x-4 mb-6">
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-          step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-        }`}>
-          1
-        </div>
-        <div className={`w-16 h-1 ${step >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`} />
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-          step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-        }`}>
-          2
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Cadastro de Motorista</h2>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onBack}>
+            <X className="w-4 h-4 mr-2" /> Voltar
+          </Button>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {step === 1 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Dados Pessoais</h3>
-            
-            <div className="space-y-2">
-              <Label htmlFor="nome" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Nome Completo *
-              </Label>
-              <Input
-                id="nome"
-                value={formData.nome}
-                onChange={(e) => handleInputChange('nome', e.target.value)}
-                required
-              />
-            </div>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span className={step >= 1 ? 'font-semibold text-foreground' : ''}>1. Dados</span>
+        <span>›</span>
+        <span className={step >= 2 ? 'font-semibold text-foreground' : ''}>2. Documentos e Fotos</span>
+        <span>›</span>
+        <span className={step >= 3 ? 'font-semibold text-foreground' : ''}>3. Revisão</span>
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Email *
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                Senha *
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                minLength={6}
-                value={formData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="cpf">CPF *</Label>
-              <div className="relative">
-                <Input
-                  id="cpf"
-                  value={formData.cpf}
-                  onChange={(e) => handleCpfChange(e.target.value)}
-                  placeholder="000.000.000-00"
-                  maxLength={14}
-                  className={`pr-10 ${
-                    formData.cpf && cpfError ? 'border-red-500' : 
-                    formData.cpf && isCpfValid && !isDuplicate ? 'border-green-500' : ''
-                  }`}
-                  required
-                />
-                {isChecking && (
-                  <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-gray-400" />
-                )}
-                {!isChecking && formData.cpf && cpfError && (
-                  <AlertCircle className="absolute right-3 top-3 h-4 w-4 text-red-500" />
-                )}
-                {!isChecking && formData.cpf && isCpfValid && !isDuplicate && (
-                  <CheckCircle className="absolute right-3 top-3 h-4 w-4 text-green-500" />
-                )}
-              </div>
-              {cpfError && (
-                <p className="text-sm text-red-500">{cpfError}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="telefone">Telefone *</Label>
-              <Input
-                id="telefone"
-                value={formData.telefone}
-                onChange={(e) => handlePhoneChange(e.target.value)}
-                placeholder="(00) 00000-0000"
-                maxLength={15}
-                required
-              />
-            </div>
-
-            <div className="flex justify-between">
-              <Button type="button" variant="outline" onClick={onBack}>
-                Voltar
-              </Button>
-              <Button 
-                type="button" 
-                onClick={nextStep} 
-                disabled={!isStep1Valid() || isChecking}
-              >
-                Próximo
-              </Button>
+      {step === 1 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>Nome</Label>
+            <Input value={formData.nome} onChange={e => handleInputChange('nome', e.target.value)} placeholder="Seu nome" />
+          </div>
+          <div>
+            <Label>Email</Label>
+            <Input type="email" value={formData.email} onChange={e => handleInputChange('email', e.target.value)} placeholder="seu@email.com" />
+          </div>
+          <div>
+            <Label>Senha</Label>
+            <Input type="password" value={formData.password} onChange={e => handleInputChange('password', e.target.value)} placeholder="••••••••" />
+          </div>
+          <div>
+            <Label>CPF</Label>
+            <Input value={formData.cpf} onChange={e => handleCpfChange(e.target.value)} placeholder="000.000.000-00" />
+            <div className="text-xs mt-1">
+              {isChecking ? 'Verificando CPF...' : isCpfValid ? (
+                <span className="text-green-600">CPF válido</span>
+              ) : formData.cpf ? (
+                <span className="text-red-600">{cpfError || 'CPF inválido'}</span>
+              ) : null}
+              {isDuplicate && <div className="text-red-600">CPF já cadastrado</div>}
             </div>
           </div>
-        )}
+          <div>
+            <Label>Telefone</Label>
+            <Input value={formData.telefone} onChange={e => handlePhoneChange(e.target.value)} placeholder="(00) 00000-0000" />
+          </div>
+          <div>
+            <Label>CNH</Label>
+            <Input value={formData.cnh} onChange={e => handleInputChange('cnh', e.target.value)} placeholder="Número da CNH" />
+          </div>
+          <div>
+            <Label>Validade da CNH</Label>
+            <Input type="date" value={formData.cnhDataValidade} onChange={e => handleInputChange('cnhDataValidade', e.target.value)} />
+          </div>
+        </div>
+      )}
 
-        {step === 2 && (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold">Documentação e CNH</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="cnh">CNH</Label>
-                <Input
-                  id="cnh"
-                  value={formData.cnh}
-                  onChange={(e) => handleInputChange('cnh', e.target.value)}
-                  placeholder="Número da CNH"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cnhDataValidade">Data de Validade da CNH</Label>
-                <Input
-                  id="cnhDataValidade"
-                  type="date"
-                  value={formData.cnhDataValidade}
-                  onChange={(e) => handleInputChange('cnhDataValidade', e.target.value)}
-                />
-              </div>
+      {step === 2 && (
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Documentos</Label>
+              <Button variant="outline" size="sm" onClick={adicionarDocumento}>
+                <Plus className="w-4 h-4 mr-1" /> Adicionar
+              </Button>
             </div>
-
-            {/* Documents section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-lg">Documentos</Label>
-                <Button type="button" onClick={adicionarDocumento} variant="outline" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Documento
-                </Button>
-              </div>
-              
+            <div className="space-y-3">
               {documentos.map(doc => (
-                <div key={doc.id} className="border rounded-lg p-4 space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Nome do Documento</Label>
-                      <Input 
-                        value={doc.nome} 
-                        onChange={e => atualizarDocumento(doc.id, 'nome', e.target.value)} 
-                        placeholder="Ex: CNH, RG, Comprovante de Residência" 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Arquivo</Label>
-                      <Input 
-                        type="file" 
-                        onChange={e => atualizarDocumento(doc.id, 'arquivo', e.target.files?.[0])} 
-                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" 
-                      />
-                    </div>
+                <div key={doc.id} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                  <div className="md:col-span-1">
+                    <Label>Nome</Label>
+                    <Input value={doc.nome} onChange={e => atualizarDocumento(doc.id, 'nome', e.target.value)} placeholder="Ex: RG, CPF, Comprovante" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="md:col-span-2">
                     <Label>Descrição</Label>
-                    <Textarea 
-                      value={doc.descricao} 
-                      onChange={e => atualizarDocumento(doc.id, 'descricao', e.target.value)} 
-                      placeholder="Descreva o documento (ex: CNH categoria B válida até 2025)" 
-                      rows={2} 
-                    />
+                    <Textarea value={doc.descricao} onChange={e => atualizarDocumento(doc.id, 'descricao', e.target.value)} placeholder="Detalhes do documento" />
                   </div>
-                  <div className="flex justify-end">
-                    <Button type="button" onClick={() => removerDocumento(doc.id)} variant="destructive" size="sm">
-                      <Trash2 className="h-4 w-4" />
+                  <div className="flex items-center gap-2 md:col-span-1">
+                    <Input type="file" onChange={e => atualizarDocumento(doc.id, 'arquivo', e.target.files?.[0])} />
+                    <Button variant="destructive" size="icon" onClick={() => removerDocumento(doc.id)}>
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
               ))}
-            </div>
-
-            {/* Photos section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-lg">Fotos do Veículo</Label>
-                  <p className="text-sm text-gray-500">
-                    Máximo 15 fotos, 10MB cada (Total: {formatFileSize(getTamanhoTotal())}/150MB)
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500">
-                    {fotosVeiculo.length}/15 fotos
-                  </span>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => document.getElementById('foto-input')?.click()}
-                    disabled={fotosVeiculo.length >= 15}
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Adicionar Fotos
-                  </Button>
-                  <input
-                    id="foto-input"
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={(e) => adicionarFoto(e.target.files)}
-                    className="hidden"
-                  />
-                </div>
-              </div>
-
-              {fotosVeiculo.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {fotosVeiculo.map(foto => (
-                    <div key={foto.id} className="relative border rounded-lg p-2 bg-gray-50">
-                      <div className="aspect-square bg-gray-200 rounded flex items-center justify-center mb-2">
-                        {foto.arquivo && (
-                          <img
-                            src={URL.createObjectURL(foto.arquivo)}
-                            alt={foto.nome}
-                            className="w-full h-full object-cover rounded"
-                          />
-                        )}
-                        {!foto.arquivo && (
-                          <Image className="h-8 w-8 text-gray-400" />
-                        )}
-                      </div>
-                      <p className="text-xs font-medium truncate" title={foto.nome}>
-                        {foto.nome}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {formatFileSize(foto.tamanho)}
-                      </p>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-1 right-1 h-6 w-6 p-0"
-                        onClick={() => removerFoto(foto.id)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {fotosVeiculo.length === 0 && (
-                <div 
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-gray-400 transition-colors"
-                  onClick={() => document.getElementById('foto-input')?.click()}
-                >
-                  <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-sm text-gray-500 mb-2">
-                    Clique aqui ou arraste fotos do veículo para adicionar
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Formatos aceitos: JPG, PNG, WEBP (máx. 10MB cada)
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-between">
-              <Button type="button" variant="outline" onClick={prevStep}>
-                Anterior
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={loading || !isStep2Valid()}
-              >
-                {loading ? 'Cadastrando...' : 'Finalizar Cadastro'}
-              </Button>
+              {documentos.length === 0 && <div className="text-sm text-muted-foreground">Nenhum documento adicionado</div>}
             </div>
           </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Fotos do Veículo</Label>
+              <div className="flex items-center gap-2">
+                <Input type="file" multiple accept="image/*" onChange={e => adicionarFoto(e.target.files)} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {fotosVeiculo.map(f => (
+                <div key={f.id} className="flex items-center justify-between border rounded-md p-2">
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{f.nome}</div>
+                    <div className="text-xs text-muted-foreground">{formatFileSize(f.tamanho)}</div>
+                  </div>
+                  <Button variant="destructive" size="icon" onClick={() => removerFoto(f.id)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              {fotosVeiculo.length === 0 && <div className="text-sm text-muted-foreground">Nenhuma foto adicionada</div>}
+            </div>
+            <div className="text-xs text-muted-foreground">Tamanho total: {formatFileSize(getTamanhoTotal())}</div>
+          </div>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <div className="text-sm text-muted-foreground">Nome</div>
+              <div className="font-medium">{formData.nome || '-'}</div>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Email</div>
+              <div className="font-medium">{formData.email || '-'}</div>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">CPF</div>
+              <div className="font-medium">{formData.cpf || '-'}</div>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Telefone</div>
+              <div className="font-medium">{formData.telefone || '-'}</div>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">CNH</div>
+              <div className="font-medium">{formData.cnh || '-'}</div>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Validade CNH</div>
+              <div className="font-medium">{formData.cnhDataValidade || '-'}</div>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm text-muted-foreground mb-2">Documentos ({documentos.length})</div>
+            <ul className="list-disc pl-6 text-sm">
+              {documentos.map(d => (
+                <li key={d.id}>{d.nome || 'Sem nome'} {d.arquivo ? `(arquivo: ${d.arquivo.name})` : '(sem arquivo)'}</li>
+              ))}
+              {documentos.length === 0 && <li>Nenhum documento</li>}
+            </ul>
+          </div>
+
+          <div>
+            <div className="text-sm text-muted-foreground mb-2">Fotos do veículo ({fotosVeiculo.length})</div>
+            <ul className="list-disc pl-6 text-sm">
+              {fotosVeiculo.map(f => (
+                <li key={f.id}>{f.nome} ({formatFileSize(f.tamanho)})</li>
+              ))}
+              {fotosVeiculo.length === 0 && <li>Nenhuma foto</li>}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-between pt-4">
+        <Button variant="outline" onClick={() => setStep(prev => Math.max(1, prev - 1))} disabled={step === 1 || loading}>
+          Voltar
+        </Button>
+        {step < 3 ? (
+          <Button onClick={() => setStep(prev => prev + 1)} disabled={loading || (step === 1 && (!formData.nome || !formData.email || !formData.password || !formData.cpf))}>
+            Próximo
+          </Button>
+        ) : (
+          <Button onClick={handleSubmit} disabled={loading}>
+            {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processando...</>) : 'Concluir cadastro'}
+          </Button>
         )}
-      </form>
+      </div>
     </div>
   );
 };

@@ -30,7 +30,7 @@ export const useFormData = (editingCorrida: Corrida | null) => {
   });
 
   const updateFormData = (field: string, value: string) => {
-    console.log('Atualizando campo:', field, 'com valor:', value);
+    // Removido log de debug de atualização de campo
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

@@ -13,8 +13,7 @@ export const TestEvolutionButton = () => {
     setTestResult(null);
     
     try {
-      console.log('🧪 Iniciando teste de conexão...');
-      
+      // ...existing code ...
       const { data, error } = await supabase.functions.invoke('test-evolution-connection');
 
       if (error) {
@@ -24,7 +23,7 @@ export const TestEvolutionButton = () => {
         return;
       }
 
-      console.log('📄 Resultado do teste:', data);
+      // console.log('📄 Resultado do teste:', data);
 
       if (data?.success) {
         toast.success('✅ Conexão com Evolution API funcionando!');

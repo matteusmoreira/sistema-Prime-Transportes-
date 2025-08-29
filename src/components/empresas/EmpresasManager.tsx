@@ -25,7 +25,7 @@ export const EmpresasManager = () => {
   });
 
   const resetForm = () => {
-    console.log('Resetando formulário');
+    // console.log('Resetando formulário');
     setFormData({
       nome: '',
       localidade: '',
@@ -40,7 +40,7 @@ export const EmpresasManager = () => {
   };
 
   const handleEdit = (empresa: Empresa) => {
-    console.log('Editando empresa:', empresa);
+    // console.log('Editando empresa:', empresa);
     setEditingEmpresa(empresa);
     setFormData({
       nome: empresa.nome,
@@ -57,13 +57,13 @@ export const EmpresasManager = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Processando submissão:', { formData, editingEmpresa });
+    // console.log('Processando submissão:', { formData, editingEmpresa });
     
     if (editingEmpresa) {
-      console.log('Atualizando empresa existente');
+      // console.log('Atualizando empresa existente');
       updateEmpresa(editingEmpresa.id, formData);
     } else {
-      console.log('Adicionando nova empresa');
+      // console.log('Adicionando nova empresa');
       addEmpresa(formData);
     }
     
@@ -72,12 +72,12 @@ export const EmpresasManager = () => {
   };
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
-    console.log(`Campo ${field} alterado para:`, value);
+    // console.log(`Campo ${field} alterado para:`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleDialogOpen = () => {
-    console.log('Abrindo dialog para nova empresa');
+    // console.log('Abrindo dialog para nova empresa');
     resetForm();
     setIsDialogOpen(true);
   };
@@ -104,7 +104,7 @@ export const EmpresasManager = () => {
               onInputChange={handleInputChange}
               onSubmit={handleSubmit}
               onCancel={() => {
-                console.log('Cancelando cadastro/edição');
+                // console.log('Cancelando cadastro/edição');
                 setIsDialogOpen(false);
                 resetForm();
               }}

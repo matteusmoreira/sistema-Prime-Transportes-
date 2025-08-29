@@ -94,7 +94,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       }) || [];
 
       setCorridas(corridasFormatted);
-      console.log('Corridas carregadas do Supabase:', corridasFormatted.length);
+      // console.log('Corridas carregadas do Supabase:', corridasFormatted.length);
     } catch (error) {
       console.error('Erro ao carregar corridas:', error);
       toast.error('Erro ao carregar corridas');
@@ -165,10 +165,10 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         preenchido_por_financeiro: false, // Inicializar como false
       };
 
-      console.log('=== PAYLOAD PARA INSERT ===');
-      console.log('Payload completo:', insertPayload);
-      console.log('Campo veiculo no payload:', insertPayload.veiculo);
-      console.log('=== FIM PAYLOAD ===');
+      // console.log('=== PAYLOAD PARA INSERT ===');
+      // console.log('Payload completo:', insertPayload);
+      // console.log('Campo veiculo no payload:', insertPayload.veiculo);
+      // console.log('=== FIM PAYLOAD ===');
       
       const { data, error } = await supabase
         .from('corridas')
@@ -211,7 +211,8 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
               if (docInsertError) {
                 console.error('Erro ao inserir documento na tabela:', docInsertError);
               } else {
-                console.log('Documento salvo com sucesso:', documento.nome);
+                // console.log('Documento salvo com sucesso:', documento.nome);
+                // console.log('Documento salvo com sucesso:', documento.nome);
               }
             } catch (docError) {
               console.error('Erro ao salvar documento:', docError);
@@ -300,7 +301,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
   const fillOS = async (id: number, osData: Partial<Corrida>) => {
     try {
-      console.log('Preenchendo OS - ID:', id, 'Dados:', osData);
+      // console.log('Preenchendo OS - ID:', id, 'Dados:', osData);
       
       // Gerar número da OS automaticamente (5 dígitos) se não vier do formulário
       let numeroOSFinal = (osData as any).numeroOS as string | undefined;
@@ -347,13 +348,13 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
       // Salvar documentos/comprovantes se existirem
       const documentos = (osData as any).documentos;
-      console.log('📎 Documentos recebidos para salvar:', documentos);
+      // console.log('📎 Documentos recebidos para salvar:', documentos);
       
       if (documentos && documentos.length > 0) {
         let documentosSalvos = 0;
         
         for (const documento of documentos) {
-          console.log('📄 Processando documento:', documento.nome, 'Arquivo:', !!documento.arquivo);
+          // console.log('📄 Processando documento:', documento.nome, 'Arquivo:', !!documento.arquivo);
           
           if (documento.arquivo) {
             try {
@@ -361,8 +362,8 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
               const sanitizedName = documento.nome.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
               const fileName = `${id}_OS_${Date.now()}_${sanitizedName}`;
               
-              console.log('⬆️ Fazendo upload do arquivo:', fileName);
-              
+              // console.log('⬆️ Fazendo upload do arquivo:', fileName);
+              // console.log('⬆️ Fazendo upload do arquivo:', fileName);
               const { error: uploadError } = await supabase.storage
                 .from('corrida-documentos')
                 .upload(fileName, documento.arquivo);
@@ -373,8 +374,8 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
                 continue;
               }
 
-              console.log('✅ Upload realizado com sucesso, salvando registro na tabela...');
-
+              // ... console.log('✅ Upload realizado com sucesso, salvando registro na tabela...');
+              // console.log('✅ Upload realizado com sucesso, salvando registro na tabela...');
               // Salvar registro do documento na tabela
               const { error: docInsertError } = await supabase
                 .from('corrida_documentos')
@@ -392,14 +393,14 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
               }
 
               documentosSalvos++;
-              console.log('✅ Comprovante salvo com sucesso:', documento.nome);
+              // console.log('✅ Comprovante salvo com sucesso:', documento.nome);
               
             } catch (docError) {
               console.error('❌ Erro ao processar comprovante:', documento.nome, docError);
               toast.error(`Erro ao processar comprovante ${documento.nome}`);
             }
           } else {
-            console.log('⚠️ Documento sem arquivo:', documento.nome);
+            // console.log('⚠️ Documento sem arquivo:', documento.nome);
           }
         }
         
@@ -407,7 +408,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           toast.success(`${documentosSalvos} comprovante(s) salvo(s) com sucesso!`);
         }
       } else {
-        console.log('ℹ️ Nenhum documento para salvar');
+        // console.log('ℹ️ Nenhum documento para salvar');
       }
 
       // Atualizar estado local apenas após sucesso no banco
@@ -415,14 +416,14 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         c.id === id ? { 
           ...c, 
           ...osData, 
-          numeroOS: numeroOSFinal!,
+          numeroOS: numeroOSFinal,
           status: 'Aguardando Conferência' as const, 
           preenchidoPorMotorista: true 
         } : c
       ));
       
       toast.success('Ordem de Serviço preenchida com sucesso!');
-      console.log('OS preenchida com sucesso para corrida:', id);
+      // console.log('OS preenchida com sucesso para corrida:', id);
     } catch (error) {
       console.error('Erro ao preencher OS:', error);
       toast.error('Erro ao preencher ordem de serviço');
@@ -432,7 +433,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   const deleteCorrida = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir esta corrida?')) {
       try {
-        console.log('Excluindo corrida:', id);
+        // console.log('Excluindo corrida:', id);
         
         // Primeiro, excluir documentos relacionados
         const { error: docsError } = await supabase
@@ -460,7 +461,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         // Atualizar estado local apenas após sucesso na exclusão do banco
         setCorridas(prev => prev.filter(c => c.id !== id));
         toast.success('Corrida excluída com sucesso!');
-        console.log('Corrida excluída com sucesso:', id);
+        // console.log('Corrida excluída com sucesso:', id);
       } catch (error) {
         console.error('Erro ao excluir corrida:', error);
         toast.error('Erro ao excluir corrida');

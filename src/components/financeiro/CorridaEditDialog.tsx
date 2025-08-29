@@ -14,7 +14,7 @@ interface CorridaEditDialogProps {
   corrida: CorridaFinanceiro | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (corridaId: number, formData: any) => void;
+  onSave: (dadosBasicos: any, documentos: any[]) => void;
 }
 
 export const CorridaEditDialog = ({ 
@@ -26,6 +26,7 @@ export const CorridaEditDialog = ({
   const [formData, setFormData] = useState({
     empresa: '',
     motorista: '',
+    veiculo: '',
     dataServico: '',
     origem: '',
     destino: '',
@@ -42,6 +43,7 @@ export const CorridaEditDialog = ({
     observacoes: '',
     projeto: '',
     motivo: '',
+    tipoAbrangencia: '',
     horaInicio: '',
     horaFim: '',
     kmInicial: '',
@@ -57,52 +59,36 @@ export const CorridaEditDialog = ({
 
   // Atualizar o formulário sempre que a corrida mudar ou o diálogo abrir
   useEffect(() => {
-    console.log('=== USEEFFECT CORRIDA EDIT DIALOG ===');
-    console.log('Corrida recebida:', corrida);
-    console.log('Dialog está aberto:', isOpen);
-    
     if (corrida && isOpen) {
-      console.log('Atualizando dados do formulário com corrida:', corrida);
       setFormData({
         empresa: corrida.empresa || '',
         motorista: corrida.motorista || '',
+        veiculo: (corrida as any).veiculo || '',
         dataServico: corrida.dataServico || '',
         origem: corrida.origem || '',
         destino: corrida.destino || '',
         destinoExtra: corrida.destinoExtra || '',
         centroCusto: corrida.centroCusto || '',
         numeroOS: corrida.numeroOS || '',
-        kmTotal: corrida.kmTotal?.toString() || '',
-        valor: corrida.valor?.toString() || '',
-        valorMotorista: corrida.valorMotorista?.toString() || '',
-        pedagio: corrida.pedagio?.toString() || '',
-        estacionamento: corrida.estacionamento?.toString() || '',
-        hospedagem: corrida.hospedagem?.toString() || '',
+        kmTotal: (corrida.kmTotal ?? '').toString(),
+        valor: (corrida.valor ?? '').toString(),
+        valorMotorista: (corrida.valorMotorista ?? '').toString(),
+        pedagio: (corrida.pedagio ?? '').toString(),
+        estacionamento: (corrida.estacionamento ?? '').toString(),
+        hospedagem: (corrida.hospedagem ?? '').toString(),
         passageiros: corrida.passageiros || '',
         observacoes: corrida.observacoes || '',
         projeto: corrida.projeto || '',
         motivo: corrida.motivo || '',
+        tipoAbrangencia: (corrida as any).tipoAbrangencia || '',
         horaInicio: removeSecondsFromTime(corrida.horaInicio || ''),
         horaFim: removeSecondsFromTime(corrida.horaFim || ''),
-        kmInicial: corrida.kmInicial?.toString() || '',
-        kmFinal: corrida.kmFinal?.toString() || '',
+        kmInicial: (corrida.kmInicial ?? '').toString(),
+        kmFinal: (corrida.kmFinal ?? '').toString(),
         solicitante: corrida.solicitante || ''
       });
-      console.log('Form data após atualização:', formData);
     }
-    console.log('=== FIM USEEFFECT CORRIDA EDIT DIALOG ===');
   }, [corrida, isOpen]);
-
-  // Limpar comprovantes quando o diálogo fechar
-  useEffect(() => {
-    if (!isOpen) {
-      setComprovantes({
-        pedagio: null,
-        estacionamento: null,
-        hospedagem: null
-      });
-    }
-  }, [isOpen]);
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -112,67 +98,63 @@ export const CorridaEditDialog = ({
     setComprovantes(prev => ({ ...prev, [tipo]: file }));
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
+    if (!corrida) return;
+
+    const parseNumber = (v: string) => {
+      if (!v) return 0;
+      const num = parseFloat(String(v).replace(',', '.'));
+      return isNaN(num) ? 0 : num;
+    };
+
+    const dadosBasicos = {
+      empresa: formData.empresa,
+      motorista: formData.motorista,
+      veiculo: formData.veiculo,
+      dataServico: formData.dataServico,
+      origem: formData.origem,
+      destino: formData.destino,
+      destinoExtra: formData.destinoExtra,
+      centroCusto: formData.centroCusto,
+      numeroOS: formData.numeroOS,
+      kmTotal: parseNumber(formData.kmTotal),
+      valor: parseNumber(formData.valor),
+      valorMotorista: parseNumber(formData.valorMotorista),
+      pedagio: parseNumber(formData.pedagio),
+      estacionamento: parseNumber(formData.estacionamento),
+      hospedagem: parseNumber(formData.hospedagem),
+      passageiros: formData.passageiros,
+      observacoes: formData.observacoes,
+      projeto: formData.projeto,
+      motivo: formData.motivo,
+      tipoAbrangencia: formData.tipoAbrangencia,
+      horaInicio: formData.horaInicio,
+      horaFim: formData.horaFim,
+      kmInicial: parseNumber(formData.kmInicial),
+      kmFinal: parseNumber(formData.kmFinal),
+      solicitante: formData.solicitante
+    };
+
+    const documentos: any[] = [];
+    const pushDoc = (nome: string, arquivo: File | null, valor: number) => {
+      if (arquivo) {
+        documentos.push({
+          nome,
+          descricao: `${nome} - R$ ${valor?.toFixed ? valor.toFixed(2) : valor}`,
+          arquivo
+        });
+      }
+    };
+
+    pushDoc('Pedágio', comprovantes.pedagio, dadosBasicos.pedagio);
+    pushDoc('Estacionamento', comprovantes.estacionamento, dadosBasicos.estacionamento);
+    pushDoc('Hospedagem', comprovantes.hospedagem, dadosBasicos.hospedagem);
+
     try {
-      if (!corrida) {
-        console.error('ERRO: Nenhuma corrida selecionada para salvar');
-        toast.error('Erro: Nenhuma corrida selecionada');
-        return;
-      }
-      
-      
-      const updatedData = {
-        ...formData,
-        kmTotal: parseInt(formData.kmTotal) || 0,
-        valor: parseFloat(formData.valor) || 0,
-        valorMotorista: parseFloat(formData.valorMotorista) || 0,
-        pedagio: parseFloat(formData.pedagio) || 0,
-        estacionamento: parseFloat(formData.estacionamento) || 0,
-        hospedagem: parseFloat(formData.hospedagem) || 0,
-        kmInicial: parseInt(formData.kmInicial) || 0,
-        kmFinal: parseInt(formData.kmFinal) || 0
-      };
-
-      // Preparar documentos para envio
-      const documentos = [];
-      if (comprovantes.pedagio) {
-        documentos.push({
-          nome: 'Comprovante de Pedágio',
-          descricao: 'Comprovante de pedágio',
-          arquivo: comprovantes.pedagio
-        });
-      }
-      if (comprovantes.estacionamento) {
-        documentos.push({
-          nome: 'Comprovante de Estacionamento',
-          descricao: 'Comprovante de estacionamento',
-          arquivo: comprovantes.estacionamento
-        });
-      }
-      if (comprovantes.hospedagem) {
-        documentos.push({
-          nome: 'Comprovante de Hospedagem',
-          descricao: 'Comprovante de hospedagem',
-          arquivo: comprovantes.hospedagem
-        });
-      }
-
-      console.log('Dados processados para enviar:', updatedData);
-      console.log('Documentos para enviar:', documentos);
-      console.log('ID da corrida a ser atualizada:', corrida.id);
-      console.log('=== CHAMANDO ONSAVE ===');
-      
-      await onSave(corrida.id, { ...updatedData, documentos });
-      
-      console.log('=== FECHANDO DIALOG ===');
-      onOpenChange(false);
-      console.log('=== FIM FORMULÁRIO CORRIDA EDIT ===');
+      onSave(dadosBasicos, documentos);
     } catch (error) {
-      console.error('=== ERRO NO HANDLE SAVE ===');
-      console.error('Error:', error);
-      console.error('Stack:', error instanceof Error ? error.stack : 'No stack');
-      toast.error('Erro ao salvar alterações: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
-      console.error('=== FIM ERRO NO HANDLE SAVE ===');
+      console.error('Erro ao salvar alterações:', error);
+      toast.error('Erro ao salvar alterações');
     }
   };
 
@@ -210,12 +192,22 @@ export const CorridaEditDialog = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  <Label>Veículo</Label>
+                  <Input 
+                    value={formData.veiculo} 
+                    onChange={e => updateFormData('veiculo', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label>Solicitante</Label>
                   <Input 
                     value={formData.solicitante} 
                     onChange={e => updateFormData('solicitante', e.target.value)}
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Data do Serviço</Label>
                   <Input 
@@ -224,9 +216,6 @@ export const CorridaEditDialog = ({
                     onChange={e => updateFormData('dataServico', e.target.value)}
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Centro de Custo</Label>
                   <Input 
@@ -234,6 +223,9 @@ export const CorridaEditDialog = ({
                     onChange={e => updateFormData('centroCusto', e.target.value)}
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>N° da O.S</Label>
                   <Input 
@@ -248,6 +240,13 @@ export const CorridaEditDialog = ({
                     onChange={e => updateFormData('projeto', e.target.value)}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label>Tipo de Abrangência</Label>
+                  <Input 
+                    value={formData.tipoAbrangencia} 
+                    onChange={e => updateFormData('tipoAbrangencia', e.target.value)}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -259,7 +258,7 @@ export const CorridaEditDialog = ({
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Hora Início</Label>
+                  <Label>Hora Saída</Label>
                   <Input 
                     type="time"
                     value={formData.horaInicio} 
@@ -267,7 +266,7 @@ export const CorridaEditDialog = ({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Hora Fim</Label>
+                  <Label>Hora Chegada</Label>
                   <Input 
                     type="time"
                     value={formData.horaFim} 

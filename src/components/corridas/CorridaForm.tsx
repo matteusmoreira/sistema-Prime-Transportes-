@@ -33,7 +33,7 @@ export const CorridaForm = ({
   const [documentos, setDocumentos] = useState<DocumentoUpload[]>(editingCorrida?.documentos || []);
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Dados do formulário sendo enviados:', formData);
+    // ... existing code ... 
     onSubmit(formData, documentos);
   };
   const isReadOnly = () => {

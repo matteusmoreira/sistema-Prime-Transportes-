@@ -19,4 +19,16 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Remover logs de debug no build de produção, mantendo console.error/warn
+  esbuild: mode === 'production' ? {
+    pure: [
+      'console.log',
+      'console.debug',
+      'console.trace'
+    ],
+    drop: ['debugger']
+  } : undefined,
+  define: {
+    'import.meta.env.VITE_VERBOSE_LOGS': JSON.stringify(process.env.VITE_VERBOSE_LOGS || 'false')
+  }
 }));

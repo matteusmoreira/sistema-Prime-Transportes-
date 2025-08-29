@@ -7,7 +7,7 @@ export const useNotificationListener = () => {
 
   useEffect(() => {
     const handleNovaNotificacao = (event: CustomEvent) => {
-      console.log('Nova notificação recebida:', event.detail);
+      // Removido log de debug de notificação recebida
       adicionarNotificacao(event.detail);
     };
 

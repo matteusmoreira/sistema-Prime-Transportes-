@@ -20,7 +20,7 @@ export const DashboardHome = ({
   userLevel,
   userEmail
 }: DashboardHomeProps) => {
-  console.log('DashboardHome rendering with userLevel:', userLevel);
+  // console.log('DashboardHome rendering with userLevel:', userLevel);
   
   const { empresas, loading: empresasLoading } = useEmpresas();
   const { solicitantes } = useSolicitantes();
@@ -33,7 +33,7 @@ export const DashboardHome = ({
   try {
     const corridasData = useCorridas();
     corridas = corridasData.corridas || [];
-    console.log('Successfully loaded corridas:', corridas.length);
+    // console.log('Successfully loaded corridas:', corridas.length);
   } catch (error) {
     console.error('Error loading corridas:', error);
     corridasError = true;
@@ -60,17 +60,17 @@ export const DashboardHome = ({
 
   const handleFormSubmit = (formData: any, documentos: any) => {
     // Este será usado apenas para edições, não aplicável aqui
-    console.log('Form submit:', formData);
+    // console.log('Form submit:', formData);
   };
 
   const handleOSSubmit = (osData: any, documentos: any) => {
-    console.log('=== HANDLE OS SUBMIT ===');
-    console.log('OS Data recebido:', osData);
-    console.log('Documentos recebidos:', documentos);
+    // console.log('=== HANDLE OS SUBMIT ===');
+    // console.log('OS Data recebido:', osData);
+    // console.log('Documentos recebidos:', documentos);
     
     if (fillingOS) {
       const corridaData = corridasLogic.processFormData(osData, documentos);
-      console.log('Dados processados para fillOS:', corridaData);
+      // console.log('Dados processados para fillOS:', corridaData);
       corridasLogic.fillOS(fillingOS.id, corridaData);
     }
     

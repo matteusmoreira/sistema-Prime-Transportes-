@@ -78,7 +78,7 @@ export const EmpresasProvider = ({ children }: { children: ReactNode }) => {
   }, [shouldLoadData, isAuthLoading]);
 
   const addEmpresa = async (empresaData: Omit<Empresa, 'id'>) => {
-    console.log('Context: Tentando cadastrar empresa:', empresaData);
+    // console.log('Context: Tentando cadastrar empresa:', empresaData);
     
     // Validação básica
     if (!empresaData.nome || !empresaData.localidade || !empresaData.cnpj || !empresaData.telefone || !empresaData.email) {
@@ -128,7 +128,7 @@ export const EmpresasProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateEmpresa = async (id: number, updatedData: Partial<Empresa>) => {
-    console.log('Context: Atualizando empresa:', id, updatedData);
+    // console.log('Context: Atualizando empresa:', id, updatedData);
     
     try {
       const { error } = await supabase

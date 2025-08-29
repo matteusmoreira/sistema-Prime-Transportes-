@@ -7,6 +7,7 @@ import { Car, Building, Hotel } from 'lucide-react';
 import type { CorridaFinanceiro } from '@/hooks/useFinanceiro';
 import { useCorridaDocuments } from '@/hooks/useCorridaDocuments';
 import { DocumentViewer } from '@/components/corridas/DocumentViewer';
+import { formatCurrency } from '@/utils/format';
 
 interface CorridaViewDialogProps {
   corrida: CorridaFinanceiro | null;
@@ -24,7 +25,7 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
   // Buscar dados frescos do banco quando o dialog abrir
   React.useEffect(() => {
     if (isOpen && corrida?.id) {
-      console.log('🔄 Dialog aberto, buscando dados frescos da corrida:', corrida.id);
+      // console.log('🔄 Dialog aberto, buscando dados frescos da corrida:', corrida.id);
       buscarDadosFrescos(corrida.id);
     }
   }, [isOpen, corrida?.id]);
@@ -32,7 +33,7 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
   // Forçar reload quando documentsUpdateTrigger mudar
   React.useEffect(() => {
     if (documentsUpdateTrigger && documentsUpdateTrigger > 0) {
-      console.log('🔄 Trigger de atualização de documentos detectado:', documentsUpdateTrigger);
+      // console.log('🔄 Trigger de atualização de documentos detectado:', documentsUpdateTrigger);
       forceReload();
       
       // Também recarregar dados da corrida
@@ -54,7 +55,8 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
 
       if (error) throw error;
 
-      console.log('✅ Dados frescos carregados:', data);
+      // Removido log informativo: dados frescos carregados com sucesso
+      // console.log('✅ Dados frescos carregados:', data);
       
       // Converter dados do banco para o formato CorridaFinanceiro
       const corridaFresca: CorridaFinanceiro = {
@@ -161,6 +163,12 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
                   <Label className="font-semibold">Motorista:</Label>
                   <p>{dadosParaExibir.motorista}</p>
                 </div>
+                {dadosParaExibir.veiculo && (
+                 <div>
+                   <Label className="font-semibold">Veículo:</Label>
+                   <p>{dadosParaExibir.veiculo}</p>
+                 </div>
+                )}
                 <div>
                   <Label className="font-semibold">Data do Serviço:</Label>
                   <p>{new Date(dadosParaExibir.dataServico).toLocaleDateString('pt-BR')}</p>
@@ -169,6 +177,12 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
                   <Label className="font-semibold">Status:</Label>
                   <p>{getStatusBadge(dadosParaExibir.status)}</p>
                 </div>
+                {dadosParaExibir.solicitante && (
+                 <div>
+                   <Label className="font-semibold">Solicitante:</Label>
+                   <p>{dadosParaExibir.solicitante}</p>
+                 </div>
+                )}
                 <div>
                   <Label className="font-semibold">Centro de Custo:</Label>
                   <p>{dadosParaExibir.centroCusto}</p>
@@ -177,6 +191,28 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
                   <Label className="font-semibold">N° da O.S:</Label>
                   <p>{dadosParaExibir.numeroOS}</p>
                 </div>
+                {(dadosParaExibir.projeto || dadosParaExibir.motivo || dadosParaExibir.tipoAbrangencia) && (
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                   {dadosParaExibir.projeto && (
+                     <div>
+                       <Label className="font-semibold">Projeto:</Label>
+                       <p>{dadosParaExibir.projeto}</p>
+                     </div>
+                   )}
+                   {dadosParaExibir.motivo && (
+                     <div>
+                       <Label className="font-semibold">Motivo:</Label>
+                       <p>{dadosParaExibir.motivo}</p>
+                     </div>
+                   )}
+                   {dadosParaExibir.tipoAbrangencia && (
+                     <div>
+                       <Label className="font-semibold">Tipo de Abrangência:</Label>
+                       <p>{dadosParaExibir.tipoAbrangencia}</p>
+                     </div>
+                   )}
+                 </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -232,6 +268,22 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
                       <p className="text-lg font-bold text-blue-600">{dadosParaExibir.kmTotal} km</p>
                     </div>
                   </div>
+                  {(dadosParaExibir.horaInicio || dadosParaExibir.horaFim) && (
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                     {dadosParaExibir.horaInicio && (
+                       <div>
+                         <Label className="font-semibold">Hora Início:</Label>
+                         <p className="text-lg">{dadosParaExibir.horaInicio}</p>
+                       </div>
+                     )}
+                     {dadosParaExibir.horaFim && (
+                       <div>
+                         <Label className="font-semibold">Hora Fim:</Label>
+                         <p className="text-lg">{dadosParaExibir.horaFim}</p>
+                       </div>
+                     )}
+                   </div>
+                  )}
                 </div>
                 
                 {/* Valores */}
@@ -239,12 +291,12 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
                   <h4 className="font-medium text-sm text-gray-700 mb-3">Valores</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="font-semibold">Valor Total:</Label>
-                      <p className="text-lg font-bold text-green-600">R$ {dadosParaExibir.valor.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <Label className="font-semibold">Valor para Motorista:</Label>
-                      <p className="text-lg">R$ {dadosParaExibir.valorMotorista?.toFixed(2) || '0.00'}</p>
+                  <Label className="font-semibold">Valor Total:</Label>
+                  <p className="text-lg font-bold text-green-600">{formatCurrency(dadosParaExibir.valor ?? 0)}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Valor para Motorista:</Label>
+                  <p className="text-lg">{formatCurrency(dadosParaExibir.valorMotorista ?? 0)}</p>
                     </div>
                   </div>
                 </div>
@@ -262,21 +314,21 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
                   <Car className="h-5 w-5 text-blue-600" />
                   <div>
                     <Label className="font-semibold">Pedágio:</Label>
-                    <p className="text-lg">R$ {dadosParaExibir.pedagio.toFixed(2)}</p>
+                    <p className="text-lg">{formatCurrency(dadosParaExibir.pedagio ?? 0)}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Building className="h-5 w-5 text-green-600" />
                   <div>
                     <Label className="font-semibold">Estacionamento:</Label>
-                    <p className="text-lg">R$ {dadosParaExibir.estacionamento.toFixed(2)}</p>
+                    <p className="text-lg">{formatCurrency(dadosParaExibir.estacionamento ?? 0)}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Hotel className="h-5 w-5 text-purple-600" />
                   <div>
                     <Label className="font-semibold">Hospedagem:</Label>
-                    <p className="text-lg">R$ {dadosParaExibir.hospedagem.toFixed(2)}</p>
+                    <p className="text-lg">{formatCurrency(dadosParaExibir.hospedagem ?? 0)}</p>
                   </div>
                 </div>
               </div>

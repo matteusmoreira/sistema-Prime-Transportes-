@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileText } from 'lucide-react';
 import { generateVoucherPDF } from '@/utils/pdfGenerator';
+import { formatCurrency } from '@/utils/format';
 
 import { toast } from 'sonner';
 import type { VoucherData } from '@/hooks/useVoucher';
@@ -52,7 +53,7 @@ export const VoucherTable = ({ vouchers }: VoucherTableProps) => {
             <TableCell>{voucher.motorista}</TableCell>
             <TableCell>{voucher.origem} → {voucher.destino}</TableCell>
             <TableCell>{voucher.kmTotal} km</TableCell>
-            <TableCell>R$ {voucher.valor.toFixed(2)}</TableCell>
+            <TableCell>{formatCurrency(voucher.valor)}</TableCell>
             <TableCell>{voucher.centroCusto}</TableCell>
             <TableCell>
               <Button 

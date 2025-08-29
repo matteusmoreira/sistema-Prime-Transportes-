@@ -26,7 +26,7 @@ export const MeusDocumentos = ({ motoristaEmail }: MeusDocumentosProps) => {
 
   const handleDownload = (documento: DocumentoMotorista) => {
     // Simular download do documento
-    console.log(`Baixando documento: ${documento.arquivo}`);
+    // ...existing code ...
     alert(`Download iniciado: ${documento.nome}`);
   };
 

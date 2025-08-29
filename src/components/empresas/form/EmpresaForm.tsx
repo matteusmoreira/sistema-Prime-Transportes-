@@ -31,7 +31,7 @@ export const EmpresaForm = ({
 }: EmpresaFormProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Formulário submetido com dados:', formData);
+    // console.log('Formulário submetido com dados:', formData);
     onSubmit(e);
   };
 
@@ -44,7 +44,7 @@ export const EmpresaForm = ({
             id="nome"
             value={formData.nome}
             onChange={(e) => {
-              console.log('Nome alterado:', e.target.value);
+              // console.log('Nome alterado:', e.target.value);
               onInputChange('nome', e.target.value);
             }}
           />

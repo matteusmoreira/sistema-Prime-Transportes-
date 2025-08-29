@@ -1,6 +1,7 @@
 
 import jsPDF from 'jspdf';
 import type { Corrida } from '@/types/corridas';
+import { formatCurrency } from '@/utils/format';
 
 export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.csv') => {
   const headers = [
@@ -99,7 +100,7 @@ export const exportCorridasToPDF = async (
       c.destino,
       c.status,
       String(c.kmTotal ?? ''),
-      `R$ ${sumValor(c).toFixed(2)}`
+      `${formatCurrency(sumValor(c))}`
     ]);
   });
 
@@ -111,7 +112,7 @@ export const exportCorridasToPDF = async (
   doc.line(margin, y, pageWidth - margin, y);
   y += 6;
   doc.setFont('helvetica','bold');
-  doc.text(`Total de corridas: ${corridas.length}  |  KM: ${totalKm}  |  Valor: R$ ${totalValor.toFixed(2)}` , margin, y);
+  doc.text(`Total de corridas: ${corridas.length}  |  KM: ${totalKm}  |  Valor: ${formatCurrency(totalValor)}` , margin, y);
 
   doc.save(opts.fileName || 'relatorio.pdf');
 };

@@ -87,7 +87,7 @@ export const NotificacoesProvider = ({ children }: { children: ReactNode }) => {
       };
 
       setNotificacoes(prev => [novaNotificacao, ...prev]);
-      console.log('Nova notificação adicionada:', novaNotificacao);
+      // Removido log informativo: nova notificação adicionada
     } catch (error) {
       console.error('Erro ao adicionar notificação:', error);
       toast.error('Erro ao adicionar notificação');

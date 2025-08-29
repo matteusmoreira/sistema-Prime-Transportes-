@@ -1,12 +1,13 @@
 
 import type { VoucherData } from '@/hooks/useVoucher';
 import { generateVoucherPDF } from './pdfGenerator';
+import { formatCurrency } from '@/utils/format';
 
 export const sendVoucherEmail = async (voucher: VoucherData) => {
   // Simular envio de email
   // Em um ambiente real, isso seria integrado com um serviço de email
   
-  console.log('Preparando envio de email para voucher:', voucher.id);
+  // console.log('Preparando envio de email para voucher:', voucher.id);
   
   // Gerar o PDF primeiro
   await generateVoucherPDF(voucher);
@@ -28,7 +29,7 @@ export const sendVoucherEmail = async (voucher: VoucherData) => {
       • Empresa: ${voucher.empresa}
       • Motorista: ${voucher.motorista}
       • Rota: ${voucher.origem} → ${voucher.destino}
-      • Valor Total: R$ ${(voucher.valor + voucher.pedagio + voucher.estacionamento + voucher.hospedagem).toFixed(2)}
+      • Valor Total: ${formatCurrency(voucher.valor + voucher.pedagio + voucher.estacionamento + voucher.hospedagem)}
 
       Atenciosamente,
       Sistema Prime Transportes
@@ -36,7 +37,7 @@ export const sendVoucherEmail = async (voucher: VoucherData) => {
     attachments: [`voucher_${voucher.id}_${new Date(voucher.dataServico).toISOString().split('T')[0]}.pdf`]
   };
   
-  console.log('Email seria enviado com os dados:', emailData);
+  // console.log('Email seria enviado com os dados:', emailData);
   
   // Em um ambiente real, aqui seria feita a integração com:
   // - SendGrid

@@ -25,21 +25,21 @@ export const DadosBasicos = ({ formData, onFormChange, readOnly = false }: Dados
   // Filtrar apenas motoristas aprovados
   const motoristasAprovados = motoristas.filter(motorista => motorista.status === 'Aprovado');
 
-  console.log('=== DEBUG DadosBasicos ===');
-  console.log('Motoristas disponíveis:', motoristas);
-  console.log('Motoristas aprovados:', motoristasAprovados);
-  console.log('Motorista selecionado no form:', formData.motorista);
-  console.log('Centro de custo atual:', formData.centroCusto);
-  console.log('=== FIM DEBUG DadosBasicos ===');
+  // console.log('=== DEBUG DadosBasicos ===');
+  // console.log('Motoristas disponíveis:', motoristas);
+  // console.log('Motoristas aprovados:', motoristasAprovados);
+  // console.log('Motorista selecionado no form:', formData.motorista);
+  // console.log('Centro de custo atual:', formData.centroCusto);
+  // console.log('=== FIM DEBUG DadosBasicos ===');
 
   const handleMotoristaChange = (value: string) => {
-    console.log('Motorista selecionado no select:', value);
-    onFormChange('motorista', value);
+    // Removido log informativo: motorista selecionado no select
+     onFormChange('motorista', value);
   };
 
   const handleEmpresaChange = (value: string) => {
-    console.log('Empresa selecionada:', value);
-    onFormChange('empresa', value);
+    // Removido log informativo: empresa selecionada
+     onFormChange('empresa', value);
   };
 
   if (readOnly) {
