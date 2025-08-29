@@ -114,21 +114,17 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   // Realtime: Atualiza corridas quando houver mudanças no banco
   useEffect(() => {
     if (!shouldLoadData) return;
-
+    
     const channel = supabase
-      .channel('public:corridas-changes')
+      .channel('corridas-changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'corridas' },
-        (payload) => {
-          console.log('Realtime corridas change:', payload.eventType, payload.new);
-          // Recarregar dados imediatamente após mudança
+        () => {
           loadCorridas();
         }
       )
-      .subscribe((status) => {
-        console.log('Subscribed to corridas changes:', status);
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
@@ -136,11 +132,6 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   }, [shouldLoadData]);
 
   const addCorrida = async (corridaData: Omit<Corrida, 'id' | 'status'>) => {
-    console.log('=== DEBUG VEICULO ===');
-    console.log('Adicionando corrida - dados recebidos:', corridaData);
-    console.log('Campo veiculo especificamente:', corridaData.veiculo);
-    console.log('Tipo do campo veiculo:', typeof corridaData.veiculo);
-    console.log('=== FIM DEBUG VEICULO ===');
     
     try {
       const status = corridaData.motorista ? 'Aguardando OS' : 'Selecionar Motorista';

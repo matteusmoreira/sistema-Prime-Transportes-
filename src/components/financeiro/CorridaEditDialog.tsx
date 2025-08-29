@@ -105,7 +105,6 @@ export const CorridaEditDialog = ({
   }, [isOpen]);
 
   const updateFormData = (field: string, value: string) => {
-    console.log(`Atualizando campo ${field} com valor:`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -121,9 +120,6 @@ export const CorridaEditDialog = ({
         return;
       }
       
-      console.log('=== FORMULÁRIO CORRIDA EDIT ===');
-      console.log('Dados brutos do formulário:', formData);
-      console.log('Comprovantes anexados:', comprovantes);
       
       const updatedData = {
         ...formData,

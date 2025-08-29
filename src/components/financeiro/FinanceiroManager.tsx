@@ -37,39 +37,19 @@ export const FinanceiroManager = () => {
     setIsEditDialogOpen(true);
   };
 
-  const handleSave = async (corridaId: number, formData: any) => {
-    console.log('=== HANDLE SAVE FINANCEIRO MANAGER ===');
-    console.log('Corridor ID recebido:', corridaId);
-    console.log('Form data recebido:', formData);
-    console.log('Tipos dos campos:', Object.keys(formData).map(key => ({ key, type: typeof formData[key], value: formData[key] })));
-    
-    // Separar documentos dos outros dados
-    const { documentos, ...dadosBasicos } = formData;
-    console.log('Documentos recebidos:', documentos);
-    console.log('Dados básicos:', dadosBasicos);
+  const handleSave = async (dadosBasicos: any, documentos: any) => {
+    if (!selectedCorrida) return;
     
     try {
-      // Primeiro atualizar os dados básicos da corrida
-      console.log('=== ATUALIZANDO DADOS BÁSICOS ===');
-      await updateCorrida(corridaId, dadosBasicos);
-      
-      // Se há documentos, processá-los
-      if (documentos && documentos.length > 0) {
-        console.log('=== PROCESSANDO DOCUMENTOS ===');
-        await processarDocumentos(corridaId, documentos);
-      }
-      
+      await updateCorrida(selectedCorrida.id, dadosBasicos, documentos);
       setIsEditDialogOpen(false);
       
       // Força recarregamento de documentos se a corrida ainda estiver sendo visualizada
-      if (selectedCorrida && selectedCorrida.id === corridaId && isViewDialogOpen) {
+      if (isViewDialogOpen) {
         setDocumentsUpdateTrigger(prev => prev + 1);
       }
-      
-      console.log('=== FIM HANDLE SAVE FINANCEIRO MANAGER (SUCESSO) ===');
     } catch (error) {
-      console.error('❌ Erro no handleSave do FinanceiroManager:', error);
-      console.error('=== FIM HANDLE SAVE FINANCEIRO MANAGER (ERRO) ===');
+      console.error('Erro no handleSave:', error);
       
       // Tratar diferentes tipos de erro
       if (error && typeof error === 'object' && 'message' in error) {
@@ -78,8 +58,6 @@ export const FinanceiroManager = () => {
           toast.error('Erro de permissão: Verifique se você tem autorização para editar corridas');
         }
       }
-      
-      // Não fecha o dialog se houver erro para o usuário poder tentar novamente
     }
   };
 

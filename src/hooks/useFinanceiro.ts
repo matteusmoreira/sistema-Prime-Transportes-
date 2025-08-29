@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useCorridas } from '../contexts/CorridasContext';
+import { supabase } from '@/integrations/supabase/client';
 import { type Corrida } from '../types/corridas';
 
 export interface CorridaFinanceiro {
@@ -91,11 +92,7 @@ export const useFinanceiro = () => {
     });
   }, [corridasParaFinanceiro]);
 
-  const [corridas, setCorridas] = useState<CorridaFinanceiro[]>(baseCorridas);
-  
-  useEffect(() => {
-    setCorridas(baseCorridas);
-  }, [baseCorridas]);
+  const corridas = baseCorridas;
 
   // Função para mapear status entre os tipos
   function mapStatusToFinanceiro(status: Corrida['status']): CorridaFinanceiro['status'] {
@@ -144,69 +141,113 @@ export const useFinanceiro = () => {
     }
     
     updateCorridaStatus(corridaId, corridaStatus);
-    setCorridas(prev => prev.map(c => c.id === corridaId ? { ...c, status } : c));
     toast.success(`Status alterado para ${status}!`);
   };
 
   const updatePaymentStatus = (corridaId: number, statusPagamento: CorridaFinanceiro['statusPagamento']) => {
-    // Atualiza UI imediatamente
-    setCorridas(prev => prev.map(c => c.id === corridaId ? { ...c, statusPagamento } : c));
     // Persiste no banco
     updateCorridaOriginal(corridaId, { statusPagamento });
-
     toast.success(`Status de pagamento alterado para ${statusPagamento}!`);
   };
 
   const updateMedicaoNotaFiscalStatus = (corridaId: number, medicaoNotaFiscal: CorridaFinanceiro['medicaoNotaFiscal']) => {
-    // Atualiza UI imediatamente
-    setCorridas(prev => prev.map(c => c.id === corridaId ? { ...c, medicaoNotaFiscal } : c));
     // Persiste no banco
     updateCorridaOriginal(corridaId, { medicaoNotaFiscal });
-    
     toast.success(`Status de medição/nota fiscal alterado para ${medicaoNotaFiscal}!`);
   };
 
-  const updateCorrida = async (corridaId: number, formData: any) => {
+  const updateCorrida = async (corridaId: number, updatedData: any, documentos: any) => {
     try {
-      // Adicionar campos de controle de edição financeira
-      const updatedFormData = {
-        ...formData,
-        preenchidoPorFinanceiro: true,
-        dataEdicaoFinanceiro: new Date().toISOString(),
-        usuarioEdicaoFinanceiro: 'Financeiro',
-        // Adicionar observação automática se não houver
-        observacoes: formData.observacoes ? 
-          `${formData.observacoes}\n\n[Editado pelo Financeiro em ${new Date().toLocaleString('pt-BR')}]` :
-          `[Editado pelo Financeiro em ${new Date().toLocaleString('pt-BR')}]`
+      // Buscar informações do perfil do usuário
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('nome, email')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile) throw new Error('Perfil do usuário não encontrado');
+
+      // Preparar dados para atualização com auditoria
+      const updatePayload: any = {
+        empresa: updatedData.empresa,
+        solicitante: updatedData.solicitante,
+        passageiro: updatedData.passageiros,
+        telefone_passageiro: updatedData.telefonePassageiro,
+        origem: updatedData.origem,
+        destino: updatedData.destino,
+        data: updatedData.data,
+        data_servico: updatedData.dataServico,
+        hora_saida: updatedData.horaSaida,
+        hora_chegada: updatedData.horaChegada,
+        motorista: updatedData.motorista,
+        veiculo: updatedData.veiculo,
+        km_inicial: updatedData.kmInicial,
+        km_final: updatedData.kmFinal,
+        km_total: updatedData.kmTotal,
+        valor: updatedData.valor,
+        valor_motorista: updatedData.valorMotorista,
+        pedagio: updatedData.pedagio,
+        estacionamento: updatedData.estacionamento,
+        hospedagem: updatedData.hospedagem,
+        preenchido_por_financeiro: true,
+        data_edicao_financeiro: new Date().toISOString(),
+        usuario_edicao_financeiro: profile.nome,
+        observacoes: updatedData.observacoes ? 
+          `${updatedData.observacoes}\n\n[Editado pelo Financeiro em ${new Date().toLocaleString('pt-BR')} por ${profile.nome}]` :
+          `[Editado pelo Financeiro em ${new Date().toLocaleString('pt-BR')} por ${profile.nome}]`,
+        updated_at: new Date().toISOString()
       };
-      
-      await updateCorridaOriginal(corridaId, updatedFormData);
-      
-      // Atualizar também o estado local do financeiro
-      setCorridas(prev => prev.map(c => 
-        c.id === corridaId 
-          ? { ...c, ...updatedFormData }
-          : c
-      ));
-      
-      toast.success('Corrida atualizada com sucesso pelo Financeiro!');
-    } catch (error) {
-      // Mostrar erro mais específico baseado no tipo
-      let errorMessage = 'Erro desconhecido ao atualizar corrida';
-      
-      if (error && typeof error === 'object' && 'message' in error) {
-        const err = error as any;
-        if (err.message?.includes('row-level security')) {
-          errorMessage = 'Erro de permissão: Você não tem autorização para editar esta corrida';
-        } else if (err.message?.includes('permission denied')) {
-          errorMessage = 'Permissão negada para editar corrida';
-        } else {
-          errorMessage = err.message;
+
+      // Executar atualização na base de dados
+      const { data: updatedCorrida, error } = await supabase
+        .from('corridas')
+        .update(updatePayload)
+        .eq('id', corridaId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Upload de documentos se houver
+      if (documentos && documentos.length > 0) {
+        for (const documento of documentos) {
+          if (documento.arquivo) {
+            const fileName = `${corridaId}_${documento.nome}_${Date.now()}`;
+            
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('corrida-documentos')
+              .upload(fileName, documento.arquivo);
+
+            if (!uploadError && uploadData) {
+              await supabase
+                .from('corrida_documentos')
+                .insert({
+                  corrida_id: corridaId,
+                  nome: documento.nome,
+                  descricao: documento.descricao,
+                  url: uploadData.path
+                });
+            }
+          }
         }
       }
-      
-      toast.error(errorMessage);
-      throw error; // Re-throw para não fechar o dialog
+
+      // Atualizar o contexto global
+      await updateCorridaOriginal(corridaId, {
+        ...updatedData,
+        preenchidoPorFinanceiro: true,
+        observacoes: updatePayload.observacoes
+      });
+
+      toast.success('Corrida atualizada com sucesso!');
+
+    } catch (error) {
+      console.error('Erro ao atualizar corrida:', error);
+      toast.error('Erro ao atualizar corrida: ' + (error as Error).message);
+      throw error;
     }
   };
 
