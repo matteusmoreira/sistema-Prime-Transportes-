@@ -157,6 +157,11 @@ export const useFinanceiro = () => {
   };
 
   const updateCorrida = async (corridaId: number, updatedData: any, documentos: any) => {
+    console.log('🚀 === INÍCIO updateCorrida ===');
+    console.log('corridaId:', corridaId);
+    console.log('updatedData recebido:', updatedData);
+    console.log('documentos:', documentos);
+    
     try {
       // Buscar informações do perfil do usuário
       const { data: { user } } = await supabase.auth.getUser();
@@ -170,38 +175,75 @@ export const useFinanceiro = () => {
 
       if (!profile) throw new Error('Perfil do usuário não encontrado');
 
-      // Preparar dados para atualização com auditoria
+      console.log('✅ Usuário autenticado:', profile.nome);
+
+      // Preparar dados completos para atualização com TODOS os campos
       const updatePayload: any = {
+        // Dados básicos
         empresa: updatedData.empresa,
         solicitante: updatedData.solicitante,
-        passageiro: updatedData.passageiros,
+        passageiro: updatedData.passageiros || updatedData.passageiro,
         telefone_passageiro: updatedData.telefonePassageiro,
         origem: updatedData.origem,
         destino: updatedData.destino,
+        destino_extra: updatedData.destinoExtra,
+        
+        // Datas e horários
         data: updatedData.data,
         data_servico: updatedData.dataServico,
         hora_saida: updatedData.horaSaida,
         hora_chegada: updatedData.horaChegada,
+        hora_inicio: updatedData.horaInicio,
+        
+        // Motorista e veículo
         motorista: updatedData.motorista,
         veiculo: updatedData.veiculo,
-        km_inicial: updatedData.kmInicial,
-        km_final: updatedData.kmFinal,
-        km_total: updatedData.kmTotal,
-        valor: updatedData.valor,
-        valor_motorista: updatedData.valorMotorista,
-        pedagio: updatedData.pedagio,
-        estacionamento: updatedData.estacionamento,
-        hospedagem: updatedData.hospedagem,
+        
+        // Quilometragem
+        km_inicial: parseFloat(updatedData.kmInicial) || 0,
+        km_final: parseFloat(updatedData.kmFinal) || 0,
+        km_total: parseFloat(updatedData.kmTotal) || 0,
+        
+        // Valores financeiros
+        valor: parseFloat(updatedData.valor) || 0,
+        valor_motorista: parseFloat(updatedData.valorMotorista) || 0,
+        pedagio: parseFloat(updatedData.pedagio) || 0,
+        estacionamento: parseFloat(updatedData.estacionamento) || 0,
+        hospedagem: parseFloat(updatedData.hospedagem) || 0,
+        outros: parseFloat(updatedData.outros) || 0,
+        reembolsos: parseFloat(updatedData.reembolsos) || 0,
+        valor_combustivel: parseFloat(updatedData.valorCombustivel) || 0,
+        
+        // Informações adicionais
+        centro_custo: updatedData.centroCusto,
+        numero_os: updatedData.numeroOS,
+        projeto: updatedData.projeto,
+        motivo: updatedData.motivo,
+        tipo_abrangencia: updatedData.tipoAbrangencia,
+        local_abastecimento: updatedData.localAbastecimento,
+        tempo_viagem: updatedData.tempoViagem,
+        
+        // Combustível
+        combustivel_inicial: parseFloat(updatedData.combustivelInicial) || 0,
+        combustivel_final: parseFloat(updatedData.combustivelFinal) || 0,
+        
+        // Status e auditoria
         preenchido_por_financeiro: true,
         data_edicao_financeiro: new Date().toISOString(),
         usuario_edicao_financeiro: profile.nome,
+        
+        // Observações com auditoria
         observacoes: updatedData.observacoes ? 
           `${updatedData.observacoes}\n\n[Editado pelo Financeiro em ${new Date().toLocaleString('pt-BR')} por ${profile.nome}]` :
           `[Editado pelo Financeiro em ${new Date().toLocaleString('pt-BR')} por ${profile.nome}]`,
+        
+        // Timestamp de atualização
         updated_at: new Date().toISOString()
       };
 
-      // Executar atualização na base de dados
+      console.log('📝 Payload preparado para atualização:', updatePayload);
+
+      // Executar atualização ÚNICA no banco de dados
       const { data: updatedCorrida, error } = await supabase
         .from('corridas')
         .update(updatePayload)
@@ -209,10 +251,16 @@ export const useFinanceiro = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro no update do Supabase:', error);
+        throw error;
+      }
+
+      console.log('✅ Corrida atualizada no banco:', updatedCorrida);
 
       // Upload de documentos se houver
       if (documentos && documentos.length > 0) {
+        console.log('📎 Processando documentos...');
         for (const documento of documentos) {
           if (documento.arquivo) {
             const fileName = `${corridaId}_${documento.nome}_${Date.now()}`;
@@ -230,25 +278,25 @@ export const useFinanceiro = () => {
                   descricao: documento.descricao,
                   url: uploadData.path
                 });
+              console.log('✅ Documento salvo:', documento.nome);
             }
           }
         }
       }
 
-      // Atualizar o contexto global
-      await updateCorridaOriginal(corridaId, {
-        ...updatedData,
-        preenchidoPorFinanceiro: true,
-        observacoes: updatePayload.observacoes
-      });
-
+      // NÃO atualizar o contexto manualmente - deixar o realtime funcionar
+      // O realtime do CorridasContext vai atualizar automaticamente
+      
+      console.log('🎉 Corrida atualizada com sucesso!');
       toast.success('Corrida atualizada com sucesso!');
 
     } catch (error) {
-      console.error('Erro ao atualizar corrida:', error);
+      console.error('❌ Erro ao atualizar corrida:', error);
       toast.error('Erro ao atualizar corrida: ' + (error as Error).message);
       throw error;
     }
+    
+    console.log('🏁 === FIM updateCorrida ===');
   };
 
   const approveCorrida = (corrida: CorridaFinanceiro) => {

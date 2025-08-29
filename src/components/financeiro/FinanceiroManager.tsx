@@ -40,16 +40,46 @@ export const FinanceiroManager = () => {
   const handleSave = async (dadosBasicos: any, documentos: any) => {
     if (!selectedCorrida) return;
     
+    console.log('💾 === HANDLEAVE INICIADO ===');
+    console.log('Corrida selecionada:', selectedCorrida.id);
+    console.log('Dados básicos:', dadosBasicos);
+    
     try {
       await updateCorrida(selectedCorrida.id, dadosBasicos, documentos);
+      
+      console.log('✅ Edição salva com sucesso');
       setIsEditDialogOpen(false);
       
-      // Força recarregamento de documentos se a corrida ainda estiver sendo visualizada
+      // Força recarregamento de documentos e dados se a corrida ainda estiver sendo visualizada
       if (isViewDialogOpen) {
+        console.log('🔄 Forçando reload da visualização...');
         setDocumentsUpdateTrigger(prev => prev + 1);
       }
+      
+      // Atualizar a corrida selecionada com os novos dados para a visualização
+      setSelectedCorrida(prev => prev ? {
+        ...prev,
+        ...dadosBasicos,
+        // Converter campos se necessário
+        empresa: dadosBasicos.empresa,
+        motorista: dadosBasicos.motorista,
+        dataServico: dadosBasicos.dataServico,
+        origem: dadosBasicos.origem,
+        destino: dadosBasicos.destino,
+        kmTotal: dadosBasicos.kmTotal,
+        valor: dadosBasicos.valor,
+        valorMotorista: dadosBasicos.valorMotorista,
+        pedagio: dadosBasicos.pedagio,
+        estacionamento: dadosBasicos.estacionamento,
+        hospedagem: dadosBasicos.hospedagem,
+        passageiros: dadosBasicos.passageiros,
+        centroCusto: dadosBasicos.centroCusto,
+        numeroOS: dadosBasicos.numeroOS,
+        observacoes: dadosBasicos.observacoes
+      } : null);
+      
     } catch (error) {
-      console.error('Erro no handleSave:', error);
+      console.error('❌ Erro no handleSave:', error);
       
       // Tratar diferentes tipos de erro
       if (error && typeof error === 'object' && 'message' in error) {
@@ -59,6 +89,8 @@ export const FinanceiroManager = () => {
         }
       }
     }
+    
+    console.log('🏁 === HANDLESAVE FINALIZADO ===');
   };
 
   const processarDocumentos = async (corridaId: number, documentos: any[]) => {

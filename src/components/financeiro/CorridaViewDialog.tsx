@@ -16,17 +16,105 @@ interface CorridaViewDialogProps {
 }
 
 export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpdateTrigger }: CorridaViewDialogProps) => {
+  const [corridaAtual, setCorridaAtual] = React.useState<CorridaFinanceiro | null>(null);
   const { documentos, loading, downloadDocumento, forceReload } = useCorridaDocuments(
     isOpen ? corrida?.id || null : null
   );
+
+  // Buscar dados frescos do banco quando o dialog abrir
+  React.useEffect(() => {
+    if (isOpen && corrida?.id) {
+      console.log('🔄 Dialog aberto, buscando dados frescos da corrida:', corrida.id);
+      buscarDadosFrescos(corrida.id);
+    }
+  }, [isOpen, corrida?.id]);
 
   // Forçar reload quando documentsUpdateTrigger mudar
   React.useEffect(() => {
     if (documentsUpdateTrigger && documentsUpdateTrigger > 0) {
       console.log('🔄 Trigger de atualização de documentos detectado:', documentsUpdateTrigger);
       forceReload();
+      
+      // Também recarregar dados da corrida
+      if (corrida?.id) {
+        buscarDadosFrescos(corrida.id);
+      }
     }
-  }, [documentsUpdateTrigger, forceReload]);
+  }, [documentsUpdateTrigger, forceReload, corrida?.id]);
+
+  const buscarDadosFrescos = async (corridaId: number) => {
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase
+        .from('corridas')
+        .select('*')
+        .eq('id', corridaId)
+        .single();
+
+      if (error) throw error;
+
+      console.log('✅ Dados frescos carregados:', data);
+      
+      // Converter dados do banco para o formato CorridaFinanceiro
+      const corridaFresca: CorridaFinanceiro = {
+        id: data.id,
+        empresa: data.empresa,
+        motorista: data.motorista || '',
+        dataServico: data.data_servico || data.data,
+        origem: data.origem,
+        destino: data.destino,
+        kmTotal: data.km_total || 0,
+        valor: data.valor || 0,
+        valorMotorista: data.valor_motorista || 0,
+        status: mapStatusToFinanceiro(data.status),
+        statusPagamento: (data.status_pagamento as CorridaFinanceiro['statusPagamento']) || 'Pendente',
+        medicaoNotaFiscal: (data.medicao_nota_fiscal as CorridaFinanceiro['medicaoNotaFiscal']) || 'Medição',
+        observacoes: data.observacoes,
+        centroCusto: data.centro_custo || '',
+        pedagio: data.pedagio || 0,
+        estacionamento: data.estacionamento || 0,
+        hospedagem: data.hospedagem || 0,
+        passageiros: data.passageiro || '',
+        destinoExtra: data.destino_extra || '',
+        numeroOS: data.numero_os || '',
+        projeto: data.projeto,
+        motivo: data.motivo,
+        horaInicio: data.hora_inicio || data.hora_saida,
+        tipoAbrangencia: data.tipo_abrangencia,
+        kmInicial: data.km_inicial,
+        kmFinal: data.km_final,
+        solicitante: data.solicitante
+      };
+      
+      setCorridaAtual(corridaFresca);
+      
+    } catch (error) {
+      console.error('❌ Erro ao buscar dados frescos:', error);
+      // Em caso de erro, usar os dados originais
+      setCorridaAtual(corrida);
+    }
+  };
+
+  // Função auxiliar para mapear status
+  const mapStatusToFinanceiro = (status: string): CorridaFinanceiro['status'] => {
+    switch (status) {
+      case 'OS Preenchida':
+      case 'Pendente':
+      case 'Aguardando Conferência':
+        return 'Aguardando Conferência';
+      case 'Aprovada':
+        return 'Aprovada';
+      case 'No Show':
+        return 'No Show';
+      case 'Rejeitada':
+        return 'Revisar';
+      case 'Cancelada':
+        return 'Cancelada';
+      default:
+        return 'Em Análise';
+    }
+  };
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Aguardando Conferência':
@@ -46,13 +134,16 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
     }
   };
 
-  if (!corrida) return null;
+  // Usar dados frescos se disponíveis, senão usar dados originais
+  const dadosParaExibir = corridaAtual || corrida;
+  
+  if (!dadosParaExibir) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Visualização Completa - Corrida #{corrida.id}</DialogTitle>
+          <DialogTitle>Visualização Completa - Corrida #{dadosParaExibir.id}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -64,27 +155,27 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="font-semibold">Empresa:</Label>
-                  <p>{corrida.empresa}</p>
+                  <p>{dadosParaExibir.empresa}</p>
                 </div>
                 <div>
                   <Label className="font-semibold">Motorista:</Label>
-                  <p>{corrida.motorista}</p>
+                  <p>{dadosParaExibir.motorista}</p>
                 </div>
                 <div>
                   <Label className="font-semibold">Data do Serviço:</Label>
-                  <p>{new Date(corrida.dataServico).toLocaleDateString('pt-BR')}</p>
+                  <p>{new Date(dadosParaExibir.dataServico).toLocaleDateString('pt-BR')}</p>
                 </div>
                 <div>
                   <Label className="font-semibold">Status:</Label>
-                  <p>{getStatusBadge(corrida.status)}</p>
+                  <p>{getStatusBadge(dadosParaExibir.status)}</p>
                 </div>
                 <div>
                   <Label className="font-semibold">Centro de Custo:</Label>
-                  <p>{corrida.centroCusto}</p>
+                  <p>{dadosParaExibir.centroCusto}</p>
                 </div>
                 <div>
                   <Label className="font-semibold">N° da O.S:</Label>
-                  <p>{corrida.numeroOS}</p>
+                  <p>{dadosParaExibir.numeroOS}</p>
                 </div>
               </div>
             </CardContent>
@@ -98,17 +189,17 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="font-semibold">Origem:</Label>
-                  <p>{corrida.origem}</p>
+                  <p>{dadosParaExibir.origem}</p>
                 </div>
                 <div>
                   <Label className="font-semibold">Destino:</Label>
-                  <p>{corrida.destino}</p>
+                  <p>{dadosParaExibir.destino}</p>
                 </div>
               </div>
-              {corrida.destinoExtra && (
+              {dadosParaExibir.destinoExtra && (
                 <div className="mt-4">
                   <Label className="font-semibold">Destino Extra:</Label>
-                  <p>{corrida.destinoExtra}</p>
+                  <p>{dadosParaExibir.destinoExtra}</p>
                 </div>
               )}
             </CardContent>
@@ -126,19 +217,19 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                       <Label className="font-semibold">KM Inicial:</Label>
-                      <p className="text-lg">{corrida.kmInicial || 0} km</p>
+                      <p className="text-lg">{dadosParaExibir.kmInicial || 0} km</p>
                     </div>
                     <div>
                       <Label className="font-semibold">KM Final:</Label>
-                      <p className="text-lg">{corrida.kmFinal || 0} km</p>
+                      <p className="text-lg">{dadosParaExibir.kmFinal || 0} km</p>
                     </div>
                     <div>
                       <Label className="font-semibold">Cálculo:</Label>
-                      <p className="text-sm text-gray-600">{corrida.kmFinal || 0} - {corrida.kmInicial || 0}</p>
+                      <p className="text-sm text-gray-600">{dadosParaExibir.kmFinal || 0} - {dadosParaExibir.kmInicial || 0}</p>
                     </div>
                     <div>
                       <Label className="font-semibold">KM Total:</Label>
-                      <p className="text-lg font-bold text-blue-600">{corrida.kmTotal} km</p>
+                      <p className="text-lg font-bold text-blue-600">{dadosParaExibir.kmTotal} km</p>
                     </div>
                   </div>
                 </div>
@@ -149,11 +240,11 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label className="font-semibold">Valor Total:</Label>
-                      <p className="text-lg font-bold text-green-600">R$ {corrida.valor.toFixed(2)}</p>
+                      <p className="text-lg font-bold text-green-600">R$ {dadosParaExibir.valor.toFixed(2)}</p>
                     </div>
                     <div>
                       <Label className="font-semibold">Valor para Motorista:</Label>
-                      <p className="text-lg">R$ {corrida.valorMotorista?.toFixed(2) || '0.00'}</p>
+                      <p className="text-lg">R$ {dadosParaExibir.valorMotorista?.toFixed(2) || '0.00'}</p>
                     </div>
                   </div>
                 </div>
@@ -171,21 +262,21 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
                   <Car className="h-5 w-5 text-blue-600" />
                   <div>
                     <Label className="font-semibold">Pedágio:</Label>
-                    <p className="text-lg">R$ {corrida.pedagio.toFixed(2)}</p>
+                    <p className="text-lg">R$ {dadosParaExibir.pedagio.toFixed(2)}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Building className="h-5 w-5 text-green-600" />
                   <div>
                     <Label className="font-semibold">Estacionamento:</Label>
-                    <p className="text-lg">R$ {corrida.estacionamento.toFixed(2)}</p>
+                    <p className="text-lg">R$ {dadosParaExibir.estacionamento.toFixed(2)}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Hotel className="h-5 w-5 text-purple-600" />
                   <div>
                     <Label className="font-semibold">Hospedagem:</Label>
-                    <p className="text-lg">R$ {corrida.hospedagem.toFixed(2)}</p>
+                    <p className="text-lg">R$ {dadosParaExibir.hospedagem.toFixed(2)}</p>
                   </div>
                 </div>
               </div>
@@ -197,29 +288,29 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
               <CardTitle>Informações Adicionais</CardTitle>
             </CardHeader>
             <CardContent>
-              {corrida.passageiros && (
+              {dadosParaExibir.passageiros && (
                 <div className="mb-4">
                   <Label className="font-semibold">Passageiros:</Label>
                   <div className="mt-1 p-3 bg-gray-50 rounded whitespace-pre-line">
-                    {corrida.passageiros}
+                    {dadosParaExibir.passageiros}
                   </div>
                 </div>
               )}
               
-              {corrida.observacoes && (
+              {dadosParaExibir.observacoes && (
                 <div>
                   <Label className="font-semibold">Observações:</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded">
-                    {corrida.observacoes}
+                  <div className="mt-1 p-3 bg-gray-50 rounded whitespace-pre-line">
+                    {dadosParaExibir.observacoes}
                   </div>
                 </div>
               )}
               
-              {corrida.motivoReprovacao && (
+              {dadosParaExibir.motivoReprovacao && (
                 <div className="mt-4">
                   <Label className="font-semibold">Motivo da Reprovação:</Label>
                   <div className="mt-1 p-3 bg-red-50 rounded text-red-700">
-                    {corrida.motivoReprovacao}
+                    {dadosParaExibir.motivoReprovacao}
                   </div>
                 </div>
               )}
