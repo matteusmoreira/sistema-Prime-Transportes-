@@ -20,10 +20,25 @@ export const DashboardHome = ({
   userLevel,
   userEmail
 }: DashboardHomeProps) => {
+  console.log('DashboardHome rendering with userLevel:', userLevel);
+  
   const { empresas, loading: empresasLoading } = useEmpresas();
   const { solicitantes } = useSolicitantes();
   const { motoristas } = useMotoristas();
-  const { corridas } = useCorridas();
+  
+  // Add error boundary for useCorridas
+  let corridas: any[] = [];
+  let corridasError = false;
+  
+  try {
+    const corridasData = useCorridas();
+    corridas = corridasData.corridas || [];
+    console.log('Successfully loaded corridas:', corridas.length);
+  } catch (error) {
+    console.error('Error loading corridas:', error);
+    corridasError = true;
+  }
+  
   const [showHistorico, setShowHistorico] = useState(false);
   
   // Usar o hook de diálogos de corridas para funcionalidades de OS
@@ -73,6 +88,18 @@ export const DashboardHome = ({
   const handleCancel = () => {
     closeDialog();
   };
+
+  // If there's an error with corridas context, show error message
+  if (corridasError) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="text-center">
+          <div className="text-red-600 mb-2">Erro ao carregar dados das corridas</div>
+          <div className="text-sm text-gray-500">Verifique se o sistema está funcionando corretamente.</div>
+        </div>
+      </div>
+    );
+  }
 
   // Se ainda está carregando dados essenciais, mostrar loading
   if (empresasLoading) {
