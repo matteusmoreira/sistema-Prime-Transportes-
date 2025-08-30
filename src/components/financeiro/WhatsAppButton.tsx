@@ -25,33 +25,29 @@ export const WhatsAppButton = ({ corrida }: WhatsAppButtonProps) => {
   
   // Criar mensagem formatada com todos os dados da corrida
   const createFormattedMessage = () => {
-    const dataFormatada = corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR');
+    const dataBase = corrida.dataServico || corrida.data;
+    const dataFormatada = dataBase ? new Date(dataBase).toLocaleDateString('pt-BR') : '';
     const horaInicio = formatTimeToAmPm(corrida.horaInicio || corrida.horaSaida || '');
-    
-    return `🚗 *DADOS DA CORRIDA* 🚗
 
-👤 *Motorista:* ${corrida.motorista || 'Não definido'}
-🏢 *Empresa:* ${corrida.empresa}
-📅 *Data do Serviço:* ${dataFormatada}
-🕐 *Horário:* ${horaInicio}
+    // Normaliza a lista de passageiros (aceita quebra de linha ou vírgula) e gera em linha separados por vírgulas
+    const passageirosInline = (corrida.passageiros || '')
+      .split(/\r?\n|,/)
+      .map((p: string) => p.trim())
+      .filter(Boolean)
+      .join(', ');
 
-👥 *Passageiros:* ${corrida.passageiros || 'Não informado'}
+    const lines: string[] = [];
+    if (corrida.motorista) lines.push(`MOTORISTA: ${corrida.motorista}`);
+    if (corrida.empresa) lines.push(`CLIENTE: ${corrida.empresa}`);
+    if (corrida.centroCusto) lines.push(`Centro de Custo: ${corrida.centroCusto}`);
+    if (dataFormatada) lines.push(`DATA: ${dataFormatada}`);
+    if (horaInicio) lines.push(`HORA: ${horaInicio}`);
+    if (corrida.origem) lines.push(`ORIGEM: ${corrida.origem}`);
+    if (corrida.destino) lines.push(`DESTINO: ${corrida.destino}`);
+    if (corrida.destinoExtra) lines.push(`DESTINOEXTRA: ${corrida.destinoExtra}`);
+    if (passageirosInline) lines.push(`PASSAGEIROS: ${passageirosInline}`);
 
-📍 *Origem:* ${corrida.origem}
-🎯 *Destino:* ${corrida.destino}${corrida.destinoExtra ? `\n📍 *Destino Extra:* ${corrida.destinoExtra}` : ''}
-
-🚙 *Veículo:* ${corrida.veiculo || 'Não definido'}
-📋 *Centro de Custo:* ${corrida.centroCusto || 'Não informado'}
-🎯 *Projeto:* ${corrida.projeto || 'Não informado'}
-📝 *Motivo:* ${corrida.motivo || 'Não informado'}
-${corrida.numeroOS ? `📋 *Número OS:* ${corrida.numeroOS}` : ''}
-
-${corrida.kmTotal ? `🛣️ *KM Total:* ${corrida.kmTotal} km` : ''}${corrida.tempoViagem ? `\n⏱️ *Tempo de Viagem:* ${corrida.tempoViagem}` : ''}${corrida.tipoAbrangencia ? `\n🌍 *Tipo de Abrangência:* ${corrida.tipoAbrangencia}` : ''}
-
-💰 *Valor para Motorista:* ${formatCurrency(corrida.valorMotorista || 0)}
-${corrida.observacoes ? `\n📝 *Observações:* ${corrida.observacoes}` : ''}${corrida.observacoesOS ? `\n📋 *Observações da OS:* ${corrida.observacoesOS}` : ''}
-
-ATT, Prime Transportes`;
+    return lines.join('\n');
   };
 
   // Atualizar mensagem sempre que a corrida mudar

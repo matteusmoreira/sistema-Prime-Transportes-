@@ -15,6 +15,19 @@ export const sendVoucherEmail = async (voucher: VoucherData) => {
   // Simular delay de envio
   await new Promise(resolve => setTimeout(resolve, 1000));
   
+  // Montar linhas do corpo com ocultação de vazios
+  const bulletLines: string[] = [];
+  bulletLines.push(`• Voucher Nº: ${voucher.id.toString().padStart(6, '0')}`);
+  bulletLines.push(`• Data do Serviço: ${new Date(voucher.dataServico).toLocaleDateString('pt-BR')}`);
+  if (voucher.empresa) bulletLines.push(`• Empresa: ${voucher.empresa}`);
+  if (voucher.motorista) bulletLines.push(`• Motorista: ${voucher.motorista}`);
+  if (voucher.origem && voucher.destino) {
+    const rota = `${voucher.origem} → ${voucher.destino}${voucher.destinoExtra ? ' → ' + voucher.destinoExtra : ''}`;
+    bulletLines.push(`• Rota: ${rota}`);
+  }
+  const valorTotal = (voucher.valor || 0) + (voucher.pedagio || 0) + (voucher.estacionamento || 0) + (voucher.hospedagem || 0);
+  bulletLines.push(`• Valor Total: ${formatCurrency(valorTotal)}`);
+
   // Dados do email
   const emailData = {
     to: 'financeiro@empresa.com', // Email padrão do financeiro
@@ -24,12 +37,7 @@ export const sendVoucherEmail = async (voucher: VoucherData) => {
 
       Segue em anexo o voucher de transporte com os seguintes dados:
 
-      • Voucher Nº: ${voucher.id.toString().padStart(6, '0')}
-      • Data do Serviço: ${new Date(voucher.dataServico).toLocaleDateString('pt-BR')}
-      • Empresa: ${voucher.empresa}
-      • Motorista: ${voucher.motorista}
-      • Rota: ${voucher.origem} → ${voucher.destino}
-      • Valor Total: ${formatCurrency(voucher.valor + voucher.pedagio + voucher.estacionamento + voucher.hospedagem)}
+      ${bulletLines.join('\n      ')}
 
       Atenciosamente,
       Sistema Prime Transportes

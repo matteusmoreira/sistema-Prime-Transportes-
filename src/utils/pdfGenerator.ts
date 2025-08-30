@@ -167,41 +167,37 @@ export const generateVoucherPDF = async (voucher: VoucherData) => {
   const xLabel = 30;
   const xValue = 85;
 
-  // Campos principais
+  // Campos principais (ocultar linhas vazias)
   addField(doc, 'Nº O.S', voucher.numeroOS || voucher.id.toString().padStart(4, '0'), xLabel, xValue, y, [200, 0, 0]); y += 8;
-  addField(doc, 'HORA O.S', voucher.horaInicio || '-', xLabel, xValue, y); y += 8;
-  addField(doc, 'HORA SAÍDA', voucher.horaInicio || '-', xLabel, xValue, y); y += 8;
-  addField(doc, 'HORA CHEGADA', voucher.horaFim || '-', xLabel, xValue, y); y += 8;
+  if (voucher.horaInicio) { addField(doc, 'HORA O.S', voucher.horaInicio, xLabel, xValue, y); y += 8; }
+  if (voucher.horaInicio) { addField(doc, 'HORA SAÍDA', voucher.horaInicio, xLabel, xValue, y); y += 8; }
+  if (voucher.horaFim) { addField(doc, 'HORA CHEGADA', voucher.horaFim, xLabel, xValue, y); y += 8; }
   addField(doc, 'DATA', formatDateDDMMYYYY(voucher.dataServico), xLabel, xValue, y); y += 8;
-  addField(doc, 'KM INICIO', voucher.kmInicial != null ? String(voucher.kmInicial) : '-', xLabel, xValue, y); y += 8;
-  addField(doc, 'KM FINAL', voucher.kmFinal != null ? String(voucher.kmFinal) : '-', xLabel, xValue, y); y += 8;
+  if (voucher.kmInicial != null) { addField(doc, 'KM INICIO', String(voucher.kmInicial), xLabel, xValue, y); y += 8; }
+  if (voucher.kmFinal != null) { addField(doc, 'KM FINAL', String(voucher.kmFinal), xLabel, xValue, y); y += 8; }
   addField(doc, 'EMPRESA', voucher.empresa, xLabel, xValue, y); y += 8;
-  addField(doc, 'CENTRO DE CUSTO', voucher.centroCusto, xLabel, xValue, y); y += 8;
-  addField(doc, 'PROJETO', voucher.projeto || '-', xLabel, xValue, y); y += 8;
+  if (voucher.centroCusto) { addField(doc, 'CENTRO DE CUSTO', voucher.centroCusto, xLabel, xValue, y); y += 8; }
+  if (voucher.projeto) { addField(doc, 'PROJETO', voucher.projeto, xLabel, xValue, y); y += 8; }
   addField(doc, 'ORIGEM', voucher.origem, xLabel, xValue, y); y += 8;
   addField(doc, 'DESTINO', voucher.destino, xLabel, xValue, y); y += 8;
-  addField(doc, 'DESTINO EXTRA', voucher.destinoExtra || '-', xLabel, xValue, y); y += 8;
-  addField(doc, 'MOTIVO DA VIAGEM', voucher.motivo || '-', xLabel, xValue, y); y += 8;
+  if (voucher.destinoExtra) { addField(doc, 'DESTINO EXTRA', voucher.destinoExtra, xLabel, xValue, y); y += 8; }
+  if (voucher.motivo) { addField(doc, 'MOTIVO DA VIAGEM', voucher.motivo, xLabel, xValue, y); y += 8; }
   addField(doc, 'PEDÁGIO', voucher.pedagio > 0 ? formatCurrency(voucher.pedagio) : 'R$ 0,00', xLabel, xValue, y); y += 8;
   addField(doc, 'ESTACIONAMENTO', voucher.estacionamento > 0 ? formatCurrency(voucher.estacionamento) : 'R$ 0,00', xLabel, xValue, y); y += 8;
   addField(doc, 'HOSPEDAGEM', voucher.hospedagem > 0 ? formatCurrency(voucher.hospedagem) : 'R$ 0,00', xLabel, xValue, y); y += 8;
   addField(doc, 'MOTORISTA', voucher.motorista, xLabel, xValue, y); y += 8;
   // NOME PASSAGEIRO - em linha única separada por vírgulas (com quebra automática)
   const passengerArr = parsePassengers(voucher.passageiros || '');
-  doc.setFont('helvetica', 'bold');
-  doc.text('NOME PASSAGEIRO:', xLabel, y);
-  doc.setFont('helvetica', 'normal');
-  if (passengerArr.length === 0) {
-    doc.text('-', xValue, y);
-    y += 8;
-  } else {
+  if (passengerArr.length > 0) {
+    doc.setFont('helvetica', 'bold');
+    doc.text('NOME PASSAGEIRO:', xLabel, y);
+    doc.setFont('helvetica', 'normal');
     const passengersInline = passengerArr.join(', ');
     const maxWidth = pageWidth - margin - xValue;
     const wrappedPassengers = doc.splitTextToSize(passengersInline, maxWidth);
     doc.text(wrappedPassengers, xValue, y);
     y += 8 * wrappedPassengers.length;
   }
-  addField(doc, 'OBSERVAÇÃO DO MOTORISTA', '', xLabel, xValue, y); y += 8;
 
   const valorTotal = voucher.valor + voucher.pedagio + voucher.estacionamento + voucher.hospedagem;
 
