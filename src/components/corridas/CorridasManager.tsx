@@ -8,6 +8,8 @@ import { CorridasDialogs } from './CorridasDialogs';
 import { useCorridasDialogs } from '@/hooks/useCorridasDialogs';
 import { useCorridasLogic } from '@/hooks/useCorridasLogic';
 import { toast } from 'sonner';
+import { useState } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CorridasManagerProps {
   userLevel?: string;
@@ -48,6 +50,17 @@ export const CorridasManager = ({
     selectMotorista
   } = useCorridasLogic(userLevel, userEmail);
 
+  // Filtro por mês
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const corridasPorMes = (selectedMonth === 'all')
+    ? corridasFiltradas
+    : corridasFiltradas.filter((c: any) => {
+        const dateStr = c?.dataServico || c?.data;
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return false;
+        return String(d.getMonth() + 1) === selectedMonth;
+      });
 
   const handleEditClick = (corrida: any) => {
     if (handleEdit(corrida)) {
@@ -97,7 +110,7 @@ export const CorridasManager = ({
         <h2 className="text-3xl font-bold text-gray-900">
           {userLevel === 'Motorista' ? 'Minhas Corridas' : 'Gerenciar Corridas'}
         </h2>
-{userLevel !== 'Motorista' && (
+        {userLevel !== 'Motorista' && (
           <Button
             onClick={() => {
               resetForm();
@@ -113,14 +126,39 @@ export const CorridasManager = ({
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Route className="h-5 w-5" />
-            <span>Lista de Corridas ({corridasFiltradas.length})</span>
-          </CardTitle>
+          <div className="flex items-center justify-between gap-4">
+            <CardTitle className="flex items-center space-x-2">
+              <Route className="h-5 w-5" />
+              <span>Lista de Corridas ({corridasPorMes.length})</span>
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Mês:</span>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Todos os meses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os meses</SelectItem>
+                  <SelectItem value="1">Janeiro</SelectItem>
+                  <SelectItem value="2">Fevereiro</SelectItem>
+                  <SelectItem value="3">Março</SelectItem>
+                  <SelectItem value="4">Abril</SelectItem>
+                  <SelectItem value="5">Maio</SelectItem>
+                  <SelectItem value="6">Junho</SelectItem>
+                  <SelectItem value="7">Julho</SelectItem>
+                  <SelectItem value="8">Agosto</SelectItem>
+                  <SelectItem value="9">Setembro</SelectItem>
+                  <SelectItem value="10">Outubro</SelectItem>
+                  <SelectItem value="11">Novembro</SelectItem>
+                  <SelectItem value="12">Dezembro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <CorridasTable
-            corridas={corridasFiltradas}
+            corridas={corridasPorMes}
             userLevel={userLevel}
             userEmail={userEmail}
             onView={openViewDialog}

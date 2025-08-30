@@ -9,6 +9,7 @@ import { FinanceiroTable } from './FinanceiroTable';
 import { CorridaEditDialog } from './CorridaEditDialog';
 import { CorridaViewDialog } from './CorridaViewDialog';
 import { CorridaRejectDialog } from './CorridaRejectDialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 export const FinanceiroManager = () => {
@@ -18,6 +19,28 @@ export const FinanceiroManager = () => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [documentsUpdateTrigger, setDocumentsUpdateTrigger] = useState(0);
+
+  // Filtro por mês
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const parseDate = (s?: string): Date | null => {
+    if (!s) return null;
+    const native = new Date(s);
+    if (!isNaN(native.getTime())) return native;
+    const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (m) {
+      const [_, dd, mm, yyyy] = m;
+      const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+      return isNaN(d.getTime()) ? null : d;
+    }
+    return null;
+  };
+  const corridasPorMes = selectedMonth === 'all'
+    ? corridas
+    : corridas.filter((c) => {
+        const d = parseDate(c.dataServico);
+        if (!d) return false;
+        return String(d.getMonth() + 1) === selectedMonth;
+      });
 
   const stats = getStats();
 
@@ -208,14 +231,39 @@ export const FinanceiroManager = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <FileText className="h-5 w-5" />
-            <span>Corridas para Conferência</span>
-          </CardTitle>
+          <div className="flex items-center justify-between gap-4">
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="h-5 w-5" />
+              <span>Corridas para Conferência ({corridasPorMes.length})</span>
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Mês:</span>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Todos os meses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os meses</SelectItem>
+                  <SelectItem value="1">Janeiro</SelectItem>
+                  <SelectItem value="2">Fevereiro</SelectItem>
+                  <SelectItem value="3">Março</SelectItem>
+                  <SelectItem value="4">Abril</SelectItem>
+                  <SelectItem value="5">Maio</SelectItem>
+                  <SelectItem value="6">Junho</SelectItem>
+                  <SelectItem value="7">Julho</SelectItem>
+                  <SelectItem value="8">Agosto</SelectItem>
+                  <SelectItem value="9">Setembro</SelectItem>
+                  <SelectItem value="10">Outubro</SelectItem>
+                  <SelectItem value="11">Novembro</SelectItem>
+                  <SelectItem value="12">Dezembro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <FinanceiroTable
-            corridas={corridas}
+            corridas={corridasPorMes}
             onView={handleView}
             onEdit={handleEdit}
             onApprove={handleApprove}
