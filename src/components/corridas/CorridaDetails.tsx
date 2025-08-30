@@ -67,7 +67,9 @@ export const CorridaDetails = ({
   };
 
   return <div className="space-y-6">
-      <WorkflowStatus corrida={corrida} userLevel={profile?.role || ''} />
+      {profile?.role !== 'Motorista' && (
+        <WorkflowStatus corrida={corrida} userLevel={profile?.role || ''} />
+      )}
       
       {/* Dados Básicos */}
       <div className="space-y-4">
@@ -92,6 +94,10 @@ export const CorridaDetails = ({
           <div>
             <Label className="font-semibold">Horário de Início:</Label>
             <p>{formatTimeToAmPm(corrida.horaInicio || corrida.horaSaida || '')}</p>
+          </div>
+          <div>
+            <Label className="font-semibold">Hora Chegada:</Label>
+            <p>{formatTimeToAmPm(corrida.horaChegada || '')}</p>
           </div>
           <div>
             <Label className="font-semibold">Status:</Label>

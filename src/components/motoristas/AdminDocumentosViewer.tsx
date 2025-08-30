@@ -7,6 +7,7 @@ import { FileText, Download, Calendar, Image, Eye, CheckCircle, XCircle } from '
 import { useMotoristas, Motorista } from '@/hooks/useMotoristas';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { formatDateDDMMYYYY } from '@/utils/format';
 
 interface AdminDocumentosViewerProps {
   motorista: Motorista;
@@ -287,7 +288,7 @@ export const AdminDocumentosViewer = ({
               <div><strong>CPF:</strong> {motorista.cpf}</div>
               <div><strong>Telefone:</strong> {motorista.telefone}</div>
               <div><strong>CNH:</strong> {motorista.cnh}</div>
-              <div><strong>Validade CNH:</strong> {motorista.cnhDataValidade}</div>
+              <div><strong>Validade CNH:</strong> {formatDateDDMMYYYY(motorista.cnhDataValidade)}</div>
             </CardContent>
           </Card>
         </div>

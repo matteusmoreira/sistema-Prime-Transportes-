@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useCpfValidation } from '@/hooks/useCpfValidation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { formatDateDDMMYYYY } from '@/utils/format';
 
 interface DocumentoUpload {
   id: string;
@@ -468,7 +469,7 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
             </div>
             <div>
               <div className="text-sm text-muted-foreground">Validade CNH</div>
-              <div className="font-medium">{formData.cnhDataValidade || '-'}</div>
+              <div className="font-medium">{formatDateDDMMYYYY(formData.cnhDataValidade) || '-'}</div>
             </div>
           </div>
 

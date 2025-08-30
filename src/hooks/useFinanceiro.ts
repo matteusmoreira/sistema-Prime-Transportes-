@@ -86,6 +86,7 @@ export const useFinanceiro = () => {
         projeto: corrida.projeto,
         motivo: corrida.motivo,
         horaInicio: (corrida as any).horaInicio || (corrida as any).horaSaida,
+        horaFim: (corrida as any).horaFim || (corrida as any).horaChegada || (corrida as any).hora_chegada,
         tipoAbrangencia: (corrida as any).tipoAbrangencia,
         kmInicial: corrida.kmInicial,
         kmFinal: corrida.kmFinal,
@@ -229,21 +230,38 @@ export const useFinanceiro = () => {
     toast.success('Corrida enviada para revisão!');
   };
 
+  // Utilitários de data para estatísticas mensais
+  const parseDateFromString = (s?: string): Date | null => {
+    if (!s) return null;
+    // Tenta parse nativo (ISO, RFC, etc.)
+    const native = new Date(s);
+    if (!isNaN(native.getTime())) return native;
+    // Tenta DD/MM/YYYY
+    const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (m) {
+      const [_, dd, mm, yyyy] = m;
+      const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+      return isNaN(d.getTime()) ? null : d;
+    }
+    return null;
+  };
+
+  const isSameMonth = (d: Date | null, ref: Date) => {
+    if (!d) return false;
+    return d.getMonth() === ref.getMonth() && d.getFullYear() === ref.getFullYear();
+  };
+
   const getStats = () => {
     const now = new Date();
-    const month = now.getMonth();
-    const year = now.getFullYear();
 
     const pendingCount = corridas.filter(c => c.status === 'Aguardando Conferência').length;
-    const approvedCount = corridas.filter(c => c.status === 'Aprovada').length;
-    const rejectedCount = corridas.filter(c => c.status === 'Revisar').length;
+
+    // Contagens mensais para refletir o rótulo "Este mês"
+    const approvedCount = corridas.filter(c => c.status === 'Aprovada' && isSameMonth(parseDateFromString(c.dataServico), now)).length;
+    const rejectedCount = corridas.filter(c => c.status === 'Revisar' && isSameMonth(parseDateFromString(c.dataServico), now)).length;
 
     const totalValue = corridas
-      .filter(c => c.status === 'Aprovada' && c.dataServico)
-      .filter(c => {
-        const d = new Date(c.dataServico);
-        return d.getMonth() === month && d.getFullYear() === year;
-      })
+      .filter(c => c.status === 'Aprovada' && isSameMonth(parseDateFromString(c.dataServico), now))
       .reduce((sum, c) => sum + (c.valor ?? 0), 0);
 
     return { pendingCount, approvedCount, rejectedCount, totalValue };

@@ -63,21 +63,21 @@ export const CorridasTable = ({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Aguardando Conferência':
-        return <Badge className="bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200">{status}</Badge>;
+        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-sky-50 text-sky-700">{status}</Badge>;
       case 'Em Análise':
-        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200">{status}</Badge>;
+        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-amber-50 text-amber-700">{status}</Badge>;
       case 'Aprovada':
-        return <Badge className="bg-green-100 text-green-800 border-green-300 hover:bg-green-200">{status}</Badge>;
+        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-emerald-50 text-emerald-700">{status}</Badge>;
       case 'Revisar':
-        return <Badge className="bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200">{status}</Badge>;
+        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-sky-50 text-sky-700">{status}</Badge>;
       case 'Cancelada':
-        return <Badge className="bg-red-100 text-red-800 border-red-300 hover:bg-red-200">{status}</Badge>;
+        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-rose-50 text-rose-700">{status}</Badge>;
       case 'No Show':
-        return <Badge className="bg-green-700 text-white border-green-700 hover:bg-green-800">{status}</Badge>;
+        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-zinc-800 text-white">{status}</Badge>;
       case 'Selecionar Motorista':
-        return <Badge className="bg-red-100 text-red-800 border-red-300 hover:bg-red-200">{status}</Badge>;
+        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-rose-50 text-rose-700">{status}</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border bg-gray-50 text-gray-700 border-gray-200">{status}</Badge>;
     }
   };
 
@@ -139,9 +139,7 @@ export const CorridasTable = ({
                   <div className="flex flex-col">
                     {getStatusBadge(corrida.status)}
                     {corrida.preenchidoPorFinanceiro && (
-                      <Badge variant="outline" className="mt-1 text-xs bg-blue-50 text-blue-700 border-blue-300">
-                        Conferenciado pelo Financeiro
-                      </Badge>
+                      <Badge variant="outline" className="mt-1 px-1.5 py-0 text-[10px] rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">Conferenciado pelo Financeiro</Badge>
                     )}
                   </div>
                 </TableCell>
@@ -194,9 +192,7 @@ export const CorridasTable = ({
                 <div className="flex flex-col">
                   {getStatusBadge(corrida.status)}
                   {corrida.preenchidoPorFinanceiro && (
-                    <Badge variant="outline" className="mt-1 text-xs bg-blue-50 text-blue-700 border-blue-300">
-                      Conferenciado pelo Financeiro
-                    </Badge>
+                    <Badge variant="outline" className="mt-1 px-1.5 py-0 text-[10px] rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">Conferenciado pelo Financeiro</Badge>
                   )}
                 </div>
               </TableCell>

@@ -83,6 +83,7 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
         projeto: data.projeto,
         motivo: data.motivo,
         horaInicio: data.hora_inicio || data.hora_saida,
+        horaFim: data.hora_fim || data.hora_chegada,
         tipoAbrangencia: data.tipo_abrangencia,
         kmInicial: data.km_inicial,
         kmFinal: data.km_final,
