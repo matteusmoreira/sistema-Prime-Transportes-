@@ -16,7 +16,7 @@ export const EmpresaTable = ({ empresas, onEdit, onDelete }: EmpresaTableProps) 
       <TableHeader>
         <TableRow>
           <TableHead>Nome</TableHead>
-          <TableHead>Centro de custo</TableHead>
+          {/* Removido: <TableHead>Centro de custo</TableHead> */}
           <TableHead>CNPJ</TableHead>
           <TableHead>Telefone</TableHead>
           <TableHead>E-mail</TableHead>
@@ -27,7 +27,7 @@ export const EmpresaTable = ({ empresas, onEdit, onDelete }: EmpresaTableProps) 
         {empresas.map((empresa) => (
           <TableRow key={empresa.id}>
             <TableCell className="font-medium">{empresa.nome}</TableCell>
-            <TableCell>{empresa.centroCusto}</TableCell>
+            {/* Removido: <TableCell>{empresa.centroCusto}</TableCell> */}
             <TableCell>{empresa.cnpj}</TableCell>
             <TableCell>{empresa.telefone}</TableCell>
             <TableCell>{empresa.email}</TableCell>
