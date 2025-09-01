@@ -58,13 +58,13 @@ const { corridas } = useCorridas();
 const empresas = useMemo(() => {
   const set = new Set<string>();
   corridas.forEach(c => { if (c.empresa) set.add(c.empresa); });
-  return ['Todas', ...Array.from(set)];
+  return Array.from(set);
 }, [corridas]);
 
 const motoristas = useMemo(() => {
   const set = new Set<string>();
   corridas.forEach(c => { if (c.motorista) set.add(c.motorista); });
-  return ['Todos', ...Array.from(set)];
+  return Array.from(set);
 }, [corridas]);
 
 const filteredCorridas: Corrida[] = useMemo(() => {
@@ -74,8 +74,8 @@ const filteredCorridas: Corrida[] = useMemo(() => {
   return corridas.filter(c => {
     const dataServ = new Date(c.dataServico || c.data);
     const inDate = (!start || dataServ >= start) && (!end || dataServ <= end!);
-    const inEmpresa = !filtros.empresa || filtros.empresa === 'Todas' || c.empresa === filtros.empresa;
-    const inMotorista = !filtros.motorista || filtros.motorista === 'Todos' || c.motorista === filtros.motorista;
+    const inEmpresa = !filtros.empresa || c.empresa === filtros.empresa;
+    const inMotorista = !filtros.motorista || c.motorista === filtros.motorista;
     return inDate && inEmpresa && inMotorista;
   });
 }, [corridas, filtros]);
@@ -243,11 +243,12 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel' | 'pdf') =>
             </div>
             <div className="space-y-2">
               <Label>Empresa</Label>
-              <Select value={filtros.empresa} onValueChange={(value) => setFiltros(prev => ({ ...prev, empresa: value }))}>
+              <Select value={filtros.empresa || 'all'} onValueChange={(value) => setFiltros(prev => ({ ...prev, empresa: value === 'all' ? '' : value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma empresa" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
                   {empresas.map((empresa) => (
                     <SelectItem key={empresa} value={empresa}>{empresa}</SelectItem>
                   ))}
@@ -258,11 +259,12 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel' | 'pdf') =>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div className="space-y-2">
               <Label>Motorista</Label>
-              <Select value={filtros.motorista} onValueChange={(value) => setFiltros(prev => ({ ...prev, motorista: value }))}>
+              <Select value={filtros.motorista || 'all'} onValueChange={(value) => setFiltros(prev => ({ ...prev, motorista: value === 'all' ? '' : value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um motorista" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
                   {motoristas.map((motorista) => (
                     <SelectItem key={motorista} value={motorista}>{motorista}</SelectItem>
                   ))}

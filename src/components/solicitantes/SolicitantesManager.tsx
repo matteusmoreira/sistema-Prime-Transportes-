@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -8,6 +8,8 @@ import { useEmpresas } from '@/hooks/useEmpresas';
 import { SolicitanteForm } from './form/SolicitanteForm';
 import { SolicitanteTable } from './table/SolicitanteTable';
 import { toast } from 'sonner';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export const SolicitantesManager = () => {
   const { solicitantes, addSolicitante, updateSolicitante, deleteSolicitante } = useSolicitantes();
@@ -22,6 +24,7 @@ export const SolicitantesManager = () => {
     telefone: '',
     cargo: ''
   });
+  const [filtroEmpresaId, setFiltroEmpresaId] = useState<string>('');
 
   const resetForm = () => {
     setFormData({
@@ -84,6 +87,14 @@ export const SolicitantesManager = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const solicitantesFiltrados = useMemo(() => {
+    if (!filtroEmpresaId) return solicitantes;
+    const id = parseInt(filtroEmpresaId);
+    const filtrados = solicitantes.filter(s => s.empresaId === id);
+    console.debug('[Solicitantes] Aplicando filtro por empresa:', { filtroEmpresaId: id, total: filtrados.length });
+    return filtrados;
+  }, [solicitantes, filtroEmpresaId]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -114,14 +125,34 @@ export const SolicitantesManager = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Users className="h-5 w-5" />
-            <span>Lista de Solicitantes ({solicitantes.length})</span>
-          </CardTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardTitle className="flex items-center space-x-2">
+              <Users className="h-5 w-5" />
+              <span>Lista de Solicitantes ({solicitantesFiltrados.length})</span>
+            </CardTitle>
+            <div className="w-full sm:w-auto">
+              <div className="space-y-2">
+                <Label>Filtrar por empresa</Label>
+                <Select value={filtroEmpresaId || 'all'} onValueChange={(v) => setFiltroEmpresaId(v === 'all' ? '' : v)}>
+                  <SelectTrigger className="w-full sm:w-[260px]">
+                    <SelectValue placeholder="Todas as empresas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    {empresas.map((empresa) => (
+                      <SelectItem key={empresa.id} value={String(empresa.id)}>
+                        {empresa.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <SolicitanteTable
-            solicitantes={solicitantes}
+            solicitantes={solicitantesFiltrados}
             onEdit={handleEdit}
             onDelete={deleteSolicitante}
           />

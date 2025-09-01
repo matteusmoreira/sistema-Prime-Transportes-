@@ -1,0 +1,96 @@
+chunk-W6L2VRDA.js?v=61bf4407:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+@radix-ui_react-select.js?v=61bf4407:868 Uncaught Error: A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder.
+    at @radix-ui_react-select.js?v=61bf4407:868:13
+    at renderWithHooks (chunk-W6L2VRDA.js?v=61bf4407:11548:26)
+    at updateForwardRef (chunk-W6L2VRDA.js?v=61bf4407:14325:28)
+    at beginWork (chunk-W6L2VRDA.js?v=61bf4407:15946:22)
+    at HTMLUnknownElement.callCallback2 (chunk-W6L2VRDA.js?v=61bf4407:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-W6L2VRDA.js?v=61bf4407:3699:24)
+    at invokeGuardedCallback (chunk-W6L2VRDA.js?v=61bf4407:3733:39)
+    at beginWork$1 (chunk-W6L2VRDA.js?v=61bf4407:19765:15)
+    at performUnitOfWork (chunk-W6L2VRDA.js?v=61bf4407:19198:20)
+    at workLoopSync (chunk-W6L2VRDA.js?v=61bf4407:19137:13)
+@radix-ui_react-select.js?v=61bf4407:868 Uncaught Error: A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder.
+    at @radix-ui_react-select.js?v=61bf4407:868:13
+    at renderWithHooks (chunk-W6L2VRDA.js?v=61bf4407:11548:26)
+    at updateForwardRef (chunk-W6L2VRDA.js?v=61bf4407:14325:28)
+    at beginWork (chunk-W6L2VRDA.js?v=61bf4407:15946:22)
+    at HTMLUnknownElement.callCallback2 (chunk-W6L2VRDA.js?v=61bf4407:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-W6L2VRDA.js?v=61bf4407:3699:24)
+    at invokeGuardedCallback (chunk-W6L2VRDA.js?v=61bf4407:3733:39)
+    at beginWork$1 (chunk-W6L2VRDA.js?v=61bf4407:19765:15)
+    at performUnitOfWork (chunk-W6L2VRDA.js?v=61bf4407:19198:20)
+    at workLoopSync (chunk-W6L2VRDA.js?v=61bf4407:19137:13)
+chunk-W6L2VRDA.js?v=61bf4407:14032 The above error occurred in the <SelectItem> component:
+
+    at http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-select.js?v=61bf4407:841:7
+    at _c8 (http://localhost:8080/src/components/ui/select.tsx:223:60)
+    at div
+    at http://localhost:8080/node_modules/.vite/deps/chunk-FKPFFM3I.js?v=61bf4407:41:13
+    at http://localhost:8080/node_modules/.vite/deps/chunk-QJJ7OGIJ.js?v=61bf4407:52:11
+    at http://localhost:8080/node_modules/.vite/deps/chunk-QJJ7OGIJ.js?v=61bf4407:33:11
+    at http://localhost:8080/node_modules/.vite/deps/chunk-VBIYPK3A.js?v=61bf4407:98:15
+    at http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-select.js?v=61bf4407:752:13
+    at div
+    at http://localhost:8080/node_modules/.vite/deps/chunk-QJJ7OGIJ.js?v=61bf4407:52:11
+    at http://localhost:8080/node_modules/.vite/deps/chunk-QJJ7OGIJ.js?v=61bf4407:33:11
+    at http://localhost:8080/node_modules/.vite/deps/chunk-VBIYPK3A.js?v=61bf4407:98:15
+    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-NJOPR2ZS.js?v=61bf4407:38:15)
+    at http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-select.js?v=61bf4407:296:58
+    at http://localhost:8080/node_modules/.vite/deps/chunk-QJJ7OGIJ.js?v=61bf4407:52:11
+    at http://localhost:8080/node_modules/.vite/deps/chunk-QJJ7OGIJ.js?v=61bf4407:33:11
+    at http://localhost:8080/node_modules/.vite/deps/chunk-FKPFFM3I.js?v=61bf4407:41:13
+    at http://localhost:8080/node_modules/.vite/deps/chunk-ZYT4VBTG.js?v=61bf4407:258:22
+    at SelectPortal
+    at _c4 (http://localhost:8080/src/components/ui/select.tsx:130:63)
+    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-NJOPR2ZS.js?v=61bf4407:38:15)
+    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-VBIYPK3A.js?v=61bf4407:28:15)
+    at CollectionProvider (http://localhost:8080/node_modules/.vite/deps/chunk-VBIYPK3A.js?v=61bf4407:89:13)
+    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-NJOPR2ZS.js?v=61bf4407:38:15)
+    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-5XDWWDQL.js?v=61bf4407:1905:15)
+    at Popper (http://localhost:8080/node_modules/.vite/deps/chunk-5XDWWDQL.js?v=61bf4407:1962:11)
+    at Select (http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-select.js?v=61bf4407:84:5)
+    at div
+    at div
+    at div
+    at div
+    at _c2 (http://localhost:8080/src/components/ui/card.tsx:30:60)
+    at div
+    at _c (http://localhost:8080/src/components/ui/card.tsx:12:53)
+    at div
+    at SolicitantesManager (http://localhost:8080/src/components/solicitantes/SolicitantesManager.tsx:25:84)
+    at main
+    at div
+    at div
+    at Dashboard (http://localhost:8080/src/components/dashboard/Dashboard.tsx:28:29)
+    at Index (http://localhost:8080/src/pages/Index.tsx:19:49)
+    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=61bf4407:4069:5)
+    at Routes (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=61bf4407:4508:5)
+    at Router (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=61bf4407:4451:15)
+    at BrowserRouter (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=61bf4407:5196:5)
+    at AppContent (http://localhost:8080/src/App.tsx?t=1756734236624:29:5)
+    at ErrorBoundary (http://localhost:8080/src/components/common/ErrorBoundary.tsx:145:9)
+    at NotificacoesProvider (http://localhost:8080/src/contexts/NotificacoesContext.tsx:15:40)
+    at AlertasProvider (http://localhost:8080/src/contexts/AlertasContext.tsx:15:35)
+    at CorridasProvider (http://localhost:8080/src/contexts/CorridasContext.tsx:17:36)
+    at EmpresasProvider (http://localhost:8080/src/contexts/EmpresasContext.tsx:16:36)
+    at AuthProvider (http://localhost:8080/src/contexts/AuthContext.tsx:23:32)
+    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-NJOPR2ZS.js?v=61bf4407:38:15)
+    at TooltipProvider (http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=61bf4407:61:5)
+    at QueryClientProvider (http://localhost:8080/node_modules/.vite/deps/@tanstack_react-query.js?v=61bf4407:2794:3)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+logCapturedError @ chunk-W6L2VRDA.js?v=61bf4407:14032
+ErrorBoundary.tsx:17 [ErrorBoundary] Capturado erro na UI: Error: A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder.
+    at @radix-ui_react-select.js?v=61bf4407:868:13
+    at renderWithHooks (chunk-W6L2VRDA.js?v=61bf4407:11548:26)
+    at updateForwardRef (chunk-W6L2VRDA.js?v=61bf4407:14325:28)
+    at beginWork (chunk-W6L2VRDA.js?v=61bf4407:15946:22)
+    at beginWork$1 (chunk-W6L2VRDA.js?v=61bf4407:19753:22)
+    at performUnitOfWork (chunk-W6L2VRDA.js?v=61bf4407:19198:20)
+    at workLoopSync (chunk-W6L2VRDA.js?v=61bf4407:19137:13)
+    at renderRootSync (chunk-W6L2VRDA.js?v=61bf4407:19116:15)
+    at recoverFromConcurrentError (chunk-W6L2VRDA.js?v=61bf4407:18736:28)
+    at performSyncWorkOnRoot (chunk-W6L2VRDA.js?v=61bf4407:18879:28) Object
+componentDidCatch @ ErrorBoundary.tsx:17

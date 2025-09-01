@@ -42,10 +42,10 @@ export const useSolicitantes = () => {
 
       const solicitantesFormatted = data?.map(solicitante => ({
         id: solicitante.id,
-        nome: solicitante.nome,
+        nome: solicitante.nome || '',
         empresaId: solicitante.empresa_id || 0,
         empresaNome: (solicitante.empresas as any)?.nome || '',
-        email: solicitante.email,
+        email: solicitante.email || '',
         telefone: solicitante.telefone || '',
         cargo: ''
       })) || [];
@@ -94,10 +94,10 @@ export const useSolicitantes = () => {
 
       const novoSolicitante: Solicitante = {
         id: data.id,
-        nome: data.nome,
+        nome: data.nome || '',
         empresaId: data.empresa_id,
         empresaNome: empresaNome,
-        email: data.email,
+        email: data.email || '',
         telefone: data.telefone || '',
         cargo: ''
       };
@@ -139,10 +139,10 @@ export const useSolicitantes = () => {
 
       const solicitanteAtualizado: Solicitante = {
         id: data.id,
-        nome: data.nome,
+        nome: data.nome || '',
         empresaId: data.empresa_id,
         empresaNome: empresaNome,
-        email: data.email,
+        email: data.email || '',
         telefone: data.telefone || '',
         cargo: ''
       };
