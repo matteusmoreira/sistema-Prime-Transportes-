@@ -10,6 +10,8 @@ import { useCorridasLogic } from '@/hooks/useCorridasLogic';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMotoristas } from '@/hooks/useMotoristas';
+import { CorridasFilters } from './CorridasFilters';
 
 interface CorridasManagerProps {
   userLevel?: string;
@@ -50,7 +52,7 @@ export const CorridasManager = ({
     selectMotorista
   } = useCorridasLogic(userLevel, userEmail);
 
-  // Filtro por mês
+  // Filtro por mês (existente)
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
   const corridasPorMes = (selectedMonth === 'all')
     ? corridasFiltradas
@@ -61,6 +63,51 @@ export const CorridasManager = ({
         if (isNaN(d.getTime())) return false;
         return String(d.getMonth() + 1) === selectedMonth;
       });
+
+  // Novos filtros: Data, Motorista, Nº OS
+  const { motoristas } = useMotoristas();
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [selectedMotorista, setSelectedMotorista] = useState<string>('all');
+  const [numeroOS, setNumeroOS] = useState<string>('');
+
+  const applyDateFilter = (list: any[]) => {
+    if (!startDate && !endDate) return list;
+    return list.filter((c: any) => {
+      const raw = c?.dataServico || c?.data;
+      if (!raw) return false;
+      const d = new Date(raw);
+      if (isNaN(d.getTime())) return false;
+      if (startDate) {
+        const s = new Date(startDate);
+        if (d < s) return false;
+      }
+      if (endDate) {
+        const e = new Date(endDate);
+        // incluir o dia final inteiro
+        e.setHours(23,59,59,999);
+        if (d > e) return false;
+      }
+      return true;
+    });
+  };
+
+  const applyMotoristaFilter = (list: any[]) => {
+    if (!selectedMotorista || selectedMotorista === 'all') return list;
+    return list.filter((c: any) => (c?.motorista || '') === selectedMotorista);
+  };
+
+  const applyNumeroOSFilter = (list: any[]) => {
+    if (!numeroOS) return list;
+    const query = numeroOS.toLowerCase();
+    return list.filter((c: any) => String(c?.numeroOS ?? '').toLowerCase().includes(query));
+  };
+
+  const corridasFiltradasFinal = applyNumeroOSFilter(
+    applyMotoristaFilter(
+      applyDateFilter(corridasPorMes)
+    )
+  );
 
   const handleEditClick = (corrida: any) => {
     if (handleEdit(corrida)) {
@@ -104,6 +151,14 @@ export const CorridasManager = ({
     closeDialog();
   };
 
+  const clearAllFilters = () => {
+    setStartDate('');
+    setEndDate('');
+    setSelectedMotorista('all');
+    setNumeroOS('');
+    // manter filtro por mês como está
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -129,7 +184,7 @@ export const CorridasManager = ({
           <div className="flex items-center justify-between gap-4">
             <CardTitle className="flex items-center space-x-2">
               <Route className="h-5 w-5" />
-              <span>Lista de Corridas ({corridasPorMes.length})</span>
+              <span>Lista de Corridas ({corridasFiltradasFinal.length})</span>
             </CardTitle>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Mês:</span>
@@ -157,8 +212,21 @@ export const CorridasManager = ({
           </div>
         </CardHeader>
         <CardContent>
+          <CorridasFilters
+            startDate={startDate}
+            endDate={endDate}
+            motorista={selectedMotorista}
+            numeroOS={numeroOS}
+            motoristas={motoristas.map(m => ({ id: m.id, nome: m.nome }))}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            onMotoristaChange={setSelectedMotorista}
+            onNumeroOSChange={setNumeroOS}
+            onClear={clearAllFilters}
+          />
+          {/* Tabela */}
           <CorridasTable
-            corridas={corridasPorMes}
+            corridas={corridasFiltradasFinal}
             userLevel={userLevel}
             userEmail={userEmail}
             onView={openViewDialog}
