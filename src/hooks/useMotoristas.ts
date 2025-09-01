@@ -232,8 +232,9 @@ export const useMotoristas = () => {
              if (arquivo instanceof File) {
                const sanitizedName = sanitizeFileName(arquivo.name);
                const fileName = `${motoristaId}-${Date.now()}-${sanitizedName}`;
+               const storagePath = `${motoristaId}/${fileName}`;
                // Removido log de debug de upload de documento
-               await uploadFile(arquivo, 'motorista-documentos', fileName);
+               await uploadFile(arquivo, 'motorista-documentos', storagePath);
                
                // Salvar referência no banco
                const { error: docError } = await supabase
@@ -242,7 +243,7 @@ export const useMotoristas = () => {
                    motorista_id: motoristaId,
                    nome: doc.nome,
                    tipo: doc.descricao,
-                   url: fileName
+                   url: storagePath
                  });
 
                if (!docError) {
@@ -250,7 +251,7 @@ export const useMotoristas = () => {
                    id: doc.id,
                    nome: doc.nome,
                    descricao: doc.descricao,
-                   arquivo: fileName,
+                   arquivo: storagePath,
                    dataUpload: new Date().toISOString().split('T')[0]
                  });
                }
@@ -270,8 +271,9 @@ export const useMotoristas = () => {
              if (arquivo instanceof File) {
                const sanitizedName = sanitizeFileName(arquivo.name);
                const fileName = `${motoristaId}-${Date.now()}-${sanitizedName}`;
+               const storagePath = `${motoristaId}/${fileName}`;
                // Removido log de debug de upload de foto
-               await uploadFile(arquivo, 'motorista-fotos', fileName);
+               await uploadFile(arquivo, 'motorista-fotos', storagePath);
                
                // Salvar referência no banco
                const { error: fotoError } = await supabase
@@ -280,7 +282,7 @@ export const useMotoristas = () => {
                    motorista_id: motoristaId,
                    nome: foto.nome,
                    nome_original: arquivo.name,
-                   url: fileName,
+                   url: storagePath,
                    tamanho: foto.tamanho
                  });
 
@@ -288,7 +290,7 @@ export const useMotoristas = () => {
                  fotosUploadadas.push({
                    id: foto.id,
                    nome: foto.nome,
-                   arquivo: fileName,
+                   arquivo: storagePath,
                    tamanho: foto.tamanho,
                    dataUpload: new Date().toISOString().split('T')[0]
                  });
@@ -357,7 +359,8 @@ export const useMotoristas = () => {
             try {
               const sanitizedName = sanitizeFileName(arquivo.name);
               const fileName = `${id}-${Date.now()}-${sanitizedName}`;
-              await uploadFile(arquivo, 'motorista-documentos', fileName);
+              const storagePath = `${id}/${fileName}`;
+              await uploadFile(arquivo, 'motorista-documentos', storagePath);
               
               // Salvar referência no banco
               await supabase
@@ -366,7 +369,7 @@ export const useMotoristas = () => {
                   motorista_id: id,
                   nome: doc.nome,
                   tipo: doc.descricao,
-                  url: fileName
+                  url: storagePath
                 });
             } catch (uploadError) {
               console.error('Erro ao fazer upload do documento:', uploadError);
@@ -383,7 +386,8 @@ export const useMotoristas = () => {
             try {
               const sanitizedName = sanitizeFileName(arquivo.name);
               const fileName = `${id}-${Date.now()}-${sanitizedName}`;
-              await uploadFile(arquivo, 'motorista-fotos', fileName);
+              const storagePath = `${id}/${fileName}`;
+              await uploadFile(arquivo, 'motorista-fotos', storagePath);
               
               // Salvar referência no banco
               await supabase
@@ -391,7 +395,9 @@ export const useMotoristas = () => {
                 .insert({
                   motorista_id: id,
                   nome: foto.nome,
-                  url: fileName
+                  nome_original: arquivo.name,
+                  url: storagePath,
+                  tamanho: (foto as any).tamanho ?? arquivo.size
                 });
             } catch (uploadError) {
               console.error('Erro ao fazer upload da foto:', uploadError);
@@ -462,13 +468,12 @@ export const useMotoristas = () => {
       if (documentos && documentos.length > 0) {
         for (const doc of documentos) {
           try {
-            const filePath = doc.url.split('/').pop();
-            if (filePath) {
+            // Remover diretamente pelo path salvo em url, cobrindo arquivos na raiz e em subpastas
+            if (doc.url) {
               await supabase.storage
                 .from('motorista-documentos')
-                .remove([`${id}/${filePath}`]);
-              // Removido log informativo: documento removido do storage
-             }
+                .remove([doc.url]);
+            }
            } catch (storageError) {
              // console.warn('Erro ao remover documento do storage:', storageError);
            }
@@ -479,13 +484,11 @@ export const useMotoristas = () => {
       if (fotos && fotos.length > 0) {
         for (const foto of fotos) {
           try {
-            const filePath = foto.url.split('/').pop();
-            if (filePath) {
+            if (foto.url) {
               await supabase.storage
                 .from('motorista-fotos')
-                .remove([`${id}/${filePath}`]);
-              // console.warn('Erro ao remover foto do storage:', storageError);
-             }
+                .remove([foto.url]);
+            }
            } catch (storageError) {
              // console.warn('Erro ao remover foto do storage:', storageError);
            }
@@ -582,6 +585,34 @@ export const useMotoristas = () => {
     return motoristas.find(m => m.email === email);
   };
 
+  // Exclusão individual de documento
+  const deleteDocumento = async (docId: number, url: string) => {
+    try {
+      if (url) {
+        await supabase.storage.from('motorista-documentos').remove([url]);
+      }
+      await supabase.from('motorista_documentos').delete().eq('id', docId);
+      toast.success('Documento excluído com sucesso');
+    } catch (error) {
+      console.error('Erro ao excluir documento:', error);
+      toast.error('Não foi possível excluir o documento');
+    }
+  };
+
+  // Exclusão individual de foto
+  const deleteFoto = async (fotoId: number, url: string) => {
+    try {
+      if (url) {
+        await supabase.storage.from('motorista-fotos').remove([url]);
+      }
+      await supabase.from('motorista_fotos').delete().eq('id', fotoId);
+      toast.success('Foto excluída com sucesso');
+    } catch (error) {
+      console.error('Erro ao excluir foto:', error);
+      toast.error('Não foi possível excluir a foto');
+    }
+  };
+
   return {
     motoristas,
     loading,
@@ -591,6 +622,8 @@ export const useMotoristas = () => {
     approveMotorista,
     rejectMotorista,
     getMotoristaByEmail,
-    loadMotoristas
+    loadMotoristas,
+    deleteDocumento,
+    deleteFoto
   };
 };

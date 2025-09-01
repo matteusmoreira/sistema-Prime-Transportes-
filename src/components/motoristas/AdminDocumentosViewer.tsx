@@ -3,11 +3,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FileText, Download, Calendar, Image, Eye, CheckCircle, XCircle } from 'lucide-react';
+import { FileText, Download, Calendar, Image, Eye, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import { useMotoristas, Motorista } from '@/hooks/useMotoristas';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { formatDateDDMMYYYY } from '@/utils/format';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog';
 
 interface AdminDocumentosViewerProps {
   motorista: Motorista;
@@ -45,6 +56,45 @@ export const AdminDocumentosViewer = ({
   const [fotos, setFotos] = useState<FotoBanco[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { deleteDocumento, deleteFoto } = useMotoristas();
+  const [docImagePreviews, setDocImagePreviews] = useState<Record<number, string>>({});
+  const [expandedDocIds, setExpandedDocIds] = useState<Set<number>>(new Set());
+
+  const isImagePath = (path: string) => {
+    const ext = path.split('.').pop()?.toLowerCase();
+    return !!ext && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext);
+  };
+
+  const handleToggleDocPreview = async (documento: DocumentoBanco) => {
+    if (!isImagePath(documento.url)) {
+      toast({
+        title: 'Pré-visualização indisponível',
+        description: 'Este documento não é uma imagem.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    try {
+      if (!docImagePreviews[documento.id]) {
+        const { data } = await supabase.storage
+          .from('motorista-documentos')
+          .getPublicUrl(documento.url);
+        setDocImagePreviews(prev => ({ ...prev, [documento.id]: data.publicUrl }));
+      }
+      setExpandedDocIds(prev => {
+        const s = new Set(prev);
+        if (s.has(documento.id)) s.delete(documento.id); else s.add(documento.id);
+        return s;
+      });
+    } catch (error) {
+      console.error('Erro ao gerar preview:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível gerar a pré-visualização',
+        variant: 'destructive'
+      });
+    }
+  };
 
   useEffect(() => {
     if (open && motorista) {
@@ -223,6 +273,58 @@ export const AdminDocumentosViewer = ({
                         <Download className="h-4 w-4 mr-2" />
                         Baixar
                       </Button>
+                      {isImagePath(documento.url) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full mt-2"
+                          onClick={() => handleToggleDocPreview(documento)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver
+                        </Button>
+                      )}
+                      {expandedDocIds.has(documento.id) && docImagePreviews[documento.id] && (
+                        <div className="mt-2 rounded-md border overflow-hidden">
+                          <img
+                            src={docImagePreviews[documento.id]}
+                            alt={documento.nome}
+                            className="w-full h-auto"
+                          />
+                        </div>
+                      )}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="w-full mt-2"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir documento?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta ação não pode ser desfeita. O arquivo será removido do armazenamento e do banco de dados.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={async () => {
+                                await deleteDocumento(documento.id, documento.url);
+                                toast({ title: 'Excluído', description: 'Documento removido com sucesso.' });
+                                await loadDocumentos();
+                              }}
+                            >
+                              Confirmar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </CardContent>
                   </Card>
                 ))}
@@ -262,8 +364,40 @@ export const AdminDocumentosViewer = ({
                         className="w-full"
                       >
                         <Eye className="h-4 w-4 mr-2" />
-                        Visualizar
+                        Ver
                       </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="w-full mt-2"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir foto?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta ação não pode ser desfeita. O arquivo será removido do armazenamento e do banco de dados.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={async () => {
+                                await deleteFoto(foto.id, foto.url);
+                                toast({ title: 'Excluída', description: 'Foto removida com sucesso.' });
+                                await loadDocumentos();
+                              }}
+                            >
+                              Confirmar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </CardContent>
                   </Card>
                 ))}

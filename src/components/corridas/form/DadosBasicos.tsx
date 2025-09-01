@@ -5,11 +5,14 @@ import { Input } from '@/components/ui/input';
 import { useEmpresas } from '@/hooks/useEmpresas';
 import { useSolicitantes } from '@/hooks/useSolicitantes';
 import { useMotoristas } from '@/hooks/useMotoristas';
+import { useMemo } from 'react';
 
 interface DadosBasicosProps {
   formData: {
     empresa: string;
+    empresaId?: string;
     solicitante: string;
+    solicitanteId?: string;
     motorista: string;
     centroCusto: string;
   };
@@ -25,21 +28,62 @@ export const DadosBasicos = ({ formData, onFormChange, readOnly = false }: Dados
   // Filtrar apenas motoristas aprovados
   const motoristasAprovados = motoristas.filter(motorista => motorista.status === 'Aprovado');
 
-  // console.log('=== DEBUG DadosBasicos ===');
-  // console.log('Motoristas disponíveis:', motoristas);
-  // console.log('Motoristas aprovados:', motoristasAprovados);
-  // console.log('Motorista selecionado no form:', formData.motorista);
-  // console.log('Centro de custo atual:', formData.centroCusto);
-  // console.log('=== FIM DEBUG DadosBasicos ===');
+  // Empresa selecionada - buscar por ID primeiro, depois por nome (compatibilidade)
+  const empresaSelecionada = useMemo(() => {
+    if (formData.empresaId) {
+      // Buscar por ID (novo formato)
+      return empresas.find(e => String(e.id) === String(formData.empresaId));
+    } else if (formData.empresa) {
+      // Buscar por nome (compatibilidade com formato antigo)
+      return empresas.find(e => e.nome === formData.empresa);
+    }
+    return undefined;
+  }, [empresas, formData.empresaId, formData.empresa]);
+
+  // Solicitante selecionado - buscar por ID primeiro, depois por nome
+  const solicitanteSelecionado = useMemo(() => {
+    if (formData.solicitanteId) {
+      return solicitantes.find(s => String(s.id) === String(formData.solicitanteId));
+    } else if (formData.solicitante) {
+      return solicitantes.find(s => s.nome === formData.solicitante);
+    }
+    return undefined;
+  }, [solicitantes, formData.solicitanteId, formData.solicitante]);
+
+  // Solicitantes filtrados pela empresa selecionada
+  const solicitantesFiltrados = useMemo(() => {
+    if (!empresaSelecionada) return solicitantes;
+    return solicitantes.filter(s => s.empresaId === empresaSelecionada.id);
+  }, [solicitantes, empresaSelecionada]);
 
   const handleMotoristaChange = (value: string) => {
-    // Removido log informativo: motorista selecionado no select
-     onFormChange('motorista', value);
+    onFormChange('motorista', value);
   };
 
-  const handleEmpresaChange = (value: string) => {
-    // Removido log informativo: empresa selecionada
-     onFormChange('empresa', value);
+  const handleEmpresaChange = (empresaId: string) => {
+    const empresaEscolhida = empresas.find(e => String(e.id) === empresaId);
+    
+    if (empresaEscolhida) {
+      // Salvar tanto o ID quanto o nome para compatibilidade
+      onFormChange('empresaId', empresaId);
+      onFormChange('empresa', empresaEscolhida.nome);
+
+      // Resetar solicitante se não pertencer à nova empresa selecionada
+      if (solicitanteSelecionado && solicitanteSelecionado.empresaId !== empresaEscolhida.id) {
+        onFormChange('solicitante', '');
+        onFormChange('solicitanteId', '');
+      }
+    }
+  };
+
+  const handleSolicitanteChange = (solicitanteId: string) => {
+    const solicitanteEscolhido = solicitantes.find(s => String(s.id) === solicitanteId);
+    
+    if (solicitanteEscolhido) {
+      // Salvar tanto o ID quanto o nome para compatibilidade
+      onFormChange('solicitanteId', solicitanteId);
+      onFormChange('solicitante', solicitanteEscolhido.nome);
+    }
   };
 
   if (readOnly) {
@@ -48,11 +92,11 @@ export const DadosBasicos = ({ formData, onFormChange, readOnly = false }: Dados
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label>Empresa *</Label>
-            <Input value={formData.empresa} readOnly className="bg-gray-100" />
+            <Input value={empresaSelecionada?.nome || formData.empresa} readOnly className="bg-gray-100" />
           </div>
           <div className="space-y-2">
             <Label>Solicitante *</Label>
-            <Input value={formData.solicitante} readOnly className="bg-gray-100" />
+            <Input value={solicitanteSelecionado?.nome || formData.solicitante} readOnly className="bg-gray-100" />
           </div>
           <div className="space-y-2">
             <Label>Motorista</Label>
@@ -72,13 +116,16 @@ export const DadosBasicos = ({ formData, onFormChange, readOnly = false }: Dados
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label>Empresa *</Label>
-          <Select value={formData.empresa} onValueChange={handleEmpresaChange}>
+          <Select 
+            value={empresaSelecionada ? String(empresaSelecionada.id) : ''} 
+            onValueChange={handleEmpresaChange}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Selecione uma empresa" />
             </SelectTrigger>
             <SelectContent>
               {empresas.map(empresa => (
-                <SelectItem key={empresa.id} value={empresa.nome}>
+                <SelectItem key={empresa.id} value={String(empresa.id)}>
                   {empresa.nome}
                 </SelectItem>
               ))}
@@ -87,16 +134,26 @@ export const DadosBasicos = ({ formData, onFormChange, readOnly = false }: Dados
         </div>
         <div className="space-y-2">
           <Label>Solicitante *</Label>
-          <Select value={formData.solicitante} onValueChange={value => onFormChange('solicitante', value)}>
+          <Select
+            value={solicitanteSelecionado ? String(solicitanteSelecionado.id) : ''}
+            onValueChange={handleSolicitanteChange}
+            disabled={!empresaSelecionada && empresas.length > 0}
+          >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione um solicitante" />
+              <SelectValue placeholder={empresaSelecionada ? 'Selecione um solicitante' : 'Selecione uma empresa primeiro'} />
             </SelectTrigger>
             <SelectContent>
-              {solicitantes.map(solicitante => (
-                <SelectItem key={solicitante.id} value={solicitante.nome}>
-                  {solicitante.nome}
+              {solicitantesFiltrados.length > 0 ? (
+                solicitantesFiltrados.map(solicitante => (
+                  <SelectItem key={solicitante.id} value={String(solicitante.id)}>
+                    {solicitante.nome}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-solicitante" disabled>
+                  Nenhum solicitante encontrado para a empresa
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
         </div>

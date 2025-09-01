@@ -2,6 +2,7 @@
 import { useCorridas } from './useCorridas';
 import { useEmpresas } from '@/contexts/EmpresasContext';
 import { useMotoristas } from '@/hooks/useMotoristas';
+import { useSolicitantes } from '@/hooks/useSolicitantes';
 import { getCorridasByMotorista as getCorridasHelper } from '@/utils/corridaHelpers';
 import { toast } from 'sonner';
 
@@ -20,6 +21,7 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
 
   const { empresas } = useEmpresas();
   const { motoristas } = useMotoristas();
+  const { solicitantes } = useSolicitantes();
 
   const handleEdit = (corrida: any) => {
     if (userLevel === 'Motorista' && corrida.status !== 'Aguardando Conferência') {
@@ -37,12 +39,30 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
     return true;
   };
 
-  const processFormData = (formData: any, documentos: any, empresas: any[], motoristas: any[]) => {
-    // Removidos logs de debug do processamento de formulário
+  const processFormData = (formData: any, documentos: any, empresas: any[], motoristas: any[], solicitantes: any[]) => {
+    // Buscar empresa - usar empresaId se disponível, senão buscar por nome
+    let empresa = null;
+    let empresaId = null;
     
-    // Buscar empresa para obter o ID
-    const empresa = empresas.find((e: any) => e.nome === formData.empresa);
-    const empresaId = empresa ? empresa.id : 1;
+    if (formData.empresaId) {
+      // Novo formato - usar ID
+      empresaId = parseInt(formData.empresaId);
+      empresa = empresas.find((e: any) => e.id === empresaId);
+    } else if (formData.empresa) {
+      // Compatibilidade - buscar por nome
+      empresa = empresas.find((e: any) => e.nome === formData.empresa);
+      empresaId = empresa?.id || 1;
+    }
+
+    // Buscar solicitante - usar solicitanteId se disponível
+    let solicitanteId = null;
+    if (formData.solicitanteId) {
+      solicitanteId = parseInt(formData.solicitanteId);
+    } else if (formData.solicitante) {
+      // Compatibilidade - buscar por nome
+      const solicitante = solicitantes.find((s: any) => s.nome === formData.solicitante);
+      solicitanteId = solicitante?.id || null;
+    }
     
     // Se for um motorista logado, buscar o nome do motorista pelo email
     let motoristaName = formData.motorista;
@@ -58,9 +78,10 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
     const kmTotal = kmFinal - kmInicial;
     
     const corridaData = {
-      empresa: formData.empresa,
-      empresaId: empresaId,
-      solicitante: formData.solicitante,
+      empresa: empresa?.nome || formData.empresa || '',
+      empresaId: empresaId || 1,
+      solicitante: formData.solicitante || '',
+      solicitanteId: solicitanteId,
       motorista: motoristaName,
       passageiros: formData.passageiros || '',
       origem: formData.origem,
@@ -102,7 +123,7 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
   }
 
   const processFormDataWithContext = (formData: any, documentos: any) => {
-    return processFormData(formData, documentos, empresas, motoristas);
+    return processFormData(formData, documentos, empresas, motoristas, solicitantes);
   };
 
   return {

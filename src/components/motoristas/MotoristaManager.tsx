@@ -130,7 +130,7 @@ export const MotoristaManager = () => {
         documentos: documentosFinais,
         fotosVeiculo: fotosFinais
       });
-      await loadMotoristas(); // Refresh data
+      await loadMotoristas(); // Refresh data after update
     } else {
       const { status, ...motoristaDados } = formData;
       await addMotorista({
@@ -139,7 +139,7 @@ export const MotoristaManager = () => {
         fotosVeiculo: fotosFinais,
         status // Pass the admin-selected status
       });
-      await loadMotoristas(); // Refresh data
+      await loadMotoristas(); // Refresh data after add
     }
     
     setIsDialogOpen(false);

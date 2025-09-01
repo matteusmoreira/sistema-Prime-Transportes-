@@ -5,7 +5,9 @@ import { Corrida } from '@/types/corridas';
 export const useFormData = (editingCorrida: Corrida | null) => {
   const [formData, setFormData] = useState({
     empresa: editingCorrida?.empresa || '',
+    empresaId: editingCorrida?.empresaId ? String(editingCorrida.empresaId) : '',
     solicitante: editingCorrida?.solicitante || '',
+    solicitanteId: (editingCorrida as any)?.solicitanteId ? String((editingCorrida as any).solicitanteId) : '',
     motorista: editingCorrida?.motorista || '',
     dataServico: editingCorrida?.dataServico || editingCorrida?.data || '',
     horaInicio: editingCorrida?.horaInicio || editingCorrida?.horaSaida || '',
@@ -30,7 +32,6 @@ export const useFormData = (editingCorrida: Corrida | null) => {
   });
 
   const updateFormData = (field: string, value: string) => {
-    // Removido log de debug de atualização de campo
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
