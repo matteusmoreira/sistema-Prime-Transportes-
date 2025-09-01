@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea';
 import { MotoristaSelectionDialog } from './MotoristaSelectionDialog';
 import { WhatsAppButton } from '@/components/financeiro/WhatsAppButton';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
 
 interface CorridasTableProps {
   corridas: Corrida[];
@@ -134,7 +134,7 @@ export const CorridasTable = ({
           {corridas.map((corrida) => (
             <TableRow key={corrida.id}>
               <TableCell>{corrida.numeroOS || '-'}</TableCell>
-              <TableCell>{corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')}</TableCell>
+              <TableCell>{formatDateDDMMYYYY(corrida.dataServico || corrida.data)}</TableCell>
               <TableCell className="font-medium">{corrida.empresa}</TableCell>
               <TableCell>{corrida.origem} → {corrida.destino}</TableCell>
               <TableCell>
@@ -186,7 +186,7 @@ export const CorridasTable = ({
           {corridas.map(corrida => (
             <TableRow key={corrida.id}>
               <TableCell>{corrida.numeroOS || '-'}</TableCell>
-              <TableCell>{corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')}</TableCell>
+              <TableCell>{formatDateDDMMYYYY(corrida.dataServico || corrida.data)}</TableCell>
               <TableCell className="font-medium">{corrida.empresa}</TableCell>
               <TableCell>{getMotoristaDisplay(corrida.motorista)}</TableCell>
               <TableCell>{corrida.origem} → {corrida.destino}</TableCell>

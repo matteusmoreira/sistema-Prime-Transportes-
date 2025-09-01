@@ -232,6 +232,26 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
   const updateCorrida = async (id: number, updatedData: Partial<Corrida>) => {
     try {
+      // Helpers para normalização de formatos
+      const normalizeDate = (value: any) => {
+        if (!value) return null;
+        if (value instanceof Date) return value.toISOString().split('T')[0];
+        if (typeof value === 'string') {
+          const ddmmyyyy = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+          if (ddmmyyyy) return `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`;
+          return value.split('T')[0];
+        }
+        return null;
+      };
+      const normalizeTime = (value: any) => {
+        if (!value) return null;
+        if (typeof value === 'string') {
+          const hhmm = value.match(/^(\d{2}):(\d{2})/);
+          if (hhmm) return `${hhmm[1]}:${hhmm[2]}`;
+        }
+        return null;
+      };
+
       // Mapear campos do app -> colunas do banco
       const map: Record<string, string> = {
         empresaId: 'empresa_id',
@@ -264,7 +284,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       };
 
       // Campos que não devem ser enviados para o banco
-      const excludedFields = ['documentos'];
+      const excludedFields = ['documentos', 'solicitanteId'];
 
       const payload: Record<string, any> = { updated_at: new Date().toISOString() };
       Object.entries(updatedData).forEach(([key, value]) => {
@@ -278,6 +298,18 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         payload.passageiro = updatedData.passageiros || '';
         payload.passageiros = updatedData.passageiros || '';
       }
+
+      // Normalizar datas/horas
+      if (payload.data) payload.data = normalizeDate(payload.data);
+      if (payload.data_servico) payload.data_servico = normalizeDate(payload.data_servico);
+      if (payload.hora_saida) payload.hora_saida = normalizeTime(payload.hora_saida);
+      if (payload.hora_chegada) payload.hora_chegada = normalizeTime(payload.hora_chegada);
+      if (payload.hora_inicio) payload.hora_inicio = normalizeTime(payload.hora_inicio);
+
+      // Garantir que não haja chave inválida
+      delete (payload as any).solicitanteId;
+
+      console.debug('updateCorrida payload:', payload);
 
       const { error } = await supabase
         .from('corridas')
@@ -302,7 +334,25 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   const fillOS = async (id: number, osData: Partial<Corrida>) => {
     try {
       // console.log('Preenchendo OS - ID:', id, 'Dados:', osData);
-      
+      const normalizeDate = (value: any) => {
+        if (!value) return null;
+        if (value instanceof Date) return value.toISOString().split('T')[0];
+        if (typeof value === 'string') {
+          const ddmmyyyy = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+          if (ddmmyyyy) return `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`;
+          return value.split('T')[0];
+        }
+        return null;
+      };
+      const normalizeTime = (value: any) => {
+        if (!value) return null;
+        if (typeof value === 'string') {
+          const hhmm = value.match(/^(\d{2}):(\d{2})/);
+          if (hhmm) return `${hhmm[1]}:${hhmm[2]}`;
+        }
+        return null;
+      };
+
       // Gerar número da OS automaticamente (5 dígitos) se não vier do formulário
       let numeroOSFinal = (osData as any).numeroOS as string | undefined;
       if (!numeroOSFinal || String(numeroOSFinal).trim() === '') {
@@ -334,6 +384,15 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         preenchido_por_motorista: true,
         updated_at: new Date().toISOString()
       };
+
+      // Normalizar datas/horas
+      if (updatePayload.data) updatePayload.data = normalizeDate(updatePayload.data);
+      if (updatePayload.data_servico) updatePayload.data_servico = normalizeDate(updatePayload.data_servico);
+      if (updatePayload.hora_saida) updatePayload.hora_saida = normalizeTime(updatePayload.hora_saida);
+      if (updatePayload.hora_chegada) updatePayload.hora_chegada = normalizeTime(updatePayload.hora_chegada);
+      if (updatePayload.hora_inicio) updatePayload.hora_inicio = normalizeTime(updatePayload.hora_inicio);
+
+      console.debug('fillOS payload:', updatePayload);
 
       const { error } = await supabase
         .from('corridas')
