@@ -121,6 +121,7 @@ export const CorridasTable = ({
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Nº OS</TableHead>
             <TableHead>Data</TableHead>
             <TableHead>Empresa</TableHead>
             <TableHead>Origem → Destino</TableHead>
@@ -132,33 +133,34 @@ export const CorridasTable = ({
         <TableBody>
           {corridas.map((corrida) => (
             <TableRow key={corrida.id}>
-            <TableCell>{corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')}</TableCell>
+              <TableCell>{corrida.numeroOS || '-'}</TableCell>
+              <TableCell>{corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')}</TableCell>
               <TableCell className="font-medium">{corrida.empresa}</TableCell>
               <TableCell>{corrida.origem} → {corrida.destino}</TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    {getStatusBadge(corrida.status)}
-                    {corrida.preenchidoPorFinanceiro && (
-                      <Badge variant="outline" className="mt-1 px-1.5 py-0 text-[10px] rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">Conferenciado pelo Financeiro</Badge>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{formatCurrency(corrida.valorMotorista ?? 0)}</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => onView(corrida)}>
-                      <Eye className="h-4 w-4" />
+              <TableCell>
+                <div className="flex flex-col">
+                  {getStatusBadge(corrida.status)}
+                  {corrida.preenchidoPorFinanceiro && (
+                    <Badge variant="outline" className="mt-1 px-1.5 py-0 text-[10px] rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">Conferenciado pelo Financeiro</Badge>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>{formatCurrency(corrida.valorMotorista ?? 0)}</TableCell>
+              <TableCell>
+                <div className="flex space-x-2">
+                  <Button size="sm" variant="outline" onClick={() => onView(corrida)}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  {(corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente' || corrida.status === 'Aguardando OS') && !corrida.preenchidoPorMotorista && !corrida.preenchidoPorFinanceiro && (
+                    <Button size="sm" variant="default" onClick={() => onFillOS(corrida)}>
+                      <FileEdit className="h-4 w-4" />
+                      Preencher OS
                     </Button>
-                    {(corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente' || corrida.status === 'Aguardando OS') && !corrida.preenchidoPorMotorista && !corrida.preenchidoPorFinanceiro && (
-                      <Button size="sm" variant="default" onClick={() => onFillOS(corrida)}>
-                        <FileEdit className="h-4 w-4" />
-                        Preencher OS
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     );
@@ -169,6 +171,7 @@ export const CorridasTable = ({
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Nº OS</TableHead>
             <TableHead>Data</TableHead>
             <TableHead>Empresa</TableHead>
             <TableHead>Motorista</TableHead>
@@ -182,6 +185,7 @@ export const CorridasTable = ({
         <TableBody>
           {corridas.map(corrida => (
             <TableRow key={corrida.id}>
+              <TableCell>{corrida.numeroOS || '-'}</TableCell>
               <TableCell>{corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')}</TableCell>
               <TableCell className="font-medium">{corrida.empresa}</TableCell>
               <TableCell>{getMotoristaDisplay(corrida.motorista)}</TableCell>
