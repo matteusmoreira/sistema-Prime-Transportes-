@@ -207,6 +207,13 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
 
     const motoristaId = motoristaData.id as number;
 
+    // Define prefixo do caminho conforme políticas de Storage (primeiro segmento deve ser auth.uid())
+    const storagePrefix = userId ? `${userId}/${motoristaId}` : `${motoristaId}`;
+    if (!userId) {
+      console.warn('[Signup] userId não disponível após signUp; uploads usarão pasta somente com motoristaId (pode falhar por RLS)');
+      toast.warning('Atenção: Não foi possível confirmar a sessão imediatamente. Seus arquivos podem não ser enviados agora. Você poderá anexá-los após confirmar o e-mail e fazer login.');
+    }
+
     // Upload de documentos (best-effort)
     let docIndex = 0;
     for (const doc of documentos) {
@@ -214,7 +221,7 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
       try {
         const originalName = sanitizeFileName(doc.arquivo.name);
         const fileName = `${Date.now()}_${docIndex}_${originalName}`;
-        const storagePath = `${motoristaId}/${fileName}`;
+        const storagePath = `${storagePrefix}/${fileName}`;
         await uploadFile(doc.arquivo, 'motorista-documentos', storagePath);
 
         const nomeDoc = (doc.nome && doc.nome.trim()) ? doc.nome.trim() : `Documento ${docIndex + 1}`;
@@ -248,7 +255,7 @@ export const EnhancedMotoristaSignup = ({ onSuccess, onBack }: EnhancedMotorista
       try {
         const originalName = sanitizeFileName(foto.arquivo.name);
         const fileName = `${Date.now()}_${fotoIndex}_${originalName}`;
-        const storagePath = `${motoristaId}/${fileName}`;
+        const storagePath = `${storagePrefix}/${fileName}`;
         await uploadFile(foto.arquivo, 'motorista-fotos', storagePath);
 
         const { error: fotoError } = await supabase

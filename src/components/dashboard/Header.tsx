@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -27,8 +28,7 @@ const getInitials = (name?: string) => {
   return (first + last).toUpperCase();
 };
 
-export const Header = ({ userLevel, onLogout, onToggleSidebar, userEmail, userName }: HeaderProps) => {
-  // Log leve para depuração sem poluir
+export const Header: React.FC<HeaderProps> = ({ userLevel, onLogout, onToggleSidebar, userEmail, userName }) => {
   console.debug("Header mounted:", { userLevel, userEmail, userName });
 
   return (
@@ -90,7 +90,7 @@ export const Header = ({ userLevel, onLogout, onToggleSidebar, userEmail, userNa
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onLogout} className="text-destructive focus:text-destructive">
+              <DropdownMenuItem onSelect={() => onLogout()} className="text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sair
               </DropdownMenuItem>

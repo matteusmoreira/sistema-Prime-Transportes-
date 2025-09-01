@@ -164,7 +164,7 @@ export const useMotoristas = () => {
          .eq('id', user?.id)
          .single();
 
-       let data, motoristaId;
+       let data: any, motoristaId: number;
 
        if (profile?.role === 'Administrador') {
          // Criar conta via edge function
@@ -220,6 +220,20 @@ export const useMotoristas = () => {
          motoristaId = data.id;
        }
 
+       // Definir prefixo do Storage: primeiro segmento deve ser o user_id do motorista para respeitar as políticas
+       let targetUserId: string | undefined = undefined;
+       if (profile?.role === 'Administrador') {
+         targetUserId = data?.user_id || undefined;
+       } else {
+         targetUserId = user?.id || undefined;
+       }
+       const storagePrefix = targetUserId ? `${targetUserId}/${motoristaId}` : `${motoristaId}`;
+       if (!targetUserId) {
+         console.warn('[useMotoristas.addMotorista] user_id do motorista indisponível; uploads usarão pasta somente com motoristaId (pode afetar visualização posteriormente por RLS)');
+-        toast.message?.('Atenção', { description: 'Arquivos enviados podem não aparecer para o motorista até revisão do cadastro. Tente anexá-los novamente após o login do motorista.' } as any);
++        toast.warning('Atenção: Arquivos enviados podem não aparecer para o motorista até revisão do cadastro. Tente anexá-los novamente após o login do motorista.');
+       }
+
        const documentosUploadados: DocumentoMotorista[] = [];
        const fotosUploadadas: FotoVeiculo[] = [];
 
@@ -232,7 +246,7 @@ export const useMotoristas = () => {
              if (arquivo instanceof File) {
                const sanitizedName = sanitizeFileName(arquivo.name);
                const fileName = `${motoristaId}-${Date.now()}-${sanitizedName}`;
-               const storagePath = `${motoristaId}/${fileName}`;
+               const storagePath = `${storagePrefix}/${fileName}`;
                // Removido log de debug de upload de documento
                await uploadFile(arquivo, 'motorista-documentos', storagePath);
                
@@ -271,7 +285,7 @@ export const useMotoristas = () => {
              if (arquivo instanceof File) {
                const sanitizedName = sanitizeFileName(arquivo.name);
                const fileName = `${motoristaId}-${Date.now()}-${sanitizedName}`;
-               const storagePath = `${motoristaId}/${fileName}`;
+               const storagePath = `${storagePrefix}/${fileName}`;
                // Removido log de debug de upload de foto
                await uploadFile(arquivo, 'motorista-fotos', storagePath);
                
@@ -351,6 +365,18 @@ export const useMotoristas = () => {
         return;
       }
 
+      // Obter user_id do motorista para construir o prefixo correto
+      const { data: motoristaRow } = await supabase
+        .from('motoristas')
+        .select('user_id')
+        .eq('id', id)
+        .single();
+      const targetUserId = motoristaRow?.user_id as string | undefined;
+      const storagePrefix = targetUserId ? `${targetUserId}/${id}` : `${id}`;
+      if (!targetUserId) {
+        console.warn('[useMotoristas.updateMotorista] user_id do motorista indisponível; uploads usarão pasta somente com motoristaId (pode afetar visualização posteriormente por RLS)');
+      }
+
       // Processar novos documentos se existirem
       if (updatedData.documentos) {
         for (const doc of updatedData.documentos) {
@@ -359,7 +385,7 @@ export const useMotoristas = () => {
             try {
               const sanitizedName = sanitizeFileName(arquivo.name);
               const fileName = `${id}-${Date.now()}-${sanitizedName}`;
-              const storagePath = `${id}/${fileName}`;
+              const storagePath = `${storagePrefix}/${fileName}`;
               await uploadFile(arquivo, 'motorista-documentos', storagePath);
               
               // Salvar referência no banco
@@ -386,7 +412,7 @@ export const useMotoristas = () => {
             try {
               const sanitizedName = sanitizeFileName(arquivo.name);
               const fileName = `${id}-${Date.now()}-${sanitizedName}`;
-              const storagePath = `${id}/${fileName}`;
+              const storagePath = `${storagePrefix}/${fileName}`;
               await uploadFile(arquivo, 'motorista-fotos', storagePath);
               
               // Salvar referência no banco

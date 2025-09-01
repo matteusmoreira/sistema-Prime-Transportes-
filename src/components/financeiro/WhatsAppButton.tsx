@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { useMotoristas } from '@/hooks/useMotoristas';
 import { supabase } from '@/integrations/supabase/client';
 import { formatTimeToAmPm } from '@/utils/timeFormatter';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
 
 interface WhatsAppButtonProps {
   corrida: any; // Vamos receber toda a corrida para pegar todos os dados
@@ -26,7 +26,7 @@ export const WhatsAppButton = ({ corrida }: WhatsAppButtonProps) => {
   // Criar mensagem formatada com todos os dados da corrida
   const createFormattedMessage = () => {
     const dataBase = corrida.dataServico || corrida.data;
-    const dataFormatada = dataBase ? new Date(dataBase).toLocaleDateString('pt-BR') : '';
+    const dataFormatada = dataBase ? formatDateDDMMYYYY(dataBase) : '';
     const horaInicio = formatTimeToAmPm(corrida.horaInicio || corrida.horaSaida || '');
 
     // Normaliza a lista de passageiros (aceita quebra de linha ou vírgula) e gera em linha separados por vírgulas
