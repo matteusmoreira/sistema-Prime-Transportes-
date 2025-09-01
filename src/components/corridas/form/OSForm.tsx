@@ -11,6 +11,7 @@ import { useEmpresas } from '@/hooks/useEmpresas';
 import { OSBasicFields } from './OSBasicFields';
 import { OSCostFields } from './OSCostFields';
 import { formatTimeToAmPm, removeSecondsFromTime } from '@/utils/timeFormatter';
+import { formatDateDDMMYYYY } from '@/utils/format';
 interface OSFormProps {
   corrida: Corrida;
   onSubmit: (formData: any, documentos: DocumentoUpload[]) => void;
@@ -33,7 +34,7 @@ export const OSForm = ({
     numeroOS: corrida.numeroOS || '',
     horaSaida: removeSecondsFromTime(corrida.horaSaida || corrida.horaInicio || ''),
     horaChegada: '',
-    data: corrida.dataServico || corrida.data || new Date().toISOString().split('T')[0],
+    data: corrida.dataServico || corrida.data || (() => { const t = new Date(); const y = t.getFullYear(); const m = String(t.getMonth()+1).padStart(2,'0'); const d = String(t.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; })(),
     kmInicio: corrida.kmInicial?.toString() || '',
     kmFinal: corrida.kmFinal?.toString() || '',
     empresa: corrida.empresa,
@@ -154,7 +155,7 @@ export const OSForm = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Data do Serviço</Label>
-              <Input value={(corrida.dataServico || corrida.data) ? (corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')) : ''} readOnly className="bg-gray-100" />
+              <Input value={(corrida.dataServico || corrida.data) ? formatDateDDMMYYYY(corrida.dataServico || corrida.data) : ''} readOnly className="bg-gray-100" />
             </div>
             <div className="space-y-2">
               <Label>Hora Início</Label>

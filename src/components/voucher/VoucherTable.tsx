@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileText } from 'lucide-react';
 import { generateVoucherPDF } from '@/utils/pdfGenerator';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
 
 import { toast } from 'sonner';
 import type { VoucherData } from '@/hooks/useVoucher';
@@ -48,7 +48,7 @@ export const VoucherTable = ({ vouchers }: VoucherTableProps) => {
       <TableBody>
         {vouchers.map((voucher) => (
           <TableRow key={voucher.id}>
-            <TableCell>{new Date(voucher.dataServico).toLocaleDateString('pt-BR')}</TableCell>
+            <TableCell>{formatDateDDMMYYYY(voucher.dataServico)}</TableCell>
             <TableCell className="font-medium">{voucher.empresa}</TableCell>
             <TableCell>{voucher.motorista}</TableCell>
             <TableCell>{voucher.origem} → {voucher.destino}</TableCell>

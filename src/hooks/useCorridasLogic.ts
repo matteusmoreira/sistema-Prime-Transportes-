@@ -77,6 +77,15 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
     const kmFinal = parseInt(formData.kmFinal) || 0;
     const kmTotal = kmFinal - kmInicial;
     
+    // Data local no formato YYYY-MM-DD para evitar problemas de fuso e IIFE inline
+    const todayLocal = (() => {
+      const t = new Date();
+      const y = t.getFullYear();
+      const m = String(t.getMonth() + 1).padStart(2, '0');
+      const d = String(t.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    })();
+
     const corridaData = {
       empresa: empresa?.nome || formData.empresa || '',
       empresaId: empresaId || 1,
@@ -86,7 +95,7 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
       passageiros: formData.passageiros || '',
       origem: formData.origem,
       destino: formData.destino,
-      data: formData.dataServico || new Date().toISOString().split('T')[0],
+      data: formData.dataServico || todayLocal,
       horaSaida: formData.horaInicio || '00:00',
       horaChegada: '00:00',
       observacoes: formData.observacoes || '',

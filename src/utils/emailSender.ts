@@ -2,6 +2,8 @@
 import type { VoucherData } from '@/hooks/useVoucher';
 import { generateVoucherPDF } from './pdfGenerator';
 import { formatCurrency } from '@/utils/format';
+import { supabase } from '@/integrations/supabase/client';
+import { formatDateDDMMYYYY } from '@/utils/format';
 
 export const sendVoucherEmail = async (voucher: VoucherData) => {
   // Simular envio de email
@@ -18,7 +20,7 @@ export const sendVoucherEmail = async (voucher: VoucherData) => {
   // Montar linhas do corpo com ocultação de vazios
   const bulletLines: string[] = [];
   bulletLines.push(`• Voucher Nº: ${voucher.id.toString().padStart(6, '0')}`);
-  bulletLines.push(`• Data do Serviço: ${new Date(voucher.dataServico).toLocaleDateString('pt-BR')}`);
+  bulletLines.push(`• Data do Serviço: ${formatDateDDMMYYYY(voucher.dataServico)}`);
   if (voucher.empresa) bulletLines.push(`• Empresa: ${voucher.empresa}`);
   if (voucher.motorista) bulletLines.push(`• Motorista: ${voucher.motorista}`);
   if (voucher.origem && voucher.destino) {
@@ -42,7 +44,7 @@ export const sendVoucherEmail = async (voucher: VoucherData) => {
       Atenciosamente,
       Sistema Prime Transportes
     `,
-    attachments: [`voucher_${voucher.id}_${new Date(voucher.dataServico).toISOString().split('T')[0]}.pdf`]
+    attachments: [`voucher_${voucher.id}_${(voucher.dataServico || '').toString().split('T')[0]}.pdf`]
   };
   
   // console.log('Email seria enviado com os dados:', emailData);

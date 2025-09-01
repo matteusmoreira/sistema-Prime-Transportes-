@@ -1,7 +1,7 @@
 
 import jsPDF from 'jspdf';
 import type { Corrida } from '@/types/corridas';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
 
 export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.csv') => {
   const headers = [
@@ -9,7 +9,7 @@ export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.c
   ];
   const rows = corridas.map(c => [
     c.id,
-    new Date((c as any).dataServico || c.data).toLocaleDateString('pt-BR'),
+    formatDateDDMMYYYY((c as any).dataServico || c.data),
     c.empresa,
     c.motorista || '',
     c.origem,
@@ -93,7 +93,7 @@ export const exportCorridasToPDF = async (
   corridas.forEach(c => {
     addRow([
       String(c.id),
-      new Date((c as any).dataServico || c.data).toLocaleDateString('pt-BR'),
+      formatDateDDMMYYYY((c as any).dataServico || c.data),
       c.empresa,
       c.motorista || '',
       c.origem,

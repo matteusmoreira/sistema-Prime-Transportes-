@@ -235,7 +235,12 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       // Helpers para normalização de formatos
       const normalizeDate = (value: any) => {
         if (!value) return null;
-        if (value instanceof Date) return value.toISOString().split('T')[0];
+        if (value instanceof Date) {
+          const y = value.getFullYear();
+          const m = String(value.getMonth() + 1).padStart(2, '0');
+          const d = String(value.getDate()).padStart(2, '0');
+          return `${y}-${m}-${d}`;
+        }
         if (typeof value === 'string') {
           const ddmmyyyy = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
           if (ddmmyyyy) return `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`;
@@ -336,7 +341,12 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       // console.log('Preenchendo OS - ID:', id, 'Dados:', osData);
       const normalizeDate = (value: any) => {
         if (!value) return null;
-        if (value instanceof Date) return value.toISOString().split('T')[0];
+        if (value instanceof Date) {
+          const y = value.getFullYear();
+          const m = String(value.getMonth() + 1).padStart(2, '0');
+          const d = String(value.getDate()).padStart(2, '0');
+          return `${y}-${m}-${d}`;
+        }
         if (typeof value === 'string') {
           const ddmmyyyy = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
           if (ddmmyyyy) return `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`;

@@ -7,7 +7,7 @@ import { Car, Building, Hotel } from 'lucide-react';
 import type { CorridaFinanceiro } from '@/hooks/useFinanceiro';
 import { useCorridaDocuments } from '@/hooks/useCorridaDocuments';
 import { DocumentViewer } from '@/components/corridas/DocumentViewer';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
 
 interface CorridaViewDialogProps {
   corrida: CorridaFinanceiro | null;
@@ -172,7 +172,7 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
                 )}
                 <div>
                   <Label className="font-semibold">Data do Serviço:</Label>
-                  <p>{new Date(dadosParaExibir.dataServico).toLocaleDateString('pt-BR')}</p>
+                  <p>{dadosParaExibir.dataServico ? formatDateDDMMYYYY(dadosParaExibir.dataServico) : ''}</p>
                 </div>
                 <div>
                   <Label className="font-semibold">Status:</Label>

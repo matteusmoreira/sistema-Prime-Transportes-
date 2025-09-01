@@ -115,29 +115,36 @@ export const CorridasTable = ({
     return <div>Nenhuma corrida encontrada</div>;
   }
 
+  // cabeçalho colante para facilitar navegação ao rolar
+  const StickyHeader = ({ children }: { children: React.ReactNode }) => (
+    <TableHeader className="sticky top-0 z-10 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      {children}
+    </TableHeader>
+  );
+
   // Renderização específica para motoristas - apenas campos permitidos
   if (userLevel === 'Motorista') {
     return (
-      <Table className="min-w-[880px]">
-        <TableHeader>
+      <Table className="min-w-[880px] text-sm">
+        <StickyHeader>
           <TableRow>
-            <TableHead>Nº OS</TableHead>
-            <TableHead>Data</TableHead>
-            <TableHead>Empresa</TableHead>
-            <TableHead>Origem → Destino</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Valor a Receber</TableHead>
-            <TableHead>Ações</TableHead>
+            <TableHead className="py-2">Nº OS</TableHead>
+            <TableHead className="py-2">Data</TableHead>
+            <TableHead className="py-2">Empresa</TableHead>
+            <TableHead className="py-2">Origem → Destino</TableHead>
+            <TableHead className="py-2">Status</TableHead>
+            <TableHead className="py-2">Valor a Receber</TableHead>
+            <TableHead className="py-2">Ações</TableHead>
           </TableRow>
-        </TableHeader>
+        </StickyHeader>
         <TableBody>
           {corridas.map((corrida) => (
-            <TableRow key={corrida.id}>
-              <TableCell>{corrida.numeroOS || '-'}</TableCell>
-              <TableCell>{formatDateDDMMYYYY(corrida.dataServico || corrida.data)}</TableCell>
-              <TableCell className="font-medium">{corrida.empresa}</TableCell>
-              <TableCell>{corrida.origem} → {corrida.destino}</TableCell>
-              <TableCell>
+            <TableRow key={corrida.id} className="align-top">
+              <TableCell className="py-2">{corrida.numeroOS || '-'}</TableCell>
+              <TableCell className="py-2">{formatDateDDMMYYYY(corrida.dataServico || corrida.data)}</TableCell>
+              <TableCell className="py-2 font-medium">{corrida.empresa}</TableCell>
+              <TableCell className="py-2">{corrida.origem} → {corrida.destino}</TableCell>
+              <TableCell className="py-2">
                 <div className="flex flex-col">
                   {getStatusBadge(corrida.status)}
                   {corrida.preenchidoPorFinanceiro && (
@@ -145,9 +152,9 @@ export const CorridasTable = ({
                   )}
                 </div>
               </TableCell>
-              <TableCell>{formatCurrency(corrida.valorMotorista ?? 0)}</TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
+              <TableCell className="py-2">{formatCurrency(corrida.valorMotorista ?? 0)}</TableCell>
+              <TableCell className="py-2">
+                <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" onClick={() => onView(corrida)}>
                     <Eye className="h-4 w-4" />
                   </Button>
@@ -168,31 +175,31 @@ export const CorridasTable = ({
 
   return (
     <>
-      <Table className="min-w-[920px]">
-        <TableHeader>
+      <Table className="min-w-[920px] text-sm">
+        <StickyHeader>
           <TableRow>
-            <TableHead>Nº OS</TableHead>
-            <TableHead>Data</TableHead>
-            <TableHead>Empresa</TableHead>
-            <TableHead>Motorista</TableHead>
-            <TableHead>Origem → Destino</TableHead>
-            <TableHead>Centro de Custo</TableHead>
-            <TableHead>Valor Total</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Ações</TableHead>
+            <TableHead className="py-2">Nº OS</TableHead>
+            <TableHead className="py-2">Data</TableHead>
+            <TableHead className="py-2">Empresa</TableHead>
+            <TableHead className="py-2">Motorista</TableHead>
+            <TableHead className="py-2">Origem → Destino</TableHead>
+            <TableHead className="py-2">Centro de Custo</TableHead>
+            <TableHead className="py-2">Valor Total</TableHead>
+            <TableHead className="py-2">Status</TableHead>
+            <TableHead className="py-2">Ações</TableHead>
           </TableRow>
-        </TableHeader>
+        </StickyHeader>
         <TableBody>
           {corridas.map(corrida => (
-            <TableRow key={corrida.id}>
-              <TableCell>{corrida.numeroOS || '-'}</TableCell>
-              <TableCell>{formatDateDDMMYYYY(corrida.dataServico || corrida.data)}</TableCell>
-              <TableCell className="font-medium">{corrida.empresa}</TableCell>
-              <TableCell>{getMotoristaDisplay(corrida.motorista)}</TableCell>
-              <TableCell>{corrida.origem} → {corrida.destino}</TableCell>
-              <TableCell>{corrida.centroCusto || '-'}</TableCell>
-              <TableCell>{formatCurrency(corrida.valor ?? 0)}</TableCell>
-              <TableCell>
+            <TableRow key={corrida.id} className="align-top">
+              <TableCell className="py-2">{corrida.numeroOS || '-'}</TableCell>
+              <TableCell className="py-2">{formatDateDDMMYYYY(corrida.dataServico || corrida.data)}</TableCell>
+              <TableCell className="py-2 font-medium">{corrida.empresa}</TableCell>
+              <TableCell className="py-2">{getMotoristaDisplay(corrida.motorista)}</TableCell>
+              <TableCell className="py-2">{corrida.origem} → {corrida.destino}</TableCell>
+              <TableCell className="py-2">{corrida.centroCusto || '-'}</TableCell>
+              <TableCell className="py-2">{formatCurrency(corrida.valor ?? 0)}</TableCell>
+              <TableCell className="py-2">
                 <div className="flex flex-col">
                   {getStatusBadge(corrida.status)}
                   {corrida.preenchidoPorFinanceiro && (
@@ -200,8 +207,8 @@ export const CorridasTable = ({
                   )}
                 </div>
               </TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
+              <TableCell className="py-2">
+                <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" onClick={() => onView(corrida)}>
                     <Eye className="h-4 w-4" />
                   </Button>

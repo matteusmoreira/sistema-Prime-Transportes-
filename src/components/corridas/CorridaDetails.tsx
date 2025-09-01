@@ -4,8 +4,8 @@ import { Corrida } from '@/types/corridas';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCorridaDocuments } from '@/hooks/useCorridaDocuments';
 import { DocumentViewer } from './DocumentViewer';
-import { WorkflowStatus } from './WorkflowStatus';
 import { formatTimeToAmPm } from '@/utils/timeFormatter';
+import { formatDateDDMMYYYY } from '@/utils/format';
 
 interface CorridaDetailsProps {
   corrida: Corrida;
@@ -16,6 +16,14 @@ export const CorridaDetails = ({
 }: CorridaDetailsProps) => {
   const { profile } = useAuth();
   const { documentos, loading, downloadDocumento } = useCorridaDocuments(corrida?.id || null);
+
+  // Log para depuração dos valores de data recebidos
+  console.debug('[CorridaDetails] datas recebidas', {
+    id: corrida?.id,
+    dataServico: corrida?.dataServico,
+    data: corrida?.data,
+  });
+
   // Helper: value presence (treat 0 as empty for numbers)
   const hasValue = (value: any): boolean => {
     if (value === null || value === undefined) return false;
@@ -32,9 +40,23 @@ export const CorridaDetails = ({
   // Currency formatter (pt-BR)
   const formatCurrency = (value?: number | string): string => {
     const num = typeof value === 'number' ? value : Number(value);
-    if (!isFinite(num)) return 'R$ 0,00';
+    if (!isFinite(num)) return 'R$\u00a00,00';
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(num);
   };
+
+  // Formatação de data segura para diferentes formatos de entrada
+  const formatDateSafe = (input?: string | Date): string => {
+    if (!input) return '';
+    if (typeof input === 'string') {
+      const m = input.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) {
+        const [, yyyy, mm, dd] = m;
+        return `${dd}/${mm}/${yyyy}`;
+      }
+    }
+    return formatDateDDMMYYYY(input);
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Selecionar Motorista':
@@ -67,9 +89,7 @@ export const CorridaDetails = ({
   };
 
   return <div className="space-y-6">
-      {profile?.role !== 'Motorista' && (
-        <WorkflowStatus corrida={corrida} userLevel={profile?.role || ''} />
-      )}
+      {/* Removido o card de WorkflowStatus conforme solicitado */}
       
       {/* Dados Básicos */}
       <div className="space-y-4">
@@ -89,7 +109,7 @@ export const CorridaDetails = ({
           </div>
           <div>
             <Label className="font-semibold">Data do Serviço:</Label>
-            <p>{corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')}</p>
+            <p>{formatDateSafe(corrida.dataServico || corrida.data)}</p>
           </div>
           <div>
             <Label className="font-semibold">Horário de Início:</Label>

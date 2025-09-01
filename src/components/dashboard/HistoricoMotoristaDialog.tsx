@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarDays, Clock, MapPin, FileText, FileEdit, Eye } from 'lucide-react';
 import { Corrida } from '@/types/corridas';
 import { formatTimeToAmPm } from '@/utils/timeFormatter';
+import { formatDateDDMMYYYY } from '@/utils/format';
 
 interface HistoricoMotoristaDialogProps {
   open: boolean;
@@ -151,7 +152,7 @@ export const HistoricoMotoristaDialog = ({
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm">
                           <CalendarDays className="h-4 w-4 text-gray-500" />
-                          <span>{corrida.dataServico ? new Date(corrida.dataServico).toLocaleDateString('pt-BR') : new Date(corrida.data).toLocaleDateString('pt-BR')}</span>
+                          <span>{formatDateDDMMYYYY(corrida.dataServico || corrida.data)}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Clock className="h-4 w-4 text-gray-500" />

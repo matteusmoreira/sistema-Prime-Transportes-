@@ -1,17 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Route } from 'lucide-react';
+import { Plus, Route, ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
 import { CorridaForm } from './CorridaForm';
 import { CorridasTable } from './CorridasTable';
 import { CorridasDialogs } from './CorridasDialogs';
 import { useCorridasDialogs } from '@/hooks/useCorridasDialogs';
 import { useCorridasLogic } from '@/hooks/useCorridasLogic';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMotoristas } from '@/hooks/useMotoristas';
 import { CorridasFilters } from './CorridasFilters';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface CorridasManagerProps {
   userLevel?: string;
@@ -70,6 +71,18 @@ export const CorridasManager = ({
   const [endDate, setEndDate] = useState<string>('');
   const [selectedMotorista, setSelectedMotorista] = useState<string>('all');
   const [numeroOS, setNumeroOS] = useState<string>('');
+
+  // Abrir filtros por padrão em telas grandes; colapsar em telas pequenas
+  const [filtersOpen, setFiltersOpen] = useState<boolean>(true);
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+        setFiltersOpen(false);
+      }
+    } catch (e) {
+      // no-op
+    }
+  }, []);
 
   const applyDateFilter = (list: any[]) => {
     if (!startDate && !endDate) return list;
@@ -180,8 +193,8 @@ export const CorridasManager = ({
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-4">
+        <CardHeader className="py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <CardTitle className="flex items-center space-x-2">
               <Route className="h-5 w-5" />
               <span>Lista de Corridas ({corridasFiltradasFinal.length})</span>
@@ -208,35 +221,53 @@ export const CorridasManager = ({
                   <SelectItem value="12">Dezembro</SelectItem>
                 </SelectContent>
               </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFiltersOpen((v) => !v)}
+                className="inline-flex items-center gap-2"
+                title={filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="hidden sm:inline">Filtros</span>
+                {filtersOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <CorridasFilters
-            startDate={startDate}
-            endDate={endDate}
-            motorista={selectedMotorista}
-            numeroOS={numeroOS}
-            motoristas={motoristas.map(m => ({ id: m.id, nome: m.nome }))}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
-            onMotoristaChange={setSelectedMotorista}
-            onNumeroOSChange={setNumeroOS}
-            onClear={clearAllFilters}
-          />
+        <CardContent className="pt-0">
+          <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <CollapsibleContent>
+              <CorridasFilters
+                startDate={startDate}
+                endDate={endDate}
+                motorista={selectedMotorista}
+                numeroOS={numeroOS}
+                motoristas={motoristas.map(m => ({ id: m.id, nome: m.nome }))}
+                onStartDateChange={setStartDate}
+                onEndDateChange={setEndDate}
+                onMotoristaChange={setSelectedMotorista}
+                onNumeroOSChange={setNumeroOS}
+                onClear={clearAllFilters}
+                compact
+              />
+            </CollapsibleContent>
+          </Collapsible>
           {/* Tabela */}
-          <CorridasTable
-            corridas={corridasFiltradasFinal}
-            userLevel={userLevel}
-            userEmail={userEmail}
-            onView={openViewDialog}
-            onEdit={handleEditClick}
-            onFillOS={handleFillOSClick}
-            onDelete={deleteCorrida}
-            onApprove={approveCorrida}
-            onReject={rejectCorrida}
-            onSelectMotorista={selectMotorista}
-          />
+          <div className="w-full overflow-x-auto max-h-[70vh] overflow-y-auto rounded-md border">
+            <CorridasTable
+              corridas={corridasFiltradasFinal}
+              userLevel={userLevel}
+              userEmail={userEmail}
+              onView={openViewDialog}
+              onEdit={handleEditClick}
+              onFillOS={handleFillOSClick}
+              onDelete={deleteCorrida}
+              onApprove={approveCorrida}
+              onReject={rejectCorrida}
+              onSelectMotorista={selectMotorista}
+            />
+          </div>
         </CardContent>
       </Card>
 
