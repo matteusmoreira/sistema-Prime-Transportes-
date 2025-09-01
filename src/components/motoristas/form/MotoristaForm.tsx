@@ -94,33 +94,39 @@ export const MotoristaForm = ({
   const [fotosBanco, setFotosBanco] = useState<FotoBanco[]>([]);
   const [loadingBanco, setLoadingBanco] = useState(false);
   const { deleteDocumento, deleteFoto } = useMotoristas();
-
+  // Previews públicos (URL) para imagens
+  const [docPreviews, setDocPreviews] = useState<Record<number, string>>({});
+  const [fotoPreviews, setFotoPreviews] = useState<Record<number, string>>({});
+  
   useEffect(() => {
-    const loadExistentes = async () => {
-      if (!isEditing || !motoristaId) return;
-      try {
-        setLoadingBanco(true);
-        const [{ data: docsData, error: docsError }, { data: fotosData, error: fotosError }] = await Promise.all([
-          supabase.from('motorista_documentos').select('*').eq('motorista_id', motoristaId).order('created_at', { ascending: false }),
-          supabase.from('motorista_fotos').select('*').eq('motorista_id', motoristaId).order('created_at', { ascending: false })
-        ]);
-        if (docsError) throw docsError;
-        if (fotosError) throw fotosError;
-        setDocsBanco(docsData || []);
-        setFotosBanco(fotosData || []);
-      } catch (e) {
-        console.error('Erro ao carregar documentos existentes:', e);
-        toast.error('Não foi possível carregar documentos/fotos já cadastrados');
-      } finally {
-        setLoadingBanco(false);
+    // Mapear URLs públicas para imagens de documentos
+    const newDocPreviews: Record<number, string> = {};
+    docsBanco.forEach((d) => {
+      if (isImagePath(d.url)) {
+        const { data } = supabase.storage.from('motorista-documentos').getPublicUrl(d.url);
+        if (data?.publicUrl) newDocPreviews[d.id] = data.publicUrl;
       }
-    };
-    loadExistentes();
-  }, [isEditing, motoristaId]);
-
+    });
+    setDocPreviews(newDocPreviews);
+  
+    // Mapear URLs públicas para fotos
+    const newFotoPreviews: Record<number, string> = {};
+    fotosBanco.forEach((f) => {
+      const { data } = supabase.storage.from('motorista-fotos').getPublicUrl(f.url);
+      if (data?.publicUrl) newFotoPreviews[f.id] = data.publicUrl;
+    });
+    setFotoPreviews(newFotoPreviews);
+  }, [docsBanco, fotosBanco]);
   const isImagePath = (path: string) => {
     const ext = path.split('.').pop()?.toLowerCase();
     return !!ext && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext);
+  };
+
+  // Determina se o documento do banco é uma imagem usando o mime type ou a extensão como fallback
+  const isImageDocument = (doc: DocumentoBanco) => {
+    const tipo = (doc.tipo || '').toLowerCase();
+    if (tipo.startsWith('image/')) return true;
+    return isImagePath(doc.url) || isImagePath(doc.nome);
   };
 
   const handleDownloadDocument = async (doc: DocumentoBanco) => {
@@ -162,9 +168,26 @@ export const MotoristaForm = ({
       setDocsBanco(docsData || []);
       setFotosBanco(fotosData || []);
     } catch (e) {
-      console.error('Erro ao atualizar listas:', e);
+      console.error('Erro ao recarregar documentos/fotos:', e);
+      toast.error('Não foi possível recarregar documentos/fotos');
     }
   };
+
+  // Carrega documentos/fotos já cadastrados quando abrir o modo de edição
+  useEffect(() => {
+    if (!isEditing || !motoristaId) return;
+    (async () => {
+      try {
+        setLoadingBanco(true);
+        await refreshBanco();
+      } catch (e) {
+        console.error('Erro ao carregar documentos existentes:', e);
+        toast.error('Não foi possível carregar documentos/fotos já cadastrados');
+      } finally {
+        setLoadingBanco(false);
+      }
+    })();
+  }, [isEditing, motoristaId]);
 
   // Format phone number
   const formatPhone = (value: string): string => {
@@ -401,11 +424,17 @@ export const MotoristaForm = ({
                       <CardTitle className="text-sm">{documento.nome}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
+
+                      {isImageDocument(documento) && docPreviews[documento.id] && (
+                        <div className="aspect-video bg-gray-100 rounded overflow-hidden">
+                          <img src={docPreviews[documento.id]} alt={documento.nome} className="w-full h-full object-cover" />
+                        </div>
+                      )}
                       <div className="flex items-center space-x-2">
                         <Button size="sm" variant="outline" className="flex-1" onClick={() => handleDownloadDocument(documento)}>
                           <Download className="h-4 w-4 mr-2" /> Baixar
                         </Button>
-                        {isImagePath(documento.url) && (
+                        {isImageDocument(documento) && (
                           <Button size="sm" variant="outline" className="flex-1" onClick={async () => {
                             const { data } = await supabase.storage.from('motorista-documentos').getPublicUrl(documento.url);
                             window.open(data.publicUrl, '_blank');
@@ -455,6 +484,16 @@ export const MotoristaForm = ({
                       <CardTitle className="text-sm truncate" title={foto.nome}>{foto.nome}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
+                      <div className="aspect-square bg-gray-100 rounded overflow-hidden">
+                        {fotoPreviews[foto.id] ? (
+                          <img src={fotoPreviews[foto.id]} alt={foto.nome} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <Image className="h-8 w-8" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 truncate" title={foto.nome}>{foto.nome}</div>
                       <div className="flex items-center space-x-2">
                         <Button size="sm" variant="outline" className="flex-1" onClick={() => handleViewImage(foto)}>
                           <Eye className="h-4 w-4 mr-2" /> Ver
