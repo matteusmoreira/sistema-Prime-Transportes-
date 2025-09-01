@@ -1,12 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Upload, Image, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Upload, Image, X, CheckCircle, AlertCircle, Loader2, Eye, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCpfValidation } from '@/hooks/useCpfValidation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { useMotoristas } from '@/hooks/useMotoristas';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface MotoristaFormData {
   nome: string;
@@ -32,6 +36,23 @@ interface FotoVeiculoUpload {
   tamanho: number;
 }
 
+interface DocumentoBanco {
+  id: number;
+  nome: string;
+  tipo: string;
+  url: string;
+  created_at: string;
+}
+
+interface FotoBanco {
+  id: number;
+  nome: string;
+  nome_original: string;
+  url: string;
+  tamanho: number;
+  created_at: string;
+}
+
 interface MotoristaFormProps {
   formData: MotoristaFormData;
   onInputChange: (field: keyof MotoristaFormData, value: string) => void;
@@ -43,6 +64,8 @@ interface MotoristaFormProps {
   documentos?: DocumentoUpload[];
   fotosVeiculo?: FotoVeiculoUpload[];
   motoristaId?: number;
+  existingDocsBanco?: any[]; // opcional, não usado diretamente
+  existingFotosBanco?: any[]; // opcional, não usado diretamente
 }
 
 export const MotoristaForm = ({ 
@@ -65,6 +88,83 @@ export const MotoristaForm = ({
     formData.cpf, 
     motoristaId
   );
+
+  // Carregar documentos/fotos já cadastrados (banco)
+  const [docsBanco, setDocsBanco] = useState<DocumentoBanco[]>([]);
+  const [fotosBanco, setFotosBanco] = useState<FotoBanco[]>([]);
+  const [loadingBanco, setLoadingBanco] = useState(false);
+  const { deleteDocumento, deleteFoto } = useMotoristas();
+
+  useEffect(() => {
+    const loadExistentes = async () => {
+      if (!isEditing || !motoristaId) return;
+      try {
+        setLoadingBanco(true);
+        const [{ data: docsData, error: docsError }, { data: fotosData, error: fotosError }] = await Promise.all([
+          supabase.from('motorista_documentos').select('*').eq('motorista_id', motoristaId).order('created_at', { ascending: false }),
+          supabase.from('motorista_fotos').select('*').eq('motorista_id', motoristaId).order('created_at', { ascending: false })
+        ]);
+        if (docsError) throw docsError;
+        if (fotosError) throw fotosError;
+        setDocsBanco(docsData || []);
+        setFotosBanco(fotosData || []);
+      } catch (e) {
+        console.error('Erro ao carregar documentos existentes:', e);
+        toast.error('Não foi possível carregar documentos/fotos já cadastrados');
+      } finally {
+        setLoadingBanco(false);
+      }
+    };
+    loadExistentes();
+  }, [isEditing, motoristaId]);
+
+  const isImagePath = (path: string) => {
+    const ext = path.split('.').pop()?.toLowerCase();
+    return !!ext && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext);
+  };
+
+  const handleDownloadDocument = async (doc: DocumentoBanco) => {
+    try {
+      const { data, error } = await supabase.storage.from('motorista-documentos').download(doc.url);
+      if (error) throw error;
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.nome;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('Download realizado');
+    } catch (e) {
+      console.error('Erro no download:', e);
+      toast.error('Não foi possível baixar o documento');
+    }
+  };
+
+  const handleViewImage = async (foto: FotoBanco) => {
+    try {
+      const { data } = await supabase.storage.from('motorista-fotos').getPublicUrl(foto.url);
+      window.open(data.publicUrl, '_blank');
+    } catch (e) {
+      console.error('Erro ao visualizar imagem:', e);
+      toast.error('Não foi possível visualizar a imagem');
+    }
+  };
+
+  const refreshBanco = async () => {
+    if (!motoristaId) return;
+    try {
+      const [{ data: docsData }, { data: fotosData }] = await Promise.all([
+        supabase.from('motorista_documentos').select('*').eq('motorista_id', motoristaId).order('created_at', { ascending: false }),
+        supabase.from('motorista_fotos').select('*').eq('motorista_id', motoristaId).order('created_at', { ascending: false })
+      ]);
+      setDocsBanco(docsData || []);
+      setFotosBanco(fotosData || []);
+    } catch (e) {
+      console.error('Erro ao atualizar listas:', e);
+    }
+  };
 
   // Format phone number
   const formatPhone = (value: string): string => {
@@ -283,6 +383,110 @@ export const MotoristaForm = ({
               <SelectItem value="Reprovado">Reprovado</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+      )}
+
+      {isEditing && motoristaId && (
+        <div className="space-y-6">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-lg">Documentos já cadastrados</Label>
+              {loadingBanco && <span className="text-xs text-gray-500">Carregando...</span>}
+            </div>
+            {docsBanco.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                {docsBanco.map((documento) => (
+                  <Card key={documento.id} className="hover:shadow-sm transition-shadow">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm">{documento.nome}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Button size="sm" variant="outline" className="flex-1" onClick={() => handleDownloadDocument(documento)}>
+                          <Download className="h-4 w-4 mr-2" /> Baixar
+                        </Button>
+                        {isImagePath(documento.url) && (
+                          <Button size="sm" variant="outline" className="flex-1" onClick={async () => {
+                            const { data } = await supabase.storage.from('motorista-documentos').getPublicUrl(documento.url);
+                            window.open(data.publicUrl, '_blank');
+                          }}>
+                            <Eye className="h-4 w-4 mr-2" /> Ver
+                          </Button>
+                        )}
+                      </div>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="destructive" className="w-full">
+                            <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir documento?</AlertDialogTitle>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={async () => {
+                              await deleteDocumento(documento.id, documento.url);
+                              await refreshBanco();
+                            }}>Confirmar</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card><CardContent className="text-center py-4 text-sm text-gray-500">Nenhum documento encontrado</CardContent></Card>
+            )}
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-lg">Fotos já cadastradas</Label>
+              {loadingBanco && <span className="text-xs text-gray-500">Carregando...</span>}
+            </div>
+            {fotosBanco.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-3">
+                {fotosBanco.map((foto) => (
+                  <Card key={foto.id} className="hover:shadow-sm transition-shadow">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm truncate" title={foto.nome}>{foto.nome}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Button size="sm" variant="outline" className="flex-1" onClick={() => handleViewImage(foto)}>
+                          <Eye className="h-4 w-4 mr-2" /> Ver
+                        </Button>
+                      </div>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="destructive" className="w-full">
+                            <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir foto?</AlertDialogTitle>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={async () => {
+                              await deleteFoto(foto.id, foto.url);
+                              await refreshBanco();
+                            }}>Confirmar</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card><CardContent className="text-center py-4 text-sm text-gray-500">Nenhuma foto encontrada</CardContent></Card>
+            )}
+          </div>
         </div>
       )}
 

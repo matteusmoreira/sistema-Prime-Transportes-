@@ -75,21 +75,9 @@ export const MotoristaManager = () => {
       status: motorista.status
     });
     
-    // Converter documentos existentes para o formato do formulário
-    const docsExistentes: DocumentoUpload[] = motorista.documentos.map(doc => ({
-      id: doc.id,
-      nome: doc.nome,
-      descricao: doc.descricao
-    }));
-    setDocumentos(docsExistentes);
-
-    // Converter fotos existentes para o formato do formulário
-    const fotosExistentes: FotoVeiculoUpload[] = (motorista.fotosVeiculo || []).map(foto => ({
-      id: foto.id,
-      nome: foto.nome,
-      tamanho: foto.tamanho
-    }));
-    setFotosVeiculo(fotosExistentes);
+    // Em edição, não pré-popular os campos de upload; mostrar documentos/fotos existentes em seções próprias
+    setDocumentos([]);
+    setFotosVeiculo([]);
     setIsDialogOpen(true);
   };
 
@@ -178,6 +166,8 @@ export const MotoristaManager = () => {
               documentos={documentos}
               fotosVeiculo={fotosVeiculo}
               motoristaId={editingMotorista?.id}
+              existingDocsBanco={editingMotorista?.documentos}
+              existingFotosBanco={editingMotorista?.fotosVeiculo}
             />
           </DialogContent>
         </Dialog>
