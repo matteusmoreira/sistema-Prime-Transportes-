@@ -118,7 +118,7 @@ export const CorridasTable = ({
   // Renderização específica para motoristas - apenas campos permitidos
   if (userLevel === 'Motorista') {
     return (
-      <Table>
+      <Table className="min-w-[880px]">
         <TableHeader>
           <TableRow>
             <TableHead>Nº OS</TableHead>
@@ -168,7 +168,7 @@ export const CorridasTable = ({
 
   return (
     <>
-      <Table>
+      <Table className="min-w-[920px]">
         <TableHeader>
           <TableRow>
             <TableHead>Nº OS</TableHead>

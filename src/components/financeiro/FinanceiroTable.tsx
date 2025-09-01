@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Edit, Eye } from 'lucide-react';
 import { WhatsAppButton } from './WhatsAppButton';
 import type { CorridaFinanceiro } from '@/hooks/useFinanceiro';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
 
 interface FinanceiroTableProps {
   corridas: CorridaFinanceiro[];
@@ -16,7 +16,7 @@ interface FinanceiroTableProps {
   onApprove: (corrida: CorridaFinanceiro) => void;
   onReject: (corrida: CorridaFinanceiro) => void;
   onStatusChange: (corridaId: number, status: CorridaFinanceiro['status']) => void;
-  onPaymentStatusChange: (corridaId: number, statusPagamento: CorridaFinanceiro['statusPagamento']) => void;
+  onPaymentStatusChange: (corridaId: number, status: CorridaFinanceiro['statusPagamento']) => void;
   onMedicaoNotaFiscalChange: (corridaId: number, medicaoNotaFiscal: CorridaFinanceiro['medicaoNotaFiscal']) => void;
 }
 
@@ -112,7 +112,7 @@ export const FinanceiroTable = ({
   return (
     <TooltipProvider>
       <div className="w-full overflow-x-auto">
-        <Table className="min-w-[900px]">
+        <Table className="min-w-[880px]">
           <TableHeader>
             <TableRow>
               <TableHead>Data</TableHead>
@@ -131,7 +131,7 @@ export const FinanceiroTable = ({
           <TableBody>
             {corridas.map((corrida) => (
               <TableRow key={corrida.id}>
-                <TableCell>{new Date(corrida.dataServico).toLocaleDateString('pt-BR')}</TableCell>
+                <TableCell>{formatDateDDMMYYYY(corrida.dataServico)}</TableCell>
                 <TableCell className="font-medium">{corrida.empresa}</TableCell>
                 <TableCell>{corrida.motorista}</TableCell>
                 <TableCell>{corrida.origem} → {corrida.destino}</TableCell>

@@ -71,6 +71,13 @@ export const Dashboard = ({ userLevel, onLogout, userEmail, userName }: Dashboar
 
   return (
     <div className="flex h-screen bg-gray-50">
+      {/* Overlay mobile */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       <Sidebar 
         userLevel={userLevel}
         activeSection={activeSection}
@@ -86,7 +93,7 @@ export const Dashboard = ({ userLevel, onLogout, userEmail, userName }: Dashboar
           userEmail={userEmail}
           userName={userName}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
+        <main className="flex-1 overflow-x-auto overflow-y-auto bg-gray-50 p-3 sm:p-4 lg:p-6">
           {renderContent()}
         </main>
       </div>

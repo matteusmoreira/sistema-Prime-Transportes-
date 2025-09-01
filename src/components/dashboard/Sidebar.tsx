@@ -49,18 +49,20 @@ export const Sidebar = ({
   // Removidos logs de debug do sidebar (userLevel e itens filtrados)
   return (
     <div className={cn(
-      "bg-sidebar-background shadow-lg transition-all duration-300 flex flex-col border-r border-sidebar-border",
-      isOpen ? "w-64" : "w-16"
+      "bg-sidebar shadow-lg transition-all duration-300 flex flex-col border-r border-sidebar-border z-40 transform",
+      "fixed inset-y-0 left-0 lg:static",
+      isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+      isOpen ? "w-64" : "w-64 lg:w-16"
     )}>
       {/* Header */}
-      <div className="p-4 border-b border-sidebar-border">
+      <div className="p-3 sm:p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between">
           {isOpen && (
             <div className="flex items-center space-x-2">
               <div className="bg-sidebar-primary p-2 rounded-lg">
                 <Truck className="h-6 w-6 text-sidebar-primary-foreground" />
               </div>
-              <span className="font-bold text-sidebar-foreground">Prime Transportes</span>
+              <span className="font-bold text-sidebar-foreground text-sm sm:text-base">Prime Transportes</span>
             </div>
           )}
           <button
@@ -76,45 +78,33 @@ export const Sidebar = ({
       </div>
 
       {/* Menu Items */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
+      <nav className="flex-1 p-2 sm:p-4">
+        <ul className="space-y-1 sm:space-y-2">
           {filteredItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeSection === item.id;
-            
             return (
               <li key={item.id}>
                 <button
                   onClick={() => onSectionChange(item.id)}
                   className={cn(
-                    "w-full flex items-center p-3 rounded-lg transition-colors text-left",
-                    isActive 
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground" 
+                    "flex w-full items-center rounded-md px-2 py-2 sm:px-3 sm:py-2 text-sm sm:text-[0.95rem] transition-colors",
+                    activeSection === item.id
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
                       : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}
-                  title={!isOpen ? item.label : undefined}
                 >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
-                  {isOpen && (
-                    <span className="ml-3 font-medium">{item.label}</span>
-                  )}
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  <span className="truncate">{item.label}</span>
                 </button>
               </li>
             );
           })}
         </ul>
       </nav>
-
-      {/* User Level Indicator */}
-      {isOpen && (
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="text-sm text-sidebar-foreground">
-            <span className="font-medium">Nível de acesso:</span>
-            <br />
-            <span className="text-sidebar-primary font-semibold">{userLevel}</span>
-          </div>
-        </div>
-      )}
+      <div className="p-2 sm:p-4 border-t border-sidebar-border text-[11px] sm:text-xs text-muted-foreground">
+        Nível de acesso:
+        <span className="ml-1 font-medium truncate block sm:inline">{userLevel}</span>
+      </div>
     </div>
   );
-};
+}
