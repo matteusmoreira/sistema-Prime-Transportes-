@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { MotoristaSelectionDialog } from './MotoristaSelectionDialog';
 import { WhatsAppButton } from '@/components/financeiro/WhatsAppButton';
 import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
+import StatusBadge from '@/components/corridas/StatusBadge';
 
 interface CorridasTableProps {
   corridas: Corrida[];
@@ -57,27 +58,6 @@ export const CorridasTable = ({
       onReject(rejectDialog.corridaId, rejectReason);
       setRejectDialog({ open: false, corridaId: null });
       setRejectReason('');
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Aguardando Conferência':
-        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-sky-50 text-sky-700">{status}</Badge>;
-      case 'Em Análise':
-        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-amber-50 text-amber-700">{status}</Badge>;
-      case 'Aprovada':
-        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-emerald-50 text-emerald-700">{status}</Badge>;
-      case 'Revisar':
-        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-sky-50 text-sky-700">{status}</Badge>;
-      case 'Cancelada':
-        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-rose-50 text-rose-700">{status}</Badge>;
-      case 'No Show':
-        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-zinc-800 text-white">{status}</Badge>;
-      case 'Selecionar Motorista':
-        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border-0 bg-rose-50 text-rose-700">{status}</Badge>;
-      default:
-        return <Badge className="px-1.5 py-0 text-[10px] rounded-md border bg-gray-50 text-gray-700 border-gray-200">{status}</Badge>;
     }
   };
 
@@ -146,7 +126,7 @@ export const CorridasTable = ({
               <TableCell className="py-2">{corrida.origem} → {corrida.destino}</TableCell>
               <TableCell className="py-2">
                 <div className="flex flex-col">
-                  {getStatusBadge(corrida.status)}
+                  <StatusBadge status={corrida.status} size="xs" />
                   {corrida.preenchidoPorFinanceiro && (
                     <Badge variant="outline" className="mt-1 px-1.5 py-0 text-[10px] rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">Conferenciado pelo Financeiro</Badge>
                   )}
@@ -155,11 +135,11 @@ export const CorridasTable = ({
               <TableCell className="py-2">{formatCurrency(corrida.valorMotorista ?? 0)}</TableCell>
               <TableCell className="py-2">
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" onClick={() => onView(corrida)}>
+                  <Button size="sm" variant="outline" onClick={() => onView(corrida)} aria-label="Ver detalhes da corrida">
                     <Eye className="h-4 w-4" />
                   </Button>
                   {(corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente' || corrida.status === 'Aguardando OS') && !corrida.preenchidoPorMotorista && !corrida.preenchidoPorFinanceiro && (
-                    <Button size="sm" variant="default" onClick={() => onFillOS(corrida)}>
+                    <Button size="sm" variant="default" onClick={() => onFillOS(corrida)} aria-label="Preencher Ordem de Serviço">
                       <FileEdit className="h-4 w-4" />
                       Preencher OS
                     </Button>
@@ -201,7 +181,7 @@ export const CorridasTable = ({
               <TableCell className="py-2">{formatCurrency(corrida.valor ?? 0)}</TableCell>
               <TableCell className="py-2">
                 <div className="flex flex-col">
-                  {getStatusBadge(corrida.status)}
+                  <StatusBadge status={corrida.status} size="xs" />
                   {corrida.preenchidoPorFinanceiro && (
                     <Badge variant="outline" className="mt-1 px-1.5 py-0 text-[10px] rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">Conferenciado pelo Financeiro</Badge>
                   )}
@@ -209,7 +189,7 @@ export const CorridasTable = ({
               </TableCell>
               <TableCell className="py-2">
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" onClick={() => onView(corrida)}>
+                  <Button size="sm" variant="outline" onClick={() => onView(corrida)} aria-label="Ver detalhes da corrida">
                     <Eye className="h-4 w-4" />
                   </Button>
 
@@ -218,17 +198,17 @@ export const CorridasTable = ({
                   )}
 
                   {canEdit(corrida) && (
-                  <Button size="sm" variant="outline" onClick={() => onEdit(corrida)}>
+                  <Button size="sm" variant="outline" onClick={() => onEdit(corrida)} aria-label="Editar corrida">
                     <Edit className="h-4 w-4" />
                   </Button>
                   )}
 
                   {(userLevel === 'Administrador' || userLevel === 'Financeiro') && corrida.status === 'Aguardando Conferência' && (
                     <>
-                      <Button size="sm" variant="default" onClick={() => onApprove(corrida.id)}>
+                      <Button size="sm" variant="default" onClick={() => onApprove(corrida.id)} aria-label="Aprovar corrida">
                         <Check className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleRejectClick(corrida.id)}>
+                      <Button size="sm" variant="destructive" onClick={() => handleRejectClick(corrida.id)} aria-label="Rejeitar corrida">
                         <X className="h-4 w-4" />
                       </Button>
                     </>
@@ -240,13 +220,14 @@ export const CorridasTable = ({
                       variant="outline" 
                       className="border-red-300 text-red-800 hover:bg-red-50"
                       onClick={() => handleSelectMotoristaClick(corrida.id)}
+                      aria-label="Selecionar motorista para corrida"
                     >
                       <UserPlus className="h-4 w-4" />
                     </Button>
                   )}
 
                   {userLevel === 'Administrador' && (
-                    <Button size="sm" variant="destructive" onClick={() => onDelete(corrida.id)}>
+                    <Button size="sm" variant="destructive" onClick={() => onDelete(corrida.id)} aria-label="Excluir corrida">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   )}

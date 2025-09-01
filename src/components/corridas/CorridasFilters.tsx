@@ -48,14 +48,16 @@ export const CorridasFilters = ({
           <div className="space-y-1">
             <Label className={compact ? 'text-xs text-gray-600' : ''}>Motorista</Label>
             <Select value={motorista} onValueChange={onMotoristaChange}>
-              <SelectTrigger className={compact ? 'h-9' : ''}>
+              <SelectTrigger className={compact ? 'h-9' : ''} aria-label="Filtrar por motorista">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                {motoristas.map((m) => (
-                  <SelectItem key={m.id} value={m.nome}>{m.nome}</SelectItem>
-                ))}
+                {motoristas
+                  .filter((m) => m && typeof m.nome === 'string' && m.nome.trim().length > 0)
+                  .map((m) => (
+                    <SelectItem key={m.id} value={m.nome}>{m.nome}</SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
@@ -65,7 +67,7 @@ export const CorridasFilters = ({
           </div>
         </div>
         <div className="flex justify-end mt-3">
-          <Button variant="outline" onClick={onClear} className={compact ? 'h-9 px-3 text-sm' : ''}>
+          <Button variant="outline" onClick={onClear} className={compact ? 'h-9 px-3 text-sm' : ''} aria-label="Limpar filtros">
             <RotateCcw className="h-4 w-4 mr-2" />
             Limpar Filtros
           </Button>

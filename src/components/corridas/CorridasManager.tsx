@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMotoristas } from '@/hooks/useMotoristas';
 import { CorridasFilters } from './CorridasFilters';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { CorridaCard } from './mobile/CorridaCard';
 
 interface CorridasManagerProps {
   userLevel?: string;
@@ -76,7 +78,7 @@ export const CorridasManager = ({
   const [filtersOpen, setFiltersOpen] = useState<boolean>(true);
   useEffect(() => {
     try {
-      if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      if (typeof window !== 'undefined' && window.innerWidth <= 768) {
         setFiltersOpen(false);
       }
     } catch (e) {
@@ -121,6 +123,8 @@ export const CorridasManager = ({
       applyDateFilter(corridasPorMes)
     )
   );
+
+  const isMobile = useIsMobile();
 
   const handleEditClick = (corrida: any) => {
     if (handleEdit(corrida)) {
@@ -227,6 +231,7 @@ export const CorridasManager = ({
                 onClick={() => setFiltersOpen((v) => !v)}
                 className="inline-flex items-center gap-2"
                 title={filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
+                aria-label={filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
               >
                 <SlidersHorizontal className="h-4 w-4" />
                 <span className="hidden sm:inline">Filtros</span>
@@ -255,18 +260,40 @@ export const CorridasManager = ({
           </Collapsible>
           {/* Tabela */}
           <div className="w-full overflow-x-auto max-h-[70vh] overflow-y-auto rounded-md border">
-            <CorridasTable
-              corridas={corridasFiltradasFinal}
-              userLevel={userLevel}
-              userEmail={userEmail}
-              onView={openViewDialog}
-              onEdit={handleEditClick}
-              onFillOS={handleFillOSClick}
-              onDelete={deleteCorrida}
-              onApprove={approveCorrida}
-              onReject={rejectCorrida}
-              onSelectMotorista={selectMotorista}
-            />
+            {!isMobile ? (
+              <CorridasTable
+                corridas={corridasFiltradasFinal}
+                userLevel={userLevel}
+                userEmail={userEmail}
+                onView={openViewDialog}
+                onEdit={handleEditClick}
+                onFillOS={handleFillOSClick}
+                onDelete={deleteCorrida}
+                onApprove={approveCorrida}
+                onReject={rejectCorrida}
+                onSelectMotorista={selectMotorista}
+              />
+            ) : (
+              <div className="grid grid-cols-1 gap-3 p-3 max-h-[70vh] overflow-y-auto">
+                {corridasFiltradasFinal.length === 0 ? (
+                  <div className="mt-8 rounded-xl border bg-card p-6 text-center shadow-sm">
+                    <div className="text-base font-semibold text-foreground">Nenhuma corrida encontrada</div>
+                    <div className="mt-1 text-sm text-muted-foreground">Tente ajustar os filtros ou a busca.</div>
+                  </div>
+                ) : (
+                  corridasFiltradasFinal.map((c) => (
+                    <CorridaCard
+                      key={c.id}
+                      corrida={c}
+                      userLevel={userLevel}
+                      onView={openViewDialog}
+                      onEdit={handleEditClick}
+                      onFillOS={handleFillOSClick}
+                    />
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -287,3 +314,6 @@ export const CorridasManager = ({
     </div>
   );
 };
+
+
+// Remover bloco duplicado no final do arquivo (se existir)
