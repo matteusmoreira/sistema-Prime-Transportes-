@@ -100,7 +100,7 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
       destino: formData.destino,
       data: formData.dataServico || todayLocal,
       horaSaida: formData.horaInicio || '00:00',
-      horaChegada: '00:00',
+      horaChegada: '',
       observacoes: formData.observacoes || '',
       dataServico: formData.dataServico,
       horaInicio: formData.horaInicio,
