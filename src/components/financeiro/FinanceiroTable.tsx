@@ -4,7 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Edit, Eye } from 'lucide-react';
+import { Edit, Eye, MoreVertical, MessageCircle, Check, X } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { WhatsAppButton } from './WhatsAppButton';
 import type { CorridaFinanceiro } from '@/hooks/useFinanceiro';
 import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
@@ -208,22 +209,40 @@ export const FinanceiroTable = ({
                   </Select>
                 </TableCell>
                 <TableCell>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => onView(corrida)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => {
-                      // Removidos logs de debug de clique no botão Editar
-                      try {
-                        onEdit(corrida);
-                        // sucesso silencioso
-                      } catch (error) {
-                        console.error('Erro ao acionar edição da corrida:', error);
-                      }
-                    }}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <WhatsAppButton corrida={corrida} />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" variant="outline" aria-label="Abrir menu de ações">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="min-w-[240px]">
+                        <DropdownMenuItem onClick={() => onView(corrida)}>
+                          <Eye className="mr-2 h-4 w-4" /> Ver detalhes
+                        </DropdownMenuItem>
+                        <WhatsAppButton
+                          corrida={corrida}
+                          trigger={
+                            <DropdownMenuItem>
+                              <MessageCircle className="mr-2 h-4 w-4" /> Enviar Zap
+                            </DropdownMenuItem>
+                          }
+                        />
+                        <DropdownMenuItem onClick={() => onEdit(corrida)}>
+                          <Edit className="mr-2 h-4 w-4" /> Editar
+                        </DropdownMenuItem>
+                        {corrida.status === 'Aguardando Conferência' && (
+                          <>
+                            <DropdownMenuItem onClick={() => onApprove(corrida)}>
+                              <Check className="mr-2 h-4 w-4" /> Aprovar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onReject(corrida)}>
+                              <X className="mr-2 h-4 w-4" /> Rejeitar
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>

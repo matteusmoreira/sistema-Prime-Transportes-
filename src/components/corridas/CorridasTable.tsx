@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Eye, Check, X, FileEdit, UserPlus } from 'lucide-react';
+import { Edit, Trash2, Eye, Check, X, FileEdit, UserPlus, MoreVertical, MessageCircle } from 'lucide-react';
 import { Corrida } from '@/types/corridas';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,6 +11,7 @@ import { MotoristaSelectionDialog } from './MotoristaSelectionDialog';
 import { WhatsAppButton } from '@/components/financeiro/WhatsAppButton';
 import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
 import StatusBadge from '@/components/corridas/StatusBadge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface CorridasTableProps {
   corridas: Corrida[];
@@ -119,7 +120,7 @@ export const CorridasTable = ({
         </StickyHeader>
         <TableBody>
           {corridas.map((corrida) => (
-            <TableRow key={corrida.id} className="align-top">
+            <TableRow key={corrida.id} className="align-top cursor-pointer hover:bg-muted/40" onClick={() => onView(corrida)}>
               <TableCell className="py-2">{corrida.numeroOS || '-'}</TableCell>
               <TableCell className="py-2">{formatDateDDMMYYYY(corrida.dataServico || corrida.data)}</TableCell>
               <TableCell className="py-2 font-medium">{corrida.empresa}</TableCell>
@@ -133,18 +134,24 @@ export const CorridasTable = ({
                 </div>
               </TableCell>
               <TableCell className="py-2">{formatCurrency(corrida.valorMotorista ?? 0)}</TableCell>
-              <TableCell className="py-2">
-                <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" onClick={() => onView(corrida)} aria-label="Ver detalhes da corrida">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  {(corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente' || corrida.status === 'Aguardando OS') && !corrida.preenchidoPorMotorista && !corrida.preenchidoPorFinanceiro && (
-                    <Button size="sm" variant="default" onClick={() => onFillOS(corrida)} aria-label="Preencher Ordem de Serviço">
-                      <FileEdit className="h-4 w-4" />
-                      Preencher OS
+              <TableCell className="py-2" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline" aria-label="Abrir menu de ações">
+                      <MoreVertical className="h-4 w-4" />
                     </Button>
-                  )}
-                </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-[220px]">
+                    <DropdownMenuItem onClick={() => onView(corrida)}>
+                      <Eye className="mr-2 h-4 w-4" /> Ver detalhes
+                    </DropdownMenuItem>
+                    {((corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente' || corrida.status === 'Aguardando OS') && !corrida.preenchidoPorMotorista && !corrida.preenchidoPorFinanceiro) && (
+                      <DropdownMenuItem onClick={() => onFillOS(corrida)}>
+                        <FileEdit className="mr-2 h-4 w-4" /> Preencher OS
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}
@@ -171,7 +178,7 @@ export const CorridasTable = ({
         </StickyHeader>
         <TableBody>
           {corridas.map(corrida => (
-            <TableRow key={corrida.id} className="align-top">
+            <TableRow key={corrida.id} className="align-top cursor-pointer hover:bg-muted/40" onClick={() => onView(corrida)}>
               <TableCell className="py-2">{corrida.numeroOS || '-'}</TableCell>
               <TableCell className="py-2">{formatDateDDMMYYYY(corrida.dataServico || corrida.data)}</TableCell>
               <TableCell className="py-2 font-medium">{corrida.empresa}</TableCell>
@@ -187,51 +194,57 @@ export const CorridasTable = ({
                   )}
                 </div>
               </TableCell>
-              <TableCell className="py-2">
-                <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" onClick={() => onView(corrida)} aria-label="Ver detalhes da corrida">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-
-                  {userLevel === 'Administrador' && corrida.motorista && (
-                    <WhatsAppButton corrida={corrida} />
-                  )}
-
-                  {canEdit(corrida) && (
-                  <Button size="sm" variant="outline" onClick={() => onEdit(corrida)} aria-label="Editar corrida">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  )}
-
-                  {(userLevel === 'Administrador' || userLevel === 'Financeiro') && corrida.status === 'Aguardando Conferência' && (
-                    <>
-                      <Button size="sm" variant="default" onClick={() => onApprove(corrida.id)} aria-label="Aprovar corrida">
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleRejectClick(corrida.id)} aria-label="Rejeitar corrida">
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-
-                  {userLevel === 'Administrador' && corrida.status === 'Selecionar Motorista' && (
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="border-red-300 text-red-800 hover:bg-red-50"
-                      onClick={() => handleSelectMotoristaClick(corrida.id)}
-                      aria-label="Selecionar motorista para corrida"
-                    >
-                      <UserPlus className="h-4 w-4" />
+              <TableCell className="py-2" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline" aria-label="Abrir menu de ações">
+                      <MoreVertical className="h-4 w-4" />
                     </Button>
-                  )}
-
-                  {userLevel === 'Administrador' && (
-                    <Button size="sm" variant="destructive" onClick={() => onDelete(corrida.id)} aria-label="Excluir corrida">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-[240px]">
+                    <DropdownMenuItem onClick={() => onView(corrida)}>
+                      <Eye className="mr-2 h-4 w-4" /> Ver detalhes
+                    </DropdownMenuItem>
+                    {userLevel === 'Administrador' && corrida.motorista && (
+                      <WhatsAppButton
+                        corrida={corrida}
+                        trigger={
+                          <DropdownMenuItem>
+                            <MessageCircle className="mr-2 h-4 w-4" /> Enviar Zap
+                          </DropdownMenuItem>
+                        }
+                      />
+                    )}
+                    {canEdit(corrida) && (
+                      <DropdownMenuItem onClick={() => onEdit(corrida)}>
+                        <Edit className="mr-2 h-4 w-4" /> Editar
+                      </DropdownMenuItem>
+                    )}
+                    {(userLevel === 'Administrador' || userLevel === 'Financeiro') && corrida.status === 'Aguardando Conferência' && (
+                      <>
+                        <DropdownMenuItem onClick={() => onApprove(corrida.id)}>
+                          <Check className="mr-2 h-4 w-4" /> Aprovar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleRejectClick(corrida.id)}>
+                          <X className="mr-2 h-4 w-4" /> Rejeitar
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    {userLevel === 'Administrador' && corrida.status === 'Selecionar Motorista' && (
+                      <DropdownMenuItem onClick={() => handleSelectMotoristaClick(corrida.id)}>
+                        <UserPlus className="mr-2 h-4 w-4" /> Selecionar Motorista
+                      </DropdownMenuItem>
+                    )}
+                    {(userLevel === 'Administrador') && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => onDelete(corrida.id)} className="text-destructive focus:text-destructive">
+                          <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}

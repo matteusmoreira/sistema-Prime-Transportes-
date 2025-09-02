@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode, cloneElement, isValidElement } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,15 +14,29 @@ import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
 
 interface WhatsAppButtonProps {
   corrida: any; // Vamos receber toda a corrida para pegar todos os dados
+  trigger?: ReactNode; // Conteúdo customizado para acionar o diálogo (ex.: DropdownMenuItem)
 }
 
-export const WhatsAppButton = ({ corrida }: WhatsAppButtonProps) => {
+export const WhatsAppButton = ({ corrida, trigger }: WhatsAppButtonProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
   const { motoristas } = useMotoristas();
-  
+
+  // Função auxiliar para exibir o número formatado no input
+  const formatPhoneNumberDisplay = (value: string) => {
+    const numbersOnly = value.replace(/\D/g, '');
+    if (!numbersOnly) return '';
+    const country = numbersOnly.slice(0, 2);
+    const rest = numbersOnly.slice(2);
+    const ddd = rest.slice(0, 2);
+    const first = rest.slice(2, 7);
+    const last = rest.slice(7, 11);
+    return `+${country} (${ddd}) ${first}${last ? '-' + last : ''}`;
+  };
+
   // Criar mensagem formatada com todos os dados da corrida
   const createFormattedMessage = () => {
     const dataBase = corrida.dataServico || corrida.data;
@@ -67,62 +81,89 @@ export const WhatsAppButton = ({ corrida }: WhatsAppButtonProps) => {
     }
   }, [corrida.motorista, motoristas]);
 
-
-  const sendWhatsAppMessage = async () => {
+  const handleSend = async () => {
     if (!phoneNumber || !message) {
-      toast.error('Preencha o número e a mensagem');
+      toast.error('Preencha o número e a mensagem.');
       return;
     }
 
     setIsLoading(true);
-    
     try {
-      const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
-        body: {
-          phoneNumber: phoneNumber.replace(/\D/g, ''),
-          message: message
-        }
-      });
+      const { data: configuracoes, error: configError } = await supabase
+        .from('configuracoes')
+        .select('evolution_api_url, evolution_instance_id, evolution_api_key')
+        .eq('id', 1)
+        .single();
 
-      if (error) {
-        console.error('Erro ao enviar WhatsApp:', error);
-        toast.error('Erro ao enviar mensagem. Verifique as configurações.');
+      if (configError || !configuracoes) {
+        console.error('Erro ao buscar configurações:', configError);
+        toast.error('Erro ao enviar mensagem: configurações ausentes.');
         return;
       }
+
+      const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
+        body: { phoneNumber, message, configuracoes },
+      });
+
+      if (error) throw error;
 
       if (data?.success) {
         toast.success('Mensagem enviada com sucesso!');
         setIsDialogOpen(false);
       } else {
-        toast.error(`Erro ao enviar mensagem: ${data?.message || 'Erro desconhecido'}`);
+        toast.error(data?.message || 'Erro ao enviar mensagem.');
       }
-    } catch (error) {
-      console.error('Erro ao enviar WhatsApp:', error);
-      toast.error('Erro ao enviar mensagem. Verifique sua conexão e configurações.');
+    } catch (err) {
+      console.error('Erro ao enviar WhatsApp:', err);
+      toast.error('Erro ao enviar WhatsApp.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const formatPhoneNumberDisplay = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.startsWith('55') && numbers.length >= 13) {
-      const withoutCountryCode = numbers.substring(2);
-      const match = withoutCountryCode.match(/^(\d{2})(\d{5})(\d{4})$/);
-      if (match) {
-        return `+55 (${match[1]}) ${match[2]}-${match[3]}`;
-      }
-    }
-    return value;
-  };
-
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700">
-          <MessageCircle className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
+      {trigger ? (
+        // Quando houver um trigger customizado (ex.: DropdownMenuItem), evitamos usar o DialogTrigger
+        // para não ocorrer o efeito de abrir e fechar imediatamente ao clicar dentro do Dropdown.
+        // Em vez disso, clonamos o elemento e previnimos o onSelect do DropdownMenuItem.
+        <>
+          {isValidElement(trigger)
+            ? cloneElement(trigger as any, {
+                onSelect: (e: any) => {
+                  // Evita que o DropdownMenu feche o diálogo imediatamente
+                  if (e?.preventDefault) e.preventDefault();
+                },
+                onClick: (e: any) => {
+                  if (e?.preventDefault) e.preventDefault();
+                  if (e?.stopPropagation) e.stopPropagation();
+                  setIsDialogOpen(true);
+                  // Preserva um possível onClick original
+                  if ((trigger as any).props?.onClick) {
+                    (trigger as any).props.onClick(e);
+                  }
+                },
+              })
+            : (
+              <div
+                role="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDialogOpen(true);
+                }}
+              >
+                {trigger}
+              </div>
+            )}
+        </>
+      ) : (
+        <DialogTrigger asChild>
+          <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700">
+            <MessageCircle className="h-4 w-4" />
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Enviar WhatsApp para {corrida.motorista}</DialogTitle>
@@ -153,21 +194,15 @@ export const WhatsAppButton = ({ corrida }: WhatsAppButtonProps) => {
             <Button 
               variant="outline" 
               onClick={() => setIsDialogOpen(false)}
-              disabled={isLoading}
             >
               Cancelar
             </Button>
-            <Button 
-              onClick={sendWhatsAppMessage}
-              disabled={isLoading || !phoneNumber || !message}
-              className="flex items-center space-x-2"
-            >
-              <Send className="h-4 w-4" />
-              <span>{isLoading ? 'Enviando...' : 'Enviar'}</span>
+            <Button onClick={handleSend} disabled={isLoading} className="bg-green-600 hover:bg-green-700 text-white">
+              <Send className="mr-2 h-4 w-4" /> {isLoading ? 'Enviando...' : 'Enviar'}
             </Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-};
+}
