@@ -176,7 +176,8 @@ export const useMotoristas = () => {
              cpf: formData.cpf,
              telefone: formData.telefone,
              cnh: formData.cnh,
-             validadeCnh: formData.cnhDataValidade && formData.cnhDataValidade.trim() !== '' ? formData.cnhDataValidade : null
+             validadeCnh: formData.cnhDataValidade && formData.cnhDataValidade.trim() !== '' ? formData.cnhDataValidade : null,
+             status: (formData as any).status || 'Pendente'
            }
          });
 

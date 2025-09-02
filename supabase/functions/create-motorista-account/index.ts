@@ -24,7 +24,7 @@ serve(async (req) => {
       }
     )
 
-    const { email, nome, cpf, telefone, cnh, validadeCnh } = await req.json()
+    const { email, nome, cpf, telefone, cnh, validadeCnh, status } = await req.json()
 
     console.log('Creating motorista account for:', email)
 
@@ -95,7 +95,7 @@ serve(async (req) => {
         cnh,
         validade_cnh: validadeCnh && validadeCnh.trim() !== '' ? validadeCnh : null,
         user_id: userId,
-        status: 'Pendente'
+        status: status || 'Pendente'
       })
       .select()
       .single()
