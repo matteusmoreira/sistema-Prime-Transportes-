@@ -552,13 +552,15 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
       // Salvar documentos/comprovantes se existirem
       const documentos = (osData as any).documentos;
-      // console.log('📎 Documentos recebidos para salvar:', documentos);
+      console.log('📎 Documentos recebidos para salvar:', documentos);
       
       if (documentos && documentos.length > 0) {
         let documentosSalvos = 0;
         
         for (const documento of documentos) {
-          // console.log('📄 Processando documento:', documento.nome, 'Arquivo:', !!documento.arquivo);
+          console.log('📄 Processando documento:', documento.nome, 'Arquivo:', !!documento.arquivo);
+          console.log('📄 Tipo do arquivo:', documento.arquivo?.constructor?.name);
+          console.log('📄 Tamanho do arquivo:', documento.arquivo?.size);
           
           if (documento.arquivo) {
             try {
@@ -566,35 +568,47 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
               const sanitizedName = documento.nome.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
               const fileName = `${id}_OS_${Date.now()}_${sanitizedName}`;
               
-              // console.log('⬆️ Fazendo upload do arquivo:', fileName);
-              // console.log('⬆️ Fazendo upload do arquivo:', fileName);
-              const { error: uploadError } = await supabase.storage
+              console.log('⬆️ Fazendo upload do arquivo:', fileName);
+              console.log('⬆️ Bucket: corrida-documentos');
+              console.log('⬆️ Arquivo:', documento.arquivo);
+              
+              const { data: uploadData, error: uploadError } = await supabase.storage
                 .from('corrida-documentos')
                 .upload(fileName, documento.arquivo);
 
               if (uploadError) {
                 console.error('❌ Erro ao fazer upload do comprovante:', uploadError);
-                toast.error(`Erro ao fazer upload do comprovante ${documento.nome}`);
+                console.error('❌ Detalhes do erro:', JSON.stringify(uploadError, null, 2));
+                toast.error(`Erro ao fazer upload do comprovante ${documento.nome}: ${uploadError.message}`);
                 continue;
               }
-
-              // ... console.log('✅ Upload realizado com sucesso, salvando registro na tabela...');
-              // console.log('✅ Upload realizado com sucesso, salvando registro na tabela...');
+              
+              console.log('✅ Upload realizado com sucesso:', uploadData);
+              console.log('💾 Salvando registro na tabela corrida_documentos...');
+              
               // Salvar registro do documento na tabela
-              const { error: docInsertError } = await supabase
+              const documentoData = {
+                corrida_id: id,
+                nome: documento.nome,
+                descricao: documento.descricao || `Comprovante de ${documento.nome}`,
+                url: fileName
+              };
+              
+              console.log('💾 Dados do documento para inserir:', documentoData);
+              
+              const { data: dbData, error: docInsertError } = await supabase
                 .from('corrida_documentos')
-                .insert({
-                  corrida_id: id,
-                  nome: documento.nome,
-                  descricao: documento.descricao || `Comprovante de ${documento.nome}`,
-                  url: fileName
-                });
+                .insert(documentoData)
+                .select();
 
               if (docInsertError) {
                 console.error('❌ Erro ao salvar registro do comprovante:', docInsertError);
-                toast.error(`Erro ao salvar registro do comprovante ${documento.nome}`);
+                console.error('❌ Detalhes do erro DB:', JSON.stringify(docInsertError, null, 2));
+                toast.error(`Erro ao salvar registro do comprovante ${documento.nome}: ${docInsertError.message}`);
                 continue;
               }
+              
+              console.log('✅ Documento salvo no banco com sucesso:', dbData);
 
               documentosSalvos++;
               // console.log('✅ Comprovante salvo com sucesso:', documento.nome);
