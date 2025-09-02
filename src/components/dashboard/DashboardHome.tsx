@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Users, Car, Route, Calculator, TrendingUp, CheckCircle, Clock, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Building2, Users, Car, Route, Calculator, TrendingUp, CheckCircle, Clock, FileText, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { useEmpresas } from '@/contexts/EmpresasContext';
 import { useSolicitantes } from '@/hooks/useSolicitantes';
 import { useMotoristas } from '@/hooks/useMotoristas';
@@ -29,10 +30,19 @@ export const DashboardHome = ({
   // Add error boundary for useCorridas
   let corridas: any[] = [];
   let corridasError = false;
+  let corridasLoading = false;
+  let lastUpdated: Date | null = null;
+  let refreshCorridas: (() => void) | null = null;
+  let isRealtimeConnected = false;
   
   try {
     const corridasData = useCorridas();
     corridas = corridasData.corridas || [];
+    corridasLoading = corridasData.loading || false;
+    corridasError = corridasData.error || false;
+    lastUpdated = corridasData.lastUpdated || null;
+    refreshCorridas = corridasData.refreshCorridas || null;
+    isRealtimeConnected = corridasData.isRealtimeConnected || false;
     // console.log('Successfully loaded corridas:', corridas.length);
   } catch (error) {
     console.error('Error loading corridas:', error);
@@ -147,12 +157,64 @@ export const DashboardHome = ({
     ? corridasDoMotorista.filter(c => c.status === 'Aguardando OS' || c.status === 'Aguardando Conferência').length
     : 0;
   
+  // Função para formatar a última atualização
+  const formatLastUpdated = (date: Date | null) => {
+    if (!date) return 'Nunca';
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    
+    if (minutes < 1) return 'Agora mesmo';
+    if (minutes === 1) return '1 minuto atrás';
+    if (minutes < 60) return `${minutes} minutos atrás`;
+    
+    const hours = Math.floor(minutes / 60);
+    if (hours === 1) return '1 hora atrás';
+    if (hours < 24) return `${hours} horas atrás`;
+    
+    return date.toLocaleString('pt-BR');
+  };
+
   return <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
-        <p className="text-gray-600 mt-2">
-          Bem-vindo ao sistema Prime Transportes - {userLevel}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
+          <p className="text-gray-600 mt-2">
+            Bem-vindo ao sistema Prime Transportes - {userLevel}
+          </p>
+        </div>
+        
+        {/* Indicador de última atualização e botão de refresh para motoristas */}
+        {userLevel === 'Motorista' && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 text-sm">
+            <div className="flex items-center gap-4">
+              <div className="text-gray-500">
+                Última atualização: {formatLastUpdated(lastUpdated)}
+              </div>
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+                isRealtimeConnected 
+                  ? 'bg-green-100 text-green-700' 
+                  : 'bg-yellow-100 text-yellow-700'
+              }`}>
+                {isRealtimeConnected ? (
+                  <><Wifi className="h-3 w-3" /> Tempo Real</>
+                ) : (
+                  <><WifiOff className="h-3 w-3" /> Polling</>
+                )}
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refreshCorridas}
+              disabled={corridasLoading}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${corridasLoading ? 'animate-spin' : ''}`} />
+              Atualizar
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Cards de Estatísticas */}
