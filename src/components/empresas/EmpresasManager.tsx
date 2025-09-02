@@ -15,7 +15,6 @@ export const EmpresasManager = () => {
   const [editingEmpresa, setEditingEmpresa] = useState<Empresa | null>(null);
   const [formData, setFormData] = useState({
     nome: '',
-    localidade: '',
     cnpj: '',
     telefone: '',
     email: '',
@@ -28,7 +27,6 @@ export const EmpresasManager = () => {
     // console.log('Resetando formulário');
     setFormData({
       nome: '',
-      localidade: '',
       cnpj: '',
       telefone: '',
       email: '',
@@ -44,7 +42,6 @@ export const EmpresasManager = () => {
     setEditingEmpresa(empresa);
     setFormData({
       nome: empresa.nome,
-      localidade: empresa.localidade,
       cnpj: empresa.cnpj,
       telefone: empresa.telefone,
       email: empresa.email,

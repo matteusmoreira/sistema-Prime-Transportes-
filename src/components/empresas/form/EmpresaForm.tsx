@@ -6,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 
 interface EmpresaFormData {
   nome: string;
-  localidade: string;
   cnpj: string;
   telefone: string;
   email: string;
@@ -49,14 +48,7 @@ export const EmpresaForm = ({
             }}
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="localidade">Localidade</Label>
-          <Input
-            id="localidade"
-            value={formData.localidade}
-            onChange={(e) => onInputChange('localidade', e.target.value)}
-          />
-        </div>
+
         <div className="space-y-2">
           <Label htmlFor="cnpj">CNPJ</Label>
           <Input

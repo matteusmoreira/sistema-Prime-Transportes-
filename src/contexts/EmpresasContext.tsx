@@ -7,7 +7,6 @@ import { useAuthDependentData } from '@/hooks/useAuthDependentData';
 export interface Empresa {
   id: number;
   nome: string;
-  localidade?: string;
   cnpj?: string;
   telefone?: string;
   email?: string;
@@ -49,7 +48,6 @@ export const EmpresasProvider = ({ children }: { children: ReactNode }) => {
       const empresasFormatted = data?.map(empresa => ({
         id: empresa.id,
         nome: empresa.nome,
-        localidade: '',
         cnpj: empresa.cnpj || '',
         telefone: empresa.telefone || '',
         email: empresa.email || '',
@@ -81,7 +79,7 @@ export const EmpresasProvider = ({ children }: { children: ReactNode }) => {
     // console.log('Context: Tentando cadastrar empresa:', empresaData);
     
     // Validação básica
-    if (!empresaData.nome || !empresaData.localidade || !empresaData.cnpj || !empresaData.telefone || !empresaData.email) {
+    if (!empresaData.nome || !empresaData.cnpj || !empresaData.telefone || !empresaData.email) {
       toast.error('Preencha todos os campos obrigatórios!');
       return;
     }
@@ -110,7 +108,6 @@ export const EmpresasProvider = ({ children }: { children: ReactNode }) => {
       const novaEmpresa: Empresa = {
         id: data.id,
         nome: data.nome,
-        localidade: empresaData.localidade || '',
         cnpj: data.cnpj || '',
         telefone: data.telefone || '',
         email: data.email || '',
