@@ -11,7 +11,8 @@ import {
   Truck,
   Bell,
   Receipt,
-  Settings
+  Settings,
+  Shield
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -57,14 +58,14 @@ export const Sidebar = ({
       {/* Header */}
       <div className="p-3 sm:p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between">
-          {isOpen && (
-            <div className="flex items-center space-x-2">
-              <div className="bg-sidebar-primary p-2 rounded-lg">
-                <Truck className="h-6 w-6 text-sidebar-primary-foreground" />
-              </div>
-              <span className="font-bold text-sidebar-foreground text-sm sm:text-base">Prime Transportes</span>
+          <div className="flex items-center space-x-2">
+            <div className="bg-sidebar-primary p-2 rounded-lg">
+              <Truck className="h-6 w-6 text-sidebar-primary-foreground" />
             </div>
-          )}
+            {isOpen && (
+              <span className="font-bold text-sidebar-foreground text-sm sm:text-base">Prime Transportes</span>
+            )}
+          </div>
           <button
             onClick={onToggle}
             className="p-1 rounded-lg hover:bg-sidebar-accent transition-colors"
@@ -88,13 +89,19 @@ export const Sidebar = ({
                   onClick={() => onSectionChange(item.id)}
                   className={cn(
                     "flex w-full items-center rounded-md px-2 py-2 sm:px-3 sm:py-2 text-sm sm:text-[0.95rem] transition-colors",
+                    isOpen ? "justify-start" : "justify-center",
                     activeSection === item.id
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      ? (!isOpen ? "bg-black text-white" : "bg-sidebar-accent text-sidebar-accent-foreground")
                       : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}
                 >
-                  <Icon className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  <span className="truncate">{item.label}</span>
+                  <Icon
+                    className={cn(
+                      isOpen ? "h-5 w-5 sm:h-6 sm:w-6 mr-2" : "h-14 w-14"
+                    )}
+                    style={!isOpen ? { width: '25px', height: '25px', minWidth: '25px', minHeight: '25px' } : {}}
+                  />
+                  <span className={cn("truncate", !isOpen && "hidden lg:hidden")}>{item.label}</span>
                 </button>
               </li>
             );
@@ -102,8 +109,19 @@ export const Sidebar = ({
         </ul>
       </nav>
       <div className="p-2 sm:p-4 border-t border-sidebar-border text-[11px] sm:text-xs text-muted-foreground">
-        Nível de acesso:
-        <span className="ml-1 font-medium truncate block sm:inline">{userLevel}</span>
+        {isOpen ? (
+          <div className="flex items-center gap-1 min-w-0">
+            <span className="whitespace-nowrap">Nível de acesso:</span>
+            <span className="ml-1 font-medium truncate">{userLevel}</span>
+          </div>
+        ) : (
+          <div className="flex justify-center" title={`Nível de acesso: ${userLevel}`}>
+            <Shield 
+              className="h-14 w-14" 
+              style={{ width: '25px', height: '25px', minWidth: '25px', minHeight: '25px' }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -101,3 +101,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Força o tamanho dos ícones da sidebar quando retraída */
+@layer utilities {
+  .sidebar-icon-collapsed {
+    width: 3.5rem !important;
+    height: 3.5rem !important;
+  }
+}
