@@ -5,13 +5,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { Corrida, CorridasContextType } from '@/types/corridas';
 import { getCorridasByMotorista } from '@/utils/corridaHelpers';
 import { useAuthDependentData } from '@/hooks/useAuthDependentData';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CorridasContext = createContext<CorridasContextType | undefined>(undefined);
 
 export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   const [corridas, setCorridas] = useState<Corrida[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [previousCorridasCount, setPreviousCorridasCount] = useState<number>(0);
+  const [realtimeChannel, setRealtimeChannel] = useState<any>(null);
+  const [connectionRetries, setConnectionRetries] = useState(0);
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
   const { shouldLoadData, isAuthLoading } = useAuthDependentData();
+  const { user } = useAuth();
 
   // Carregar corridas do Supabase com documentos
   const loadCorridas = async () => {
@@ -93,8 +100,41 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         };
       }) || [];
 
+      // Detectar novas corridas para motoristas
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('nivel')
+          .eq('id', user.id)
+          .single();
+
+        if (profile?.nivel === 'Motorista' && previousCorridasCount > 0) {
+          const corridasDisponiveis = corridasFormatted.filter(corrida => 
+            corrida.status === 'Pendente' && !corrida.motorista
+          );
+          const corridasDisponiveisAntes = corridas.filter(corrida => 
+            corrida.status === 'Pendente' && !corrida.motorista
+          );
+          
+          const novasCorridasDisponiveis = corridasDisponiveis.length - corridasDisponiveisAntes.length;
+          
+          if (novasCorridasDisponiveis > 0) {
+            toast.success(
+              `${novasCorridasDisponiveis} nova${novasCorridasDisponiveis > 1 ? 's' : ''} corrida${novasCorridasDisponiveis > 1 ? 's' : ''} disponível${novasCorridasDisponiveis > 1 ? 'eis' : ''}!`,
+              {
+                description: 'Verifique as corridas pendentes para aceitar.',
+                duration: 5000,
+              }
+            );
+          }
+        }
+      }
+
       setCorridas(corridasFormatted);
-      // console.log('Corridas carregadas do Supabase:', corridasFormatted.length);
+      setPreviousCorridasCount(corridasFormatted.length);
+      setLastUpdated(new Date());
+      // console.log('Corridas carregadas:', corridasFormatted.length);
     } catch (error) {
       console.error('Erro ao carregar corridas:', error);
       toast.error('Erro ao carregar corridas');
@@ -112,24 +152,119 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   }, [shouldLoadData, isAuthLoading]);
 
   // Realtime: Atualiza corridas quando houver mudanças no banco
-  useEffect(() => {
+  // Sistema de realtime melhorado com reconexão automática
+  const setupRealtimeConnection = () => {
     if (!shouldLoadData) return;
-    
+
+    // Limpar conexão anterior se existir
+    if (realtimeChannel) {
+      supabase.removeChannel(realtimeChannel);
+    }
+
     const channel = supabase
-      .channel('corridas-changes')
+      .channel('corridas-changes', {
+        config: {
+          presence: {
+            key: 'corridas-listener'
+          }
+        }
+      })
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'corridas' },
-        () => {
+        (payload) => {
+          console.log('Realtime event received:', payload);
           loadCorridas();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Realtime connection status:', status);
+        
+        if (status === 'SUBSCRIBED') {
+          setIsRealtimeConnected(true);
+          setConnectionRetries(0);
+          console.log('Realtime connected successfully');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          setIsRealtimeConnected(false);
+          console.log('Realtime connection failed, attempting reconnection...');
+          
+          // Tentar reconectar após um delay
+          setTimeout(() => {
+            if (connectionRetries < 5) {
+              setConnectionRetries(prev => prev + 1);
+              setupRealtimeConnection();
+            } else {
+              console.log('Max reconnection attempts reached');
+              toast.error('Conexão em tempo real perdida. Usando atualização automática.');
+            }
+          }, Math.min(1000 * Math.pow(2, connectionRetries), 30000)); // Backoff exponencial
+        } else if (status === 'CLOSED') {
+          setIsRealtimeConnected(false);
+          console.log('Realtime connection closed');
+        }
+      });
+
+    setRealtimeChannel(channel);
+  };
+
+  useEffect(() => {
+    setupRealtimeConnection();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+      }
     };
   }, [shouldLoadData]);
+
+  // Monitorar status da conexão e tentar reconectar se necessário
+  useEffect(() => {
+    if (!shouldLoadData) return;
+
+    const connectionCheckInterval = setInterval(() => {
+      if (!isRealtimeConnected && connectionRetries < 5) {
+        console.log('Checking realtime connection...');
+        setupRealtimeConnection();
+      }
+    }, 60000); // Verificar a cada minuto
+
+    return () => {
+      clearInterval(connectionCheckInterval);
+    };
+  }, [shouldLoadData, isRealtimeConnected, connectionRetries]);
+
+  // Polling automático para motoristas (atualiza a cada 30 segundos)
+  useEffect(() => {
+    if (!shouldLoadData || !user?.role || user.role !== 'Motorista') return;
+    
+    const pollingInterval = setInterval(() => {
+      // Só faz polling se a aba estiver visível
+      if (!document.hidden) {
+        loadCorridas();
+      }
+    }, 30000); // 30 segundos
+
+    return () => {
+      clearInterval(pollingInterval);
+    };
+  }, [shouldLoadData, user?.role]);
+
+  // Recarregar dados quando a aba volta ao foco (para motoristas)
+  useEffect(() => {
+    if (!shouldLoadData || !user?.role || user.role !== 'Motorista') return;
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadCorridas();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [shouldLoadData, user?.role]);
 
   const addCorrida = async (corridaData: Omit<Corrida, 'id' | 'status'>) => {
     
@@ -637,19 +772,30 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Função para refresh manual
+  const refreshCorridas = async () => {
+    if (!shouldLoadData) return;
+    await loadCorridas();
+    toast.success('Corridas atualizadas!');
+  };
+
   return (
     <CorridasContext.Provider value={{
       corridas,
       loading,
+      lastUpdated,
+      isRealtimeConnected,
       addCorrida,
       updateCorrida,
       fillOS,
       deleteCorrida,
       approveCorrida,
-    rejectCorrida,
-    updateStatus,
-    selectMotorista,
-    getCorridasByMotorista: (motoristaEmail: string, motoristas: any[]) => getCorridasByMotorista(corridas, motoristaEmail, motoristas)
+      rejectCorrida,
+      updateStatus,
+      selectMotorista,
+      loadCorridas,
+      refreshCorridas,
+      getCorridasByMotorista: (motoristaEmail: string, motoristas: any[]) => getCorridasByMotorista(corridas, motoristaEmail, motoristas)
     }}>
       {children}
     </CorridasContext.Provider>

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Route, ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
+import { Plus, Route, ChevronDown, ChevronUp, SlidersHorizontal, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { CorridaForm } from './CorridaForm';
 import { CorridasTable } from './CorridasTable';
 import { CorridasDialogs } from './CorridasDialogs';
@@ -52,7 +52,10 @@ export const CorridasManager = ({
     deleteCorrida,
     approveCorrida,
     rejectCorrida,
-    selectMotorista
+    selectMotorista,
+    lastUpdated,
+    refreshCorridas,
+    isRealtimeConnected
   } = useCorridasLogic(userLevel, userEmail);
 
   // Filtro por mês (existente)
@@ -173,8 +176,25 @@ export const CorridasManager = ({
     setEndDate('');
     setSelectedMotorista('all');
     setNumeroOS('');
-    // manter filtro por mês como está
   };
+
+  // Função para formatar a última atualização
+  const formatLastUpdated = (date: Date | null) => {
+    if (!date) return 'Nunca';
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    
+    if (minutes < 1) return 'Agora mesmo';
+    if (minutes === 1) return '1 minuto atrás';
+    if (minutes < 60) return `${minutes} minutos atrás`;
+    
+    const hours = Math.floor(minutes / 60);
+    if (hours === 1) return '1 hora atrás';
+    if (hours < 24) return `${hours} horas atrás`;
+    
+    return date.toLocaleString('pt-BR');
+   };
 
   return (
     <div className="space-y-6">
@@ -225,6 +245,18 @@ export const CorridasManager = ({
                   <SelectItem value="12">Dezembro</SelectItem>
                 </SelectContent>
               </Select>
+              {userLevel === 'Motorista' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={refreshCorridas}
+                  className="inline-flex items-center gap-2"
+                  title="Atualizar corridas"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span className="hidden sm:inline">Atualizar</span>
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
@@ -239,6 +271,26 @@ export const CorridasManager = ({
               </Button>
             </div>
           </div>
+          {userLevel === 'Motorista' && (
+            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+              {lastUpdated && (
+                <div>
+                  Última atualização: {formatLastUpdated(lastUpdated)}
+                </div>
+              )}
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+                isRealtimeConnected 
+                  ? 'bg-green-100 text-green-700' 
+                  : 'bg-yellow-100 text-yellow-700'
+              }`}>
+                {isRealtimeConnected ? (
+                  <><Wifi className="h-3 w-3" /> Tempo Real</>
+                ) : (
+                  <><WifiOff className="h-3 w-3" /> Polling</>
+                )}
+              </div>
+            </div>
+          )}
         </CardHeader>
         <CardContent className="pt-0">
           <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>

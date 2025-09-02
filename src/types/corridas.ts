@@ -59,6 +59,8 @@ export interface Corrida {
 export interface CorridasContextType {
   corridas: Corrida[];
   loading: boolean;
+  lastUpdated: Date | null;
+  isRealtimeConnected: boolean;
   addCorrida: (corridaData: Omit<Corrida, 'id' | 'status'>) => Promise<void>;
   updateCorrida: (id: number, updatedData: Partial<Corrida>) => Promise<void>;
   fillOS: (id: number, osData: Partial<Corrida>) => Promise<void>;
@@ -67,5 +69,7 @@ export interface CorridasContextType {
   rejectCorrida: (id: number, motivo: string) => Promise<void>;
   updateStatus: (id: number, status: Corrida['status']) => Promise<void>;
   selectMotorista: (corridaId: number, motoristaName: string, veiculo?: string) => Promise<void>;
+  loadCorridas: () => Promise<void>;
+  refreshCorridas: () => Promise<void>;
   getCorridasByMotorista: (motoristaEmail: string, motoristas: any[]) => Corrida[];
 }

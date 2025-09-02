@@ -16,7 +16,10 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
     approveCorrida, 
     rejectCorrida,
     selectMotorista,
-    getCorridasByMotorista
+    getCorridasByMotorista,
+    lastUpdated,
+    refreshCorridas,
+    isRealtimeConnected
   } = useCorridas();
 
   const { empresas } = useEmpresas();
@@ -146,6 +149,9 @@ export const useCorridasLogic = (userLevel: string, userEmail: string) => {
     deleteCorrida,
     approveCorrida,
     rejectCorrida,
-    selectMotorista
+    selectMotorista,
+    lastUpdated,
+    refreshCorridas,
+    isRealtimeConnected
   };
 };
