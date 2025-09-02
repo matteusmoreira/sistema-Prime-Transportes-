@@ -2,6 +2,8 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePickerBR } from '@/components/common/DatePickerBR';
+import { TimeInputAmPm } from '@/components/common/TimeInputAmPm';
 
 interface DataHorarioProps {
   formData: {
@@ -18,22 +20,20 @@ export const DataHorario = ({ formData, onFormChange, readOnly = false }: DataHo
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div className="space-y-2">
         <Label>Data do Serviço *</Label>
-        <Input 
-          type="date" 
-          value={formData.dataServico} 
-          onChange={e => onFormChange('dataServico', e.target.value)} 
+        {/* DatePicker com exibição dd/mm/aaaa e armazenamento ISO */}
+        <DatePickerBR 
+          value={formData.dataServico}
+          onChange={(v) => onFormChange('dataServico', v)}
           readOnly={readOnly}
-          className={readOnly ? "bg-gray-100" : ""}
         />
       </div>
       <div className="space-y-2">
         <Label>Hora Início *</Label>
-        <Input 
-          type="time" 
-          value={formData.horaInicio} 
-          onChange={e => onFormChange('horaInicio', e.target.value)} 
+        {/* Entrada de hora com AM/PM automático */}
+        <TimeInputAmPm 
+          value24h={formData.horaInicio}
+          onChange24h={(v) => onFormChange('horaInicio', v)}
           readOnly={readOnly}
-          className={readOnly ? "bg-gray-100" : ""}
         />
       </div>
       <div className="space-y-2">

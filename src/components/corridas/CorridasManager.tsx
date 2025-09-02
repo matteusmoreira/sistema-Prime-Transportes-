@@ -193,7 +193,11 @@ export const CorridasManager = ({
     if (hours === 1) return '1 hora atrás';
     if (hours < 24) return `${hours} horas atrás`;
     
-    return date.toLocaleString('pt-BR');
+    const days = Math.floor(hours / 24);
+    if (days === 1) return '1 dia atrás';
+    if (days < 30) return `${days} dias atrás`;
+    
+    return date.toLocaleDateString('pt-BR');
    };
 
   return (

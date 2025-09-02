@@ -271,6 +271,35 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
     try {
       const status = corridaData.motorista ? 'Aguardando OS' : 'Selecionar Motorista';
       
+      // Helpers para normalização de formatos (evitar enviar string vazia para colunas TIME/DATE)
+      const normalizeDate = (value: any) => {
+        if (!value) return null;
+        if (value instanceof Date) {
+          const y = value.getFullYear();
+          const m = String(value.getMonth() + 1).padStart(2, '0');
+          const d = String(value.getDate()).padStart(2, '0');
+          return `${y}-${m}-${d}`;
+        }
+        if (typeof value === 'string') {
+          const trimmed = value.trim();
+          if (!trimmed) return null;
+          const ddmmyyyy = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+          if (ddmmyyyy) return `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`;
+          return trimmed.split('T')[0];
+        }
+        return null;
+      };
+      const normalizeTime = (value: any) => {
+        if (!value) return null;
+        if (typeof value === 'string') {
+          const trimmed = value.trim();
+          if (!trimmed) return null;
+          const hhmm = trimmed.match(/^(\d{2}):(\d{2})/);
+          if (hhmm) return `${hhmm[1]}:${hhmm[2]}`;
+        }
+        return null;
+      };
+      
       const insertPayload = {
         empresa: corridaData.empresa,
         empresa_id: corridaData.empresaId,
@@ -278,11 +307,11 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         solicitante: corridaData.solicitante,
         origem: corridaData.origem,
         destino: corridaData.destino,
-        data: corridaData.dataServico || corridaData.data, // Priorizar dataServico
-        data_servico: corridaData.dataServico || corridaData.data, // Salvar no campo correto
-        hora_saida: corridaData.horaSaida,
-        hora_inicio: corridaData.horaInicio, // Adicionar hora_inicio
-        hora_chegada: corridaData.horaChegada,
+        data: normalizeDate(corridaData.dataServico || (corridaData as any).data), // Priorizar dataServico
+        data_servico: normalizeDate(corridaData.dataServico || (corridaData as any).data), // Salvar no campo correto
+        hora_saida: normalizeTime(corridaData.horaSaida),
+        hora_inicio: normalizeTime(corridaData.horaInicio), // Adicionar hora_inicio
+        hora_chegada: normalizeTime((corridaData as any).horaChegada),
         tipo_abrangencia: corridaData.tipoAbrangencia, // Adicionar tipo_abrangencia
         observacoes: corridaData.observacoes,
         status: status as any,
