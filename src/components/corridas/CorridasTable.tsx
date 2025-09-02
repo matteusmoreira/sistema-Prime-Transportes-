@@ -62,11 +62,28 @@ export const CorridasTable = ({
     }
   };
 
-  const getMotoristaDisplay = (motorista: string | undefined) => {
-    if (motorista) {
-      return <span className="text-sm">{motorista}</span>;
+  const getMotoristaDisplay = (corrida: Corrida) => {
+    if (corrida.motorista) {
+      return <span className="text-sm">{corrida.motorista}</span>;
     }
-    return <Badge className="bg-red-100 text-red-800 border-red-300 hover:bg-red-200">Selecionar Motorista</Badge>;
+
+    const clickable = userLevel === 'Administrador' && corrida.status === 'Selecionar Motorista';
+
+    return (
+      <Badge
+        className={`bg-red-100 text-red-800 border-red-300 hover:bg-red-200 ${clickable ? 'cursor-pointer' : 'cursor-default'}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (clickable) {
+            handleSelectMotoristaClick(corrida.id);
+          }
+        }}
+        title={clickable ? 'Selecionar motorista' : undefined}
+        aria-label="Selecionar motorista"
+      >
+        Selecionar Motorista
+      </Badge>
+    );
   };
 
   const handleSelectMotoristaClick = (corridaId: number) => {
@@ -182,7 +199,7 @@ export const CorridasTable = ({
               <TableCell className="py-2">{corrida.numeroOS || '-'}</TableCell>
               <TableCell className="py-2">{formatDateDDMMYYYY(corrida.dataServico || corrida.data)}</TableCell>
               <TableCell className="py-2 font-medium">{corrida.empresa}</TableCell>
-              <TableCell className="py-2">{getMotoristaDisplay(corrida.motorista)}</TableCell>
+              <TableCell className="py-2">{getMotoristaDisplay(corrida)}</TableCell>
               <TableCell className="py-2">{corrida.origem} → {corrida.destino}</TableCell>
               <TableCell className="py-2">{corrida.centroCusto || '-'}</TableCell>
               <TableCell className="py-2">{formatCurrency(corrida.valor ?? 0)}</TableCell>
