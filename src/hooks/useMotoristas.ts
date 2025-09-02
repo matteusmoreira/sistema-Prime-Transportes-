@@ -176,7 +176,7 @@ export const useMotoristas = () => {
              cpf: formData.cpf,
              telefone: formData.telefone,
              cnh: formData.cnh,
-             validadeCnh: formData.cnhDataValidade
+             validadeCnh: formData.cnhDataValidade && formData.cnhDataValidade.trim() !== '' ? formData.cnhDataValidade : null
            }
          });
 
@@ -198,7 +198,7 @@ export const useMotoristas = () => {
              telefone: formData.telefone || null,
              email: formData.email,
              cnh: formData.cnh || null,
-             validade_cnh: formData.cnhDataValidade || null,
+             validade_cnh: formData.cnhDataValidade && formData.cnhDataValidade.trim() !== '' ? formData.cnhDataValidade : null,
              status: (formData as any).status || 'Pendente'
            }])
            .select()
@@ -354,7 +354,7 @@ export const useMotoristas = () => {
           telefone: updatedData.telefone,
           email: updatedData.email,
           cnh: updatedData.cnh,
-          validade_cnh: updatedData.cnhDataValidade,
+          validade_cnh: updatedData.cnhDataValidade && updatedData.cnhDataValidade.trim() !== '' ? updatedData.cnhDataValidade : null,
           status: updatedData.status
         })
         .eq('id', id);

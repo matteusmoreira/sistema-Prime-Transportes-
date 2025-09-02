@@ -93,7 +93,7 @@ serve(async (req) => {
         cpf,
         telefone,
         cnh,
-        validade_cnh: validadeCnh,
+        validade_cnh: validadeCnh && validadeCnh.trim() !== '' ? validadeCnh : null,
         user_id: userId,
         status: 'Pendente'
       })
