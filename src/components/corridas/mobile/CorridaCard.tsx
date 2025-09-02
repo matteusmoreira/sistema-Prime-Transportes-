@@ -46,7 +46,22 @@ const CorridaCard: React.FC<CorridaCardProps> = ({ corrida, userLevel, onView, o
         <div className="text-base font-semibold">{formatCurrency(valor)}</div>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-2">
+        {/* Botão direto para preencher OS quando disponível */}
+        {podePreencherOS && userLevel === 'Motorista' && (
+          <Button 
+            size="sm" 
+            variant="default" 
+            onClick={() => onFillOS(corrida)}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+            aria-label="Preencher Ordem de Serviço"
+          >
+            <FileEdit className="mr-2 h-4 w-4" />
+            Preencher OS
+          </Button>
+        )}
+        
+        {/* Menu de três pontos para outras ações */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button size="sm" variant="outline" aria-label="Abrir menu de ações da corrida" title="Ações">
@@ -57,7 +72,8 @@ const CorridaCard: React.FC<CorridaCardProps> = ({ corrida, userLevel, onView, o
             <DropdownMenuItem onClick={() => onView(corrida)} aria-label="Ver detalhes da corrida">
               <Eye className="mr-2 h-4 w-4" /> Ver detalhes
             </DropdownMenuItem>
-            {podePreencherOS && (
+            {/* Só mostra preencher OS no menu se não for motorista ou se não pode preencher */}
+            {podePreencherOS && userLevel !== 'Motorista' && (
               <DropdownMenuItem onClick={() => onFillOS(corrida)} aria-label="Preencher Ordem de Serviço">
                 <FileEdit className="mr-2 h-4 w-4" /> Preencher OS
               </DropdownMenuItem>
