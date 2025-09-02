@@ -1,10 +1,11 @@
--- Script SQL para corrigir políticas RLS de upload de documentos
+-- Script SQL simplificado para corrigir políticas RLS de upload de documentos
 -- Execute este script no painel do Supabase (SQL Editor)
 
--- 1. Adicionar política para permitir motoristas inserir documentos nas suas corridas
+-- IMPORTANTE: Execute cada comando separadamente para evitar erros
+
+-- 1. Política para permitir motoristas inserir documentos nas suas corridas
 CREATE POLICY "Motoristas podem inserir documentos nas suas corridas" ON public.corrida_documentos
   FOR INSERT WITH CHECK (
-    -- Verificar se o motorista está associado à corrida
     corrida_id IN (
       SELECT c.id 
       FROM public.corridas c 
@@ -13,19 +14,18 @@ CREATE POLICY "Motoristas podem inserir documentos nas suas corridas" ON public.
     )
   );
 
--- 2. Adicionar política de storage para permitir motoristas fazer upload
+-- 2. Política de storage para permitir motoristas fazer upload
 CREATE POLICY "Motoristas podem fazer upload de documentos das suas corridas" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'corrida-documentos' AND
     auth.role() = 'authenticated' AND
-    -- Verificar se o usuário é um motorista
     EXISTS (
       SELECT 1 FROM public.motoristas 
       WHERE user_id = auth.uid()
     )
   );
 
--- 3. Permitir motoristas atualizarem documentos das suas corridas (caso necessário)
+-- 3. Política para permitir motoristas atualizarem documentos das suas corridas
 CREATE POLICY "Motoristas podem atualizar documentos das suas corridas" ON public.corrida_documentos
   FOR UPDATE USING (
     corrida_id IN (
@@ -36,7 +36,7 @@ CREATE POLICY "Motoristas podem atualizar documentos das suas corridas" ON publi
     )
   );
 
--- 4. Permitir motoristas deletarem documentos das suas corridas (caso necessário)
+-- 4. Política para permitir motoristas deletarem documentos das suas corridas
 CREATE POLICY "Motoristas podem deletar documentos das suas corridas" ON public.corrida_documentos
   FOR DELETE USING (
     corrida_id IN (
@@ -47,7 +47,7 @@ CREATE POLICY "Motoristas podem deletar documentos das suas corridas" ON public.
     )
   );
 
--- 5. Permitir motoristas deletarem arquivos do storage das suas corridas
+-- 5. Política para permitir motoristas deletarem arquivos do storage
 CREATE POLICY "Motoristas podem deletar arquivos das suas corridas" ON storage.objects
   FOR DELETE USING (
     bucket_id = 'corrida-documentos' AND
@@ -58,17 +58,8 @@ CREATE POLICY "Motoristas podem deletar arquivos das suas corridas" ON storage.o
     )
   );
 
--- 6. Verificar políticas existentes (para debug)
-SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual 
-FROM pg_policies 
-WHERE tablename IN ('corrida_documentos') 
-ORDER BY tablename, policyname;
-
--- 7. Verificar buckets de storage (para debug)
-SELECT * FROM storage.buckets WHERE id = 'corrida-documentos';
-
--- 8. Verificar objetos no bucket (para debug)
-SELECT name, bucket_id, owner, created_at 
-FROM storage.objects 
-WHERE bucket_id = 'corrida-documentos' 
-LIMIT 10;
+-- INSTRUÇÕES:
+-- 1. Copie e cole cada comando CREATE POLICY separadamente no SQL Editor
+-- 2. Execute um por vez
+-- 3. Se algum comando der erro "policy already exists", ignore e continue
+-- 4. Teste o upload de documentos após executar todos os comandos
