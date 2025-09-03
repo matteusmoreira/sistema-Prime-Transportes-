@@ -468,12 +468,12 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         payload.passageiros = updatedData.passageiros || '';
       }
 
-      // Normalizar datas/horas
-      if (payload.data) payload.data = normalizeDate(payload.data);
-      if (payload.data_servico) payload.data_servico = normalizeDate(payload.data_servico);
-      if (payload.hora_saida) payload.hora_saida = normalizeTime(payload.hora_saida);
-      if (payload.hora_chegada) payload.hora_chegada = normalizeTime(payload.hora_chegada);
-      if (payload.hora_inicio) payload.hora_inicio = normalizeTime(payload.hora_inicio);
+      // Normalizar datas/horas (converter '' para null também)
+      if ('data' in payload) payload.data = normalizeDate(payload.data);
+      if ('data_servico' in payload) payload.data_servico = normalizeDate(payload.data_servico);
+      if ('hora_saida' in payload) payload.hora_saida = normalizeTime(payload.hora_saida);
+      if ('hora_chegada' in payload) payload.hora_chegada = normalizeTime(payload.hora_chegada);
+      if ('hora_inicio' in payload) payload.hora_inicio = normalizeTime(payload.hora_inicio);
 
       // Garantir que não haja chave inválida
       delete (payload as any).solicitanteId;
@@ -559,12 +559,12 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         updated_at: new Date().toISOString()
       };
 
-      // Normalizar datas/horas
-      if (updatePayload.data) updatePayload.data = normalizeDate(updatePayload.data);
-      if (updatePayload.data_servico) updatePayload.data_servico = normalizeDate(updatePayload.data_servico);
-      if (updatePayload.hora_saida) updatePayload.hora_saida = normalizeTime(updatePayload.hora_saida);
-      if (updatePayload.hora_chegada) updatePayload.hora_chegada = normalizeTime(updatePayload.hora_chegada);
-      if (updatePayload.hora_inicio) updatePayload.hora_inicio = normalizeTime(updatePayload.hora_inicio);
+      // Normalizar datas/horas (converter '' para null também)
+      if ('data' in updatePayload) updatePayload.data = normalizeDate(updatePayload.data);
+      if ('data_servico' in updatePayload) updatePayload.data_servico = normalizeDate(updatePayload.data_servico);
+      if ('hora_saida' in updatePayload) updatePayload.hora_saida = normalizeTime(updatePayload.hora_saida);
+      if ('hora_chegada' in updatePayload) updatePayload.hora_chegada = normalizeTime(updatePayload.hora_chegada);
+      if ('hora_inicio' in updatePayload) updatePayload.hora_inicio = normalizeTime(updatePayload.hora_inicio);
 
       console.debug('fillOS payload:', updatePayload);
 
