@@ -551,6 +551,10 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         estacionamento: (osData as any).estacionamento ?? 0,
         hospedagem: (osData as any).hospedagem ?? 0,
         destino_extra: (osData as any).destinoExtra ?? null,
+        // Persistir campos que o motorista pode editar na OS
+        origem: (osData as any).origem ?? null,
+        destino: (osData as any).destino ?? null,
+        centro_custo: (osData as any).centroCusto ?? null,
         numero_os: numeroOSFinal,
         passageiros: (osData as any).passageiros ?? null,
         observacoes_os: (osData as any).observacoes ?? null,

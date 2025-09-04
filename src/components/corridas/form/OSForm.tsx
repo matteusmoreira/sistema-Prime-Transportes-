@@ -63,6 +63,8 @@ export const OSForm = ({
     return !hiddenFields.includes(fieldName);
   };
 
+  const isMotorista = userLevel === 'Motorista';
+
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -116,7 +118,9 @@ export const OSForm = ({
               <Input 
                 value={formData.centroCusto} 
                 onChange={(e) => updateFormData('centroCusto', e.target.value)}
-                placeholder="Digite o centro de custo"
+                readOnly={isMotorista}
+                className={isMotorista ? 'bg-gray-100' : ''}
+                placeholder={isMotorista ? '' : 'Digite o centro de custo'}
               />
             </div>
           </div>
@@ -180,11 +184,21 @@ export const OSForm = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Origem</Label>
-              <Input value={formData.origem} readOnly className="bg-gray-100" />
+              <Input 
+                value={formData.origem} 
+                onChange={e => updateFormData('origem', e.target.value)}
+                readOnly={!isMotorista}
+                className={!isMotorista ? 'bg-gray-100' : ''}
+              />
             </div>
             <div className="space-y-2">
               <Label>Destino</Label>
-              <Input value={formData.destino} readOnly className="bg-gray-100" />
+              <Input 
+                value={formData.destino} 
+                onChange={e => updateFormData('destino', e.target.value)}
+                readOnly={!isMotorista}
+                className={!isMotorista ? 'bg-gray-100' : ''}
+              />
             </div>
           </div>
           <div className="space-y-2">

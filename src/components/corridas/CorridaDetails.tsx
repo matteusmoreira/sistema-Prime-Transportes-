@@ -16,6 +16,7 @@ export const CorridaDetails = ({
 }: CorridaDetailsProps) => {
   const { profile } = useAuth();
   const { documentos, loading, downloadDocumento } = useCorridaDocuments(corrida?.id || null);
+  const isMotorista = profile?.role === 'Motorista';
 
   // Log para depuração dos valores de data recebidos
   console.debug('[CorridaDetails] datas recebidas', {
@@ -146,10 +147,12 @@ export const CorridaDetails = ({
             <Label className="font-semibold">Destino:</Label>
             <p>{corrida.destino}</p>
           </div>
-          <div>
-            <Label className="font-semibold">Tipo de Abrangência:</Label>
-            <p>{displayValue(corrida.tipoAbrangencia)}</p>
-          </div>
+          {!isMotorista && (
+            <div>
+              <Label className="font-semibold">Tipo de Abrangência:</Label>
+              <p>{displayValue(corrida.tipoAbrangencia)}</p>
+            </div>
+          )}
           {hasValue(corrida.destinoExtra) && (
             <div className="col-span-2">
               <Label className="font-semibold">Destino Extra:</Label>
@@ -163,14 +166,18 @@ export const CorridaDetails = ({
       <div className="space-y-4">
         <h3 className="text-lg font-semibold border-b pb-2">Detalhes do Projeto</h3>
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="font-semibold">Projeto:</Label>
-            <p>{displayValue(corrida.projeto)}</p>
-          </div>
-          <div>
-            <Label className="font-semibold">Motivo:</Label>
-            <p>{displayValue(corrida.motivo)}</p>
-          </div>
+          {!isMotorista && (
+            <div>
+              <Label className="font-semibold">Projeto:</Label>
+              <p>{displayValue(corrida.projeto)}</p>
+            </div>
+          )}
+          {!isMotorista && (
+            <div>
+              <Label className="font-semibold">Motivo:</Label>
+              <p>{displayValue(corrida.motivo)}</p>
+            </div>
+          )}
           <div>
             <Label className="font-semibold">Veículo:</Label>
             <p>{displayValue(corrida.veiculo)}</p>

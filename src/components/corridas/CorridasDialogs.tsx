@@ -70,7 +70,7 @@ export const CorridasDialogs = ({
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalhes da Corrida #{viewingCorrida?.id}</DialogTitle>
+            <DialogTitle>Detalhes da corrida</DialogTitle>
           </DialogHeader>
           {viewingCorrida && <CorridaDetails corrida={viewingCorrida} />}
         </DialogContent>
