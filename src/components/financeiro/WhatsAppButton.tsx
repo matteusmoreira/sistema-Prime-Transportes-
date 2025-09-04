@@ -89,20 +89,10 @@ export const WhatsAppButton = ({ corrida, trigger }: WhatsAppButtonProps) => {
 
     setIsLoading(true);
     try {
-      const { data: configuracoes, error: configError } = await supabase
-        .from('configuracoes')
-        .select('evolution_api_url, evolution_instance_id, evolution_api_key')
-        .eq('id', 1)
-        .single();
-
-      if (configError || !configuracoes) {
-        console.error('Erro ao buscar configurações:', configError);
-        toast.error('Erro ao enviar mensagem: configurações ausentes.');
-        return;
-      }
-
+      // A configuração é buscada pela edge function com service role.
+      // Basta enviar número e mensagem.
       const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
-        body: { phoneNumber, message, configuracoes },
+        body: { phoneNumber, message },
       });
 
       if (error) throw error;
