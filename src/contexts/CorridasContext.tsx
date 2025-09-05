@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Corrida, CorridasContextType } from '@/types/corridas';
 import { getCorridasByMotorista } from '@/utils/corridaHelpers';
 import { useAuthDependentData } from '@/hooks/useAuthDependentData';
-import { useAuth } from '@/contexts/AuthContext';
+// import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 
 const CorridasContext = createContext<CorridasContextType | undefined>(undefined);
 
@@ -18,7 +19,8 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   const [connectionRetries, setConnectionRetries] = useState(0);
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
   const { shouldLoadData, isAuthLoading } = useAuthDependentData();
-  const { user } = useAuth();
+  // const { user } = useAuth();
+  const { isMotorista } = useUserRole();
 
   // Carregar corridas do Supabase com documentos
   const loadCorridas = async () => {
@@ -101,33 +103,24 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       }) || [];
 
       // Detectar novas corridas para motoristas
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('nivel')
-          .eq('id', user.id)
-          .single();
-
-        if (profile?.nivel === 'Motorista' && previousCorridasCount > 0) {
-          const corridasDisponiveis = corridasFormatted.filter(corrida => 
-            corrida.status === 'Pendente' && !corrida.motorista
+      if (isMotorista && previousCorridasCount > 0) {
+        const corridasDisponiveis = corridasFormatted.filter(corrida => 
+          corrida.status === 'Pendente' && !corrida.motorista
+        );
+        const corridasDisponiveisAntes = corridas.filter(corrida => 
+          corrida.status === 'Pendente' && !corrida.motorista
+        );
+        
+        const novasCorridasDisponiveis = corridasDisponiveis.length - corridasDisponiveisAntes.length;
+        
+        if (novasCorridasDisponiveis > 0) {
+          toast.success(
+            `${novasCorridasDisponiveis} nova${novasCorridasDisponiveis > 1 ? 's' : ''} corrida${novasCorridasDisponiveis > 1 ? 's' : ''} disponível${novasCorridasDisponiveis > 1 ? 'eis' : ''}!`,
+            {
+              description: 'Verifique as corridas pendentes para aceitar.',
+              duration: 5000,
+            }
           );
-          const corridasDisponiveisAntes = corridas.filter(corrida => 
-            corrida.status === 'Pendente' && !corrida.motorista
-          );
-          
-          const novasCorridasDisponiveis = corridasDisponiveis.length - corridasDisponiveisAntes.length;
-          
-          if (novasCorridasDisponiveis > 0) {
-            toast.success(
-              `${novasCorridasDisponiveis} nova${novasCorridasDisponiveis > 1 ? 's' : ''} corrida${novasCorridasDisponiveis > 1 ? 's' : ''} disponível${novasCorridasDisponiveis > 1 ? 'eis' : ''}!`,
-              {
-                description: 'Verifique as corridas pendentes para aceitar.',
-                duration: 5000,
-              }
-            );
-          }
         }
       }
 
@@ -235,7 +228,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
   // Polling automático para motoristas (atualiza a cada 30 segundos)
   useEffect(() => {
-    if (!shouldLoadData || !user?.role || user.role !== 'Motorista') return;
+    if (!shouldLoadData || !isMotorista) return;
     
     const pollingInterval = setInterval(() => {
       // Só faz polling se a aba estiver visível
@@ -247,11 +240,11 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       clearInterval(pollingInterval);
     };
-  }, [shouldLoadData, user?.role]);
+  }, [shouldLoadData, isMotorista]);
 
   // Recarregar dados quando a aba volta ao foco (para motoristas)
   useEffect(() => {
-    if (!shouldLoadData || !user?.role || user.role !== 'Motorista') return;
+    if (!shouldLoadData || !isMotorista) return;
 
     const handleVisibilityChange = () => {
       if (!document.hidden) {
@@ -264,7 +257,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [shouldLoadData, user?.role]);
+  }, [shouldLoadData, isMotorista]);
 
   const addCorrida = async (corridaData: Omit<Corrida, 'id' | 'status'>) => {
     
@@ -432,6 +425,10 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         horaInicio: 'hora_inicio',
         distanciaPercorrida: 'distancia_percorrida',
         motivoRejeicao: 'motivo_rejeicao',
+        // Corrige chave usada no financeiro
+        motivoReprovacao: 'motivo_rejeicao',
+        // Campo de UI mapeado para a coluna existente
+        horaFim: 'hora_chegada',
         tipoAbrangencia: 'tipo_abrangencia',
         tempoViagem: 'tempo_viagem',
         observacoesOS: 'observacoes_os',
@@ -453,7 +450,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       };
 
       // Campos que não devem ser enviados para o banco
-      const excludedFields = ['documentos', 'solicitanteId'];
+      const excludedFields = ['documentos', 'solicitanteId', 'dataConferencia', 'conferenciadoPor'];
 
       const payload: Record<string, any> = { updated_at: new Date().toISOString() };
       Object.entries(updatedData).forEach(([key, value]) => {

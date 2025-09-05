@@ -9,6 +9,8 @@ import { toast } from 'sonner';
 import type { CorridaFinanceiro } from '@/hooks/useFinanceiro';
 import { removeSecondsFromTime } from '@/utils/timeFormatter';
 import { DocumentUploader } from '@/components/corridas/DocumentUploader';
+import { DocumentosUpload } from '@/components/corridas/form/DocumentosUpload';
+import type { DocumentoUpload } from '@/types/corridas';
 
 interface CorridaEditDialogProps {
   corrida: CorridaFinanceiro | null;
@@ -56,6 +58,8 @@ export const CorridaEditDialog = ({
     estacionamento: null as File | null,
     hospedagem: null as File | null
   });
+
+  const [documentosExtras, setDocumentosExtras] = useState<DocumentoUpload[]>([]);
 
   // Atualizar o formulário sempre que a corrida mudar ou o diálogo abrir
   useEffect(() => {
@@ -150,8 +154,14 @@ export const CorridaEditDialog = ({
     pushDoc('Estacionamento', comprovantes.estacionamento, dadosBasicos.estacionamento);
     pushDoc('Hospedagem', comprovantes.hospedagem, dadosBasicos.hospedagem);
 
+    // Adiciona documentos extras do cadastro
+    const documentosComExtras = [
+      ...documentos,
+      ...documentosExtras.filter(d => !!d.arquivo)
+    ];
+
     try {
-      onSave(dadosBasicos, documentos);
+      onSave(dadosBasicos, documentosComExtras);
     } catch (error) {
       console.error('Erro ao salvar alterações:', error);
       toast.error('Erro ao salvar alterações');
@@ -371,6 +381,12 @@ export const CorridaEditDialog = ({
             comprovantes={comprovantes}
             onFileUpload={handleFileUpload}
             title="Custos e Comprovantes"
+          />
+
+          {/* Upload de documentos extras (como no cadastro) */}
+          <DocumentosUpload 
+            documentos={documentosExtras} 
+            onDocumentosChange={setDocumentosExtras} 
           />
 
           <Card>

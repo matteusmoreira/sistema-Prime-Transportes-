@@ -147,22 +147,23 @@ export const useFinanceiro = () => {
     toast.success(`Status alterado para ${status}!`);
   };
 
-  const updatePaymentStatus = (corridaId: number, statusPagamento: CorridaFinanceiro['statusPagamento']) => {
-    // Persiste no banco
-    updateCorridaOriginal(corridaId, { statusPagamento });
+  const updatePaymentStatus = async (corridaId: number, statusPagamento: CorridaFinanceiro['statusPagamento']) => {
+    console.log('[Financeiro] updatePaymentStatus ->', { corridaId, statusPagamento });
+    await updateCorridaOriginal(corridaId, { statusPagamento });
     toast.success(`Status de pagamento alterado para ${statusPagamento}!`);
   };
 
-  const updateMedicaoNotaFiscalStatus = (corridaId: number, medicaoNotaFiscal: CorridaFinanceiro['medicaoNotaFiscal']) => {
-    // Persiste no banco
-    updateCorridaOriginal(corridaId, { medicaoNotaFiscal });
+  const updateMedicaoNotaFiscalStatus = async (corridaId: number, medicaoNotaFiscal: CorridaFinanceiro['medicaoNotaFiscal']) => {
+    console.log('[Financeiro] updateMedicaoNotaFiscalStatus ->', { corridaId, medicaoNotaFiscal });
+    await updateCorridaOriginal(corridaId, { medicaoNotaFiscal });
     toast.success(`Status de medição/nota fiscal alterado para ${medicaoNotaFiscal}!`);
   };
 
   const updateCorrida = async (corridaId: number, updatedData: any, documentos: any[]) => {
     try {
-      // Atualiza dados básicos da corrida usando o contexto
-      updateCorridaOriginal(corridaId, updatedData);
+      console.log('[Financeiro] updateCorrida -> dados basicos', { corridaId, updatedData });
+      // Atualiza dados básicos da corrida usando o contexto e aguarda persistência
+      await updateCorridaOriginal(corridaId, updatedData);
 
       // Processa documentos (se houver)
       if (Array.isArray(documentos) && documentos.length > 0) {
@@ -212,19 +213,21 @@ export const useFinanceiro = () => {
     }
   };
 
-  const approveCorrida = (corrida: CorridaFinanceiro) => {
+  const approveCorrida = async (corrida: CorridaFinanceiro) => {
     // Atualiza status e marca data de conferência
+    console.log('[Financeiro] approveCorrida ->', corrida.id);
     updateStatus(corrida.id, 'Aprovada');
-    updateCorridaOriginal(corrida.id, {
+    await updateCorridaOriginal(corrida.id, {
       dataConferencia: new Date().toISOString(),
       motivoReprovacao: null
     } as any);
     toast.success('Corrida aprovada com sucesso!');
   };
 
-  const rejectCorrida = (corrida: CorridaFinanceiro, motivo: string) => {
+  const rejectCorrida = async (corrida: CorridaFinanceiro, motivo: string) => {
+    console.log('[Financeiro] rejectCorrida ->', { id: corrida.id, motivo });
     updateStatus(corrida.id, 'Revisar');
-    updateCorridaOriginal(corrida.id, {
+    await updateCorridaOriginal(corrida.id, {
       motivoReprovacao: motivo
     } as any);
     toast.success('Corrida enviada para revisão!');
