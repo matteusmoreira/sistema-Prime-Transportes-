@@ -90,12 +90,25 @@ export const OSForm = ({
       pedagio: parseFloat(formData.pedagio) || 0,
       estacionamento: parseFloat(formData.estacionamento) || 0,
       hospedagem: parseFloat(formData.hospedagem) || 0,
-      documentos: [...documentos, ...Object.entries(comprovantes).filter(([_, file]) => file !== null).map(([tipo, file]) => ({
-        id: `${tipo}-${Date.now()}`,
-        nome: `Comprovante ${tipo}`,
-        descricao: `Comprovante de ${tipo}`,
-        arquivo: file as File
-      }))]
+      documentos: [
+        ...documentos,
+        ...Object.entries(comprovantes)
+          .filter(([_, file]) => file !== null)
+          .map(([tipo, file]) => {
+            const labelMap: Record<string, string> = {
+              pedagio: 'Pedágio',
+              estacionamento: 'Estacionamento',
+              hospedagem: 'Hospedagem',
+            };
+            const display = labelMap[tipo] || tipo;
+            return {
+              id: `${tipo}-${Date.now()}`,
+              nome: `Comprovante ${display}`,
+              descricao: `Comprovante de ${display}`,
+              arquivo: file as File,
+            } as DocumentoUpload;
+          }),
+      ],
     };
     onSubmit(osData, osData.documentos);
   };
