@@ -58,3 +58,6 @@ verify_jwt = false
 
 [functions.send-whatsapp-message]
 verify_jwt = false
+
+[functions.admin-create-user]
+verify_jwt = false

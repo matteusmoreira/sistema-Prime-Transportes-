@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+// import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Mail, Lock, User, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
+import { supabase } from '@/integrations/supabase/client';
 
 type UserRole = Database['public']['Enums']['user_role'];
 
 export const CadastroManager = () => {
-  const { signUp } = useAuth();
+  // const { signUp } = useAuth();
   
   const [loading, setLoading] = useState(false);
   const [signupEmail, setSignupEmail] = useState('');
@@ -24,21 +25,31 @@ export const CadastroManager = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signUp(signupEmail, signupPassword, signupNome, signupRole);
+    try {
+      // Criar usuário via função edge com email_confirm: true (sem confirmação por e-mail)
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: {
+          email: signupEmail,
+          password: signupPassword,
+          nome: signupNome,
+          role: signupRole,
+        },
+      });
 
-    if (error) {
-      if (error.message.includes('User already registered')) {
-        toast.error('Usuário já cadastrado.');
+      if (error) {
+        toast.error(error.message || 'Erro ao criar usuário.');
+      } else if (!data?.success) {
+        toast.error(data?.error || 'Não foi possível criar o usuário.');
       } else {
-        toast.error(`Erro no cadastro: ${error.message}`);
+        toast.success('Usuário criado com sucesso! O acesso foi liberado imediatamente.');
+        // Limpar formulário
+        setSignupEmail('');
+        setSignupPassword('');
+        setSignupNome('');
+        setSignupRole('Administração');
       }
-    } else {
-      toast.success('Cadastro realizado com sucesso! Verifique seu email para confirmar a conta.');
-      // Limpar formulário
-      setSignupEmail('');
-      setSignupPassword('');
-      setSignupNome('');
-      setSignupRole('Administração');
+    } catch (err: any) {
+      toast.error(err?.message || 'Erro inesperado ao criar usuário.');
     }
     
     setLoading(false);
@@ -60,7 +71,7 @@ export const CadastroManager = () => {
             Novo Usuário
           </CardTitle>
           <CardDescription>
-            Cadastre um novo usuário no sistema. Um email de confirmação será enviado.
+            Cadastre um novo usuário no sistema. O acesso é liberado imediatamente (sem confirmação por e-mail).
           </CardDescription>
         </CardHeader>
         
