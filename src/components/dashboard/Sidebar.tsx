@@ -41,8 +41,7 @@ export const Sidebar = ({
     { id: 'alertas', label: 'Alertas', icon: Bell, roles: ['Administrador', 'Administração', 'Motorista'] },
     { id: 'relatorios', label: 'Relatórios', icon: FileText, roles: ['Administrador', 'Administração', 'Financeiro'] },
     { id: 'configuracoes', label: 'Configurações', icon: Settings, roles: ['Administrador'] },
-    { id: 'minha-conta', label: 'Minha Conta', icon: Users, roles: ['Motorista'] },
-    { id: 'cadastro', label: 'Cadastro', icon: Users, roles: ['Administrador'] },
+    { id: 'minha-conta', label: 'Minha Conta', icon: Users, roles: ['Motorista'] }
   ];
 
   const filteredItems = menuItems.filter(item => item.roles.includes(userLevel));

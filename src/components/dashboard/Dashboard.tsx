@@ -15,7 +15,7 @@ import { RelatoriosManager } from '@/components/relatorios/RelatoriosManager';
 import { ConfiguracoesManager } from '@/components/configuracoes/ConfiguracoesManager';
 import { MinhaContaManager } from './MinhaContaManager';
 import { DashboardHome } from './DashboardHome';
-import { CadastroManager } from './CadastroManager';
+// import { CadastroManager } from './CadastroManager';
 
 interface DashboardProps {
   userLevel: string;
@@ -44,8 +44,8 @@ export const Dashboard = ({ userLevel, onLogout, userEmail, userName }: Dashboar
         return <SolicitantesManager />;
       case 'motoristas':
         return <MotoristaManager />;
-      case 'cadastro':
-        return <CadastroManager />;
+      // case 'cadastro':
+      //   return <CadastroManager />;
       case 'meus-documentos':
         return <MeusDocumentos motoristaEmail={userEmail || ''} />;
       case 'corridas':
