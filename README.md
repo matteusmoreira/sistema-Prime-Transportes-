@@ -1,73 +1,227 @@
-# Welcome to your Lovable project
+# PRD - Sistema Prime Transportes
 
-## Project info
+## 1. Visão Geral do Produto
 
-**URL**: https://lovable.dev/projects/6d2f3a42-34b9-48b8-a12a-93c327c743b0
+### 1.1 Nome do Produto
+**Prime Transportes - Sistema de Gestão de Corridas e Motoristas**
 
-## How can I edit this code?
+### 1.2 Descrição
+Sistema web completo para gestão de corridas, motoristas, empresas e processos financeiros de uma empresa de transportes. O sistema oferece controle total do fluxo operacional desde a solicitação de corridas até o pagamento dos motoristas.
 
-There are several ways of editing your application.
+### 1.3 Objetivos do Produto
+- Centralizar o gerenciamento de corridas e motoristas
+- Automatizar processos operacionais e financeiros
+- Fornecer visibilidade completa do status das corridas
+- Facilitar a comunicação entre diferentes níveis de usuários
+- Gerar relatórios detalhados para tomada de decisões
 
-**Use Lovable**
+## 2. Público-Alvo
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6d2f3a42-34b9-48b8-a12a-93c327c743b0) and start prompting.
+### 2.1 Usuários Primários
+- **Administradores**: Controle total do sistema
+- **Administração**: Gestão operacional de corridas e motoristas
+- **Financeiro**: Aprovação de OS e controle de pagamentos
+- **Motoristas**: Preenchimento de OS e visualização de corridas
 
-Changes made via Lovable will be committed automatically to this repo.
+### 2.2 Empresas Cliente
+- Empresas que necessitam de serviços de transporte
+- Solicitantes vinculados às empresas
 
-**Use your preferred IDE**
+## 3. Funcionalidades Principais
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 3.1 Módulo de Autenticação
+- **Login seguro** com diferentes níveis de acesso
+- **Cadastro de motoristas** com validação de documentos
+- **Recuperação de senha**
+- **Perfis de usuário** personalizados por role
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 3.2 Módulo de Corridas
+- **Criação de corridas** com dados completos
+- **Workflow de status** (Pendente → Confirmada → Em Andamento → Concluída)
+- **Seleção de motoristas** para corridas
+- **Preenchimento de OS** (Ordem de Serviço) pelos motoristas
+- **Aprovação/Rejeição** pelo financeiro
+- **Upload de documentos** (notas, recibos, fotos)
+- **Cálculo automático** de valores e reembolsos
 
-Follow these steps:
+### 3.3 Módulo de Motoristas
+- **Cadastro completo** com documentos obrigatórios
+- **Gestão de status** (Pendente, Aprovado, Rejeitado)
+- **Upload de documentos** (CNH, RG, Fotos do veículo)
+- **Histórico de corridas** por motorista
+- **Criação automática** de contas de acesso
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### 3.4 Módulo de Empresas
+- **Cadastro de empresas** clientes
+- **Gestão de solicitantes** vinculados às empresas
+- **Controle de centro de custo**
+- **Histórico de corridas** por empresa
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 3.5 Módulo Financeiro
+- **Aprovação de OS** preenchidas pelos motoristas
+- **Controle de pagamentos** (Pendente/Pago)
+- **Gestão de reembolsos** e despesas
+- **Cálculo de valores** para motoristas
+- **Status de medição** vs Nota Fiscal
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 3.6 Módulo de Relatórios
+- **Relatórios personalizados** por período
+- **Filtros avançados** (empresa, motorista, status)
+- **Exportação** em múltiplos formatos
+- **Histórico de relatórios** gerados
+- **Snapshots de filtros** aplicados
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+### 3.7 Módulo de Alertas e Notificações
+- **Sistema de alertas** para diferentes usuários
+- **Notificações em tempo real**
+- **Controle de leitura** de alertas
+- **Segmentação** por tipo de usuário
 
-**Edit a file directly in GitHub**
+### 3.8 Módulo de Vouchers
+- **Gestão de vouchers** de combustível
+- **Controle de uso** e saldo
+- **Relatórios de consumo**
+- **Filtros e estatísticas**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 3.9 Módulo de Configurações
+- **Configurações gerais** do sistema
+- **Integração com WhatsApp** (Evolution API)
+- **Testes de conectividade**
+- **Parâmetros operacionais**
 
-**Use GitHub Codespaces**
+## 4. Fluxo de Trabalho Principal
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 4.1 Fluxo de Corrida
+1. **Solicitação**: Administração cria nova corrida
+2. **Seleção**: Motorista é selecionado para a corrida
+3. **Confirmação**: Corrida é confirmada e motorista notificado
+4. **Execução**: Motorista executa a corrida
+5. **OS**: Motorista preenche Ordem de Serviço com despesas
+6. **Aprovação**: Financeiro aprova ou rejeita a OS
+7. **Pagamento**: Corrida aprovada gera pagamento para motorista
 
-## What technologies are used for this project?
+### 4.2 Status de Corrida
+- **Pendente**: Corrida criada, aguardando seleção de motorista
+- **Confirmada**: Motorista selecionado e confirmado
+- **Em Andamento**: Corrida em execução
+- **Aguardando OS**: Corrida concluída, aguardando preenchimento da OS
+- **OS Preenchida**: OS preenchida pelo motorista
+- **Aprovada**: OS aprovada pelo financeiro
+- **Rejeitada**: OS rejeitada, necessita correção
+- **Concluída**: Processo finalizado
+- **Cancelada**: Corrida cancelada
 
-This project is built with:
+## 5. Requisitos Técnicos
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### 5.1 Tecnologias Utilizadas
+- **Frontend**: React + TypeScript + Vite
+- **UI Framework**: Tailwind CSS + shadcn/ui
+- **Backend**: Supabase (PostgreSQL + Auth + Storage)
+- **Realtime**: Supabase Realtime para notificações
+- **Integração**: Evolution API para WhatsApp
 
-## How can I deploy this project?
+### 5.2 Arquitetura
+- **SPA (Single Page Application)** responsiva
+- **PWA (Progressive Web App)** com manifest
+- **Autenticação JWT** via Supabase Auth
+- **RLS (Row Level Security)** para controle de acesso
+- **Upload de arquivos** via Supabase Storage
 
-Simply open [Lovable](https://lovable.dev/projects/6d2f3a42-34b9-48b8-a12a-93c327c743b0) and click on Share -> Publish.
+### 5.3 Segurança
+- **Controle de acesso** baseado em roles
+- **Políticas RLS** no banco de dados
+- **Validação de dados** no frontend e backend
+- **Sanitização** de uploads de arquivos
 
-## Can I connect a custom domain to my Lovable project?
+## 6. Estrutura de Dados
 
-Yes, you can!
+### 6.1 Entidades Principais
+- **Profiles**: Perfis de usuário com roles
+- **Empresas**: Empresas clientes
+- **Solicitantes**: Usuários das empresas
+- **Motoristas**: Motoristas cadastrados
+- **Corridas**: Corridas solicitadas
+- **Documentos**: Arquivos anexados
+- **Alertas**: Sistema de notificações
+- **Notificações**: Notificações em tempo real
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### 6.2 Relacionamentos
+- Empresas → Solicitantes (1:N)
+- Motoristas → Corridas (1:N)
+- Corridas → Documentos (1:N)
+- Usuários → Profiles (1:1)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 7. Interface do Usuário
+
+### 7.1 Design System
+- **Cores**: Tema azul (#0ea5e9) com variações
+- **Tipografia**: Sistema de fontes responsivo
+- **Componentes**: Biblioteca shadcn/ui
+- **Responsividade**: Mobile-first design
+
+### 7.2 Navegação
+- **Sidebar** com navegação principal
+- **Header** com informações do usuário
+- **Breadcrumbs** para orientação
+- **Modais** para ações específicas
+
+### 7.3 Experiência do Usuário
+- **Dashboard** personalizado por role
+- **Filtros avançados** em todas as listagens
+- **Feedback visual** para todas as ações
+- **Loading states** e error handling
+
+## 8. Integrações
+
+### 8.1 WhatsApp (Evolution API)
+- **Envio de notificações** para motoristas
+- **Confirmações** de corridas
+- **Alertas** de status
+
+### 8.2 Supabase
+- **Autenticação** de usuários
+- **Banco de dados** PostgreSQL
+- **Storage** para arquivos
+- **Realtime** para notificações
+
+## 9. Métricas e KPIs
+
+### 9.1 Operacionais
+- Número de corridas por período
+- Taxa de aprovação de OS
+- Tempo médio de processamento
+- Motoristas ativos
+
+### 9.2 Financeiros
+- Valor total de corridas
+- Reembolsos por período
+- Custo por corrida
+- Receita por empresa
+
+
+## 11. Considerações de Implementação
+
+### 11.1 Performance
+- **Lazy loading** de componentes
+- **Paginação** em listagens grandes
+- **Cache** de dados frequentes
+- **Otimização** de imagens
+
+### 11.2 Manutenibilidade
+- **Código TypeScript** tipado
+- **Componentes reutilizáveis**
+- **Hooks customizados** para lógica
+- **Testes unitários** (planejado)
+
+### 11.3 Escalabilidade
+- **Arquitetura modular**
+- **Separação de responsabilidades**
+- **Contextos React** para estado global
+- **Supabase** para escalabilidade automática
+
+---
+
+**Versão**: 1.0  
+**Data**: Setembro 2025  
+**Autor**: Matteus Moreira 
+**Status**: Implementado e em Produção
