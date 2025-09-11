@@ -1,5 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { TimeInput24h } from '@/components/common/TimeInput24h';
 interface OSBasicFieldsProps {
   formData: any;
   updateFormData: (field: string, value: string) => void;
@@ -13,7 +14,7 @@ export const OSBasicFields = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Hora OS</Label>
-          <Input type="time" value={formData.horaOS} onChange={e => updateFormData('horaOS', e.target.value)} readOnly className="bg-gray-100" />
+          <Input value={formatTime24h(formData.horaOS)} readOnly className="bg-gray-100" />
         </div>
         <div className="space-y-2">
           <Label>N° da O.S</Label>
@@ -25,11 +26,11 @@ export const OSBasicFields = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label>Hora Saída</Label>
-          <Input type="time" value={formData.horaSaida} onChange={e => updateFormData('horaSaida', e.target.value)} />
+          <TimeInput24h value={formData.horaSaida} onChange={(v) => updateFormData('horaSaida', v)} />
         </div>
         <div className="space-y-2">
           <Label>Hora Chegada</Label>
-          <Input type="time" value={formData.horaChegada} onChange={e => updateFormData('horaChegada', e.target.value)} />
+          <TimeInput24h value={formData.horaChegada} onChange={(v) => updateFormData('horaChegada', v)} />
         </div>
         <div className="space-y-2">
           <Label>Data</Label>

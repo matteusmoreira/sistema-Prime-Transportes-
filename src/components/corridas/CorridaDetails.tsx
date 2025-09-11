@@ -4,7 +4,7 @@ import { Corrida } from '@/types/corridas';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCorridaDocuments } from '@/hooks/useCorridaDocuments';
 import { DocumentViewer } from './DocumentViewer';
-import { formatTimeToAmPm } from '@/utils/timeFormatter';
+import { formatTime24h } from '@/utils/timeFormatter';
 import { formatDateDDMMYYYY } from '@/utils/format';
 
 interface CorridaDetailsProps {
@@ -114,11 +114,11 @@ export const CorridaDetails = ({
           </div>
           <div>
             <Label className="font-semibold">Horário de Início:</Label>
-            <p>{formatTimeToAmPm(corrida.horaInicio || corrida.horaSaida || '')}</p>
+            <p>{formatTime24h(corrida.horaInicio || corrida.horaSaida || '')}</p>
           </div>
           <div>
             <Label className="font-semibold">Hora Chegada:</Label>
-            <p>{formatTimeToAmPm(corrida.horaChegada || '')}</p>
+            <p>{formatTime24h(corrida.horaChegada || '')}</p>
           </div>
           <div>
             <Label className="font-semibold">Status:</Label>

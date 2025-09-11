@@ -231,8 +231,7 @@ export const useMotoristas = () => {
        const storagePrefix = targetUserId ? `${targetUserId}/${motoristaId}` : `${motoristaId}`;
        if (!targetUserId) {
          console.warn('[useMotoristas.addMotorista] user_id do motorista indisponível; uploads usarão pasta somente com motoristaId (pode afetar visualização posteriormente por RLS)');
--        toast.message?.('Atenção', { description: 'Arquivos enviados podem não aparecer para o motorista até revisão do cadastro. Tente anexá-los novamente após o login do motorista.' } as any);
-+        toast.warning('Atenção: Arquivos enviados podem não aparecer para o motorista até revisão do cadastro. Tente anexá-los novamente após o login do motorista.');
+        toast.warning('Atenção: Arquivos enviados podem não aparecer para o motorista até revisão do cadastro. Tente anexá-los novamente após o login do motorista.');
        }
 
        const documentosUploadados: DocumentoMotorista[] = [];

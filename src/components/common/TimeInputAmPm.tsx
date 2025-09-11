@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { formatTimeToAmPm } from '@/utils/timeFormatter';
+import { formatTime24h } from '@/utils/timeFormatter';
 
 interface TimeInputAmPmProps {
   value24h: string;
@@ -40,7 +40,7 @@ export function TimeInputAmPm({ value24h, onChange24h, readOnly }: TimeInputAmPm
   }, [hh, mm, ampm]);
 
   if (readOnly) {
-    return <Input value={formatTimeToAmPm(value24h)} readOnly className="bg-gray-100" />;
+    return <Input value={formatTime24h(value24h)} readOnly className="bg-gray-100" />;
   }
 
   const onHhChange = (v: string) => {

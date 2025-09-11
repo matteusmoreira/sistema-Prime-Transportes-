@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarDays, Clock, MapPin, FileText, FileEdit, Eye } from 'lucide-react';
 import { Corrida } from '@/types/corridas';
-import { formatTimeToAmPm } from '@/utils/timeFormatter';
 import { formatDateDDMMYYYY } from '@/utils/format';
+import { formatTime24h } from '@/utils/timeFormatter';
 
 interface HistoricoMotoristaDialogProps {
   open: boolean;
@@ -156,7 +156,7 @@ export const HistoricoMotoristaDialog = ({
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Clock className="h-4 w-4 text-gray-500" />
-                          <span>{formatTimeToAmPm(corrida.horaInicio || corrida.horaSaida || '')}</span>
+                          <span>{formatTime24h(corrida.horaInicio || corrida.horaSaida || '')}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <MapPin className="h-4 w-4 text-gray-500" />

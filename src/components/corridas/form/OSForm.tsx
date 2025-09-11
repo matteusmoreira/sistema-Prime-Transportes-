@@ -176,7 +176,7 @@ export const OSForm = ({
             </div>
             <div className="space-y-2">
               <Label>Hora Início</Label>
-              <Input value={formatTimeToAmPm(corrida.horaInicio || corrida.horaSaida || '')} readOnly className="bg-gray-100" />
+              <Input value={formatTime24h(corrida.horaInicio || corrida.horaSaida || '')} readOnly className="bg-gray-100" />
             </div>
           </div>
 

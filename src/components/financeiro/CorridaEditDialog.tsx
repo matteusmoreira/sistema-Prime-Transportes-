@@ -11,6 +11,7 @@ import { removeSecondsFromTime } from '@/utils/timeFormatter';
 import { DocumentUploader } from '@/components/corridas/DocumentUploader';
 import { DocumentosUpload } from '@/components/corridas/form/DocumentosUpload';
 import type { DocumentoUpload } from '@/types/corridas';
+import { TimeInput24h } from '@/components/common/TimeInput24h';
 
 interface CorridaEditDialogProps {
   corrida: CorridaFinanceiro | null;
@@ -269,19 +270,11 @@ export const CorridaEditDialog = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Hora Saída</Label>
-                  <Input 
-                    type="time"
-                    value={formData.horaInicio} 
-                    onChange={e => updateFormData('horaInicio', e.target.value)}
-                  />
+                  <TimeInput24h value={formData.horaInicio} onChange={v => updateFormData('horaInicio', v)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Hora Chegada</Label>
-                  <Input 
-                    type="time"
-                    value={formData.horaFim} 
-                    onChange={e => updateFormData('horaFim', e.target.value)}
-                  />
+                  <TimeInput24h value={formData.horaFim} onChange={v => updateFormData('horaFim', v)} />
                 </div>
               </div>
 

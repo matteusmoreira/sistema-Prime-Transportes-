@@ -38,3 +38,19 @@ export const removeSecondsFromTime = (time: string): string => {
   
   return time;
 };
+
+/**
+ * Formata hora para 24h (HH:mm), mesmo que venha com segundos ou valores fora do range
+ * @param time - string de hora (ex: "13:00", "08:30:15")
+ * @returns Hora normalizada no formato HH:mm ou "Não informado" se vazia
+ */
+export const formatTime24h = (time: string): string => {
+  if (!time) return 'Não informado';
+  const timeParts = time.split(':');
+  if (timeParts.length >= 2) {
+    const h = Math.max(0, Math.min(23, parseInt(timeParts[0] || '0', 10) || 0));
+    const m = Math.max(0, Math.min(59, parseInt(timeParts[1] || '0', 10) || 0));
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+  return time;
+};

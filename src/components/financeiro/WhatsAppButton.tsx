@@ -11,6 +11,7 @@ import { useMotoristas } from '@/hooks/useMotoristas';
 import { supabase } from '@/integrations/supabase/client';
 import { formatTimeToAmPm } from '@/utils/timeFormatter';
 import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
+import { formatTime24h } from '@/utils/timeFormatter';
 
 interface WhatsAppButtonProps {
   corrida: any; // Vamos receber toda a corrida para pegar todos os dados
