@@ -104,6 +104,13 @@ export const CorridasTable = ({
     return false;
   };
 
+  // Utilitário simples para formatar horário (HH:mm)
+  const formatTime = (time?: string) => {
+    if (!time) return '-';
+    // Aceita formatos HH:mm ou HH:mm:ss
+    return time.length >= 5 ? time.slice(0, 5) : time;
+  };
+
   // Verificar se corridas é válido e tem itens
   if (!corridas || !Array.isArray(corridas)) {
     return <div>Erro: dados inválidos</div>;
@@ -141,7 +148,14 @@ export const CorridasTable = ({
               <TableCell className="py-2">{corrida.numeroOS || '-'}</TableCell>
               <TableCell className="py-2">{formatDateDDMMYYYY(corrida.dataServico || corrida.data)}</TableCell>
               <TableCell className="py-2 font-medium">{corrida.empresa}</TableCell>
-              <TableCell className="py-2">{corrida.origem} → {corrida.destino}</TableCell>
+              <TableCell className="py-2">
+                <div className="flex flex-col">
+                  <span>{corrida.origem} → {corrida.destino}</span>
+                  {corrida.destinoExtra && (
+                    <span className="text-xs text-muted-foreground">Destino extra: {corrida.destinoExtra}</span>
+                  )}
+                </div>
+              </TableCell>
               <TableCell className="py-2">
                 <div className="flex flex-col">
                   <StatusBadge status={corrida.status} size="xs" />
@@ -184,11 +198,10 @@ export const CorridasTable = ({
           <TableRow>
             <TableHead className="py-2">Nº OS</TableHead>
             <TableHead className="py-2">Data</TableHead>
+            <TableHead className="py-2">Horário</TableHead>
             <TableHead className="py-2">Empresa</TableHead>
             <TableHead className="py-2">Motorista</TableHead>
             <TableHead className="py-2">Origem → Destino</TableHead>
-            <TableHead className="py-2">Centro de Custo</TableHead>
-            <TableHead className="py-2">Valor Total</TableHead>
             <TableHead className="py-2">Status</TableHead>
             <TableHead className="py-2">Ações</TableHead>
           </TableRow>
@@ -198,11 +211,17 @@ export const CorridasTable = ({
             <TableRow key={corrida.id} className="align-top cursor-pointer hover:bg-muted/40" onClick={() => onView(corrida)}>
               <TableCell className="py-2">{corrida.numeroOS || '-'}</TableCell>
               <TableCell className="py-2">{formatDateDDMMYYYY(corrida.dataServico || corrida.data)}</TableCell>
+              <TableCell className="py-2">{formatTime(corrida.horaInicio || corrida.horaSaida)}</TableCell>
               <TableCell className="py-2 font-medium">{corrida.empresa}</TableCell>
               <TableCell className="py-2">{getMotoristaDisplay(corrida)}</TableCell>
-              <TableCell className="py-2">{corrida.origem} → {corrida.destino}</TableCell>
-              <TableCell className="py-2">{corrida.centroCusto || '-'}</TableCell>
-              <TableCell className="py-2">{formatCurrency(corrida.valor ?? 0)}</TableCell>
+              <TableCell className="py-2">
+                <div className="flex flex-col">
+                  <span>{corrida.origem} → {corrida.destino}</span>
+                  {corrida.destinoExtra && (
+                    <span className="text-xs text-muted-foreground">Destino extra: {corrida.destinoExtra}</span>
+                  )}
+                </div>
+              </TableCell>
               <TableCell className="py-2">
                 <div className="flex flex-col">
                   <StatusBadge status={corrida.status} size="xs" />
@@ -252,10 +271,10 @@ export const CorridasTable = ({
                         <UserPlus className="mr-2 h-4 w-4" /> Selecionar Motorista
                       </DropdownMenuItem>
                     )}
-                    {(userLevel === 'Administrador') && (
+                    {userLevel === 'Administrador' && (
                       <>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => onDelete(corrida.id)} className="text-destructive focus:text-destructive">
+                        <DropdownMenuItem className="text-red-600" onClick={() => onDelete(corrida.id)}>
                           <Trash2 className="mr-2 h-4 w-4" /> Excluir
                         </DropdownMenuItem>
                       </>
@@ -268,49 +287,30 @@ export const CorridasTable = ({
         </TableBody>
       </Table>
 
-      {/* Reject Dialog */}
-      <Dialog open={rejectDialog.open} onOpenChange={(open) => setRejectDialog({ open, corridaId: null })}>
+      {/* Diálogo de Rejeição */}
+      <Dialog open={rejectDialog.open} onOpenChange={(open) => setRejectDialog({ open, corridaId: open ? rejectDialog.corridaId : null })}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rejeitar Corrida</DialogTitle>
+            <DialogTitle>Motivo da Rejeição</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Motivo da rejeição:
-              </label>
-              <Textarea
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Digite o motivo da rejeição..."
-                rows={3}
-              />
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button 
-                variant="outline" 
-                onClick={() => setRejectDialog({ open: false, corridaId: null })}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                variant="destructive" 
-                onClick={handleRejectConfirm}
-                disabled={!rejectReason.trim()}
-              >
-                Rejeitar
-              </Button>
-            </div>
+          <Textarea
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Descreva o motivo da rejeição"
+            rows={4}
+          />
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setRejectDialog({ open: false, corridaId: null })}>Cancelar</Button>
+            <Button onClick={handleRejectConfirm}>Confirmar Rejeição</Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Motorista Selection Dialog */}
+      {/* Seleção de Motorista */}
       <MotoristaSelectionDialog
         open={motoristaSelectionDialog.open}
-        onOpenChange={(open) => setMotoristaSelectionDialog({ open, corridaId: null })}
-        onSelect={handleMotoristaSelected}
-        corridaId={motoristaSelectionDialog.corridaId || undefined}
+        onOpenChange={(open) => setMotoristaSelectionDialog({ open, corridaId: open ? motoristaSelectionDialog.corridaId : null })}
+        onConfirm={handleMotoristaSelected}
       />
     </>
   );
