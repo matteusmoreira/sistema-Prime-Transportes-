@@ -14,6 +14,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { PresenceTracker } from "@/components/realtime/PresenceTracker";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
                 <ErrorBoundary>
                   <Toaster />
                   <Sonner />
+                  <PresenceTracker />
                   <AppContent />
                 </ErrorBoundary>
               </NotificacoesProvider>

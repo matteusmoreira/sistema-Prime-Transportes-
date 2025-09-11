@@ -11,6 +11,7 @@ import { HistoricoMotoristaDialog } from './HistoricoMotoristaDialog';
 import { CorridasDialogs } from '@/components/corridas/CorridasDialogs';
 import { useCorridasDialogs } from '@/hooks/useCorridasDialogs';
 import { useCorridasLogic } from '@/hooks/useCorridasLogic';
+import { OnlineUsersCard } from '@/components/dashboard/OnlineUsersCard';
 
 interface DashboardHomeProps {
   userLevel: string;
@@ -221,6 +222,7 @@ export const DashboardHome = ({
 
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {(userLevel === 'Administrador' || userLevel === 'Administração') && <OnlineUsersCard />}
         {(userLevel === 'Administrador' || userLevel === 'Administração') && <>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
