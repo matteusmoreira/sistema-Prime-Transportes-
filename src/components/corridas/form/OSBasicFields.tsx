@@ -13,20 +13,12 @@ export const OSBasicFields = ({
   updateFormData
 }: OSBasicFieldsProps) => {
   return <>
-      {/* Hora OS e Número OS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Horários principais: Hora OS > Hora Saída > Hora Chegada > Data */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="space-y-2">
           <Label>Hora OS</Label>
           <Input value={formatTime24h(formData.horaOS)} readOnly className="bg-gray-100" />
         </div>
-        <div className="space-y-2">
-          <Label>N° da O.S</Label>
-          <Input value={formData.numeroOS || ''} readOnly className="bg-gray-100" placeholder="Será preenchida automaticamente!" />
-        </div>
-      </div>
-
-      {/* Horários e Data */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label>Hora Saída</Label>
           <TimeInput24h value={formData.horaSaida} onChange={(v) => updateFormData('horaSaida', v)} />
