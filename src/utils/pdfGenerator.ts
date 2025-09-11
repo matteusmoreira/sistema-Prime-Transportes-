@@ -199,7 +199,7 @@ export const generateVoucherPDF = async (voucher: VoucherData) => {
     y += 8 * wrappedPassengers.length;
   }
 
-  const valorTotal = voucher.valor + voucher.pedagio + voucher.estacionamento + voucher.hospedagem;
+  const valorTotal = voucher.valor;
 
   // Valor total em destaque (vermelho) posicionado à direita e abaixo do último campo, sem sobrepor textos
   const pageHeight = doc.internal.pageSize.getHeight();

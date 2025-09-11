@@ -27,8 +27,10 @@ export const sendVoucherEmail = async (voucher: VoucherData) => {
     const rota = `${voucher.origem} → ${voucher.destino}${voucher.destinoExtra ? ' → ' + voucher.destinoExtra : ''}`;
     bulletLines.push(`• Rota: ${rota}`);
   }
-  const valorTotal = (voucher.valor || 0) + (voucher.pedagio || 0) + (voucher.estacionamento || 0) + (voucher.hospedagem || 0);
-  bulletLines.push(`• Valor Total: ${formatCurrency(valorTotal)}`);
+-  const valorTotal = (voucher.valor || 0) + (voucher.pedagio || 0) + (voucher.estacionamento || 0) + (voucher.hospedagem || 0);
+-  bulletLines.push(`• Valor Total: ${formatCurrency(valorTotal)}`);
++  const valorTotal = voucher.valor || 0;
++  bulletLines.push(`• Valor Total: ${formatCurrency(valorTotal)}`);
 
   // Dados do email
   const emailData = {
