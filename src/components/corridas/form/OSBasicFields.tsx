@@ -1,10 +1,13 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TimeInput24h } from '@/components/common/TimeInput24h';
+import { formatTime24h } from '@/utils/timeFormatter';
+
 interface OSBasicFieldsProps {
   formData: any;
   updateFormData: (field: string, value: string) => void;
 }
+
 export const OSBasicFields = ({
   formData,
   updateFormData

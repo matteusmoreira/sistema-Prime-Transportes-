@@ -91,8 +91,8 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           observacoesOS: corrida.observacoes_os || '',
           statusPagamento: (corrida.status_pagamento as Corrida['statusPagamento']) || 'Pendente',
           medicaoNotaFiscal: (corrida.medicao_nota_fiscal as Corrida['medicaoNotaFiscal']) || 'Medição',
-          preenchidoPorMotorista: corrida.preenchido_por_motorista || false,
-          preenchidoPorFinanceiro: (corrida as any).preenchido_por_financeiro || false,
+          preenchidoPorMotorista: (corrida.preenchido_por_motorista === true || corrida.preenchido_por_motorista === 'true' || corrida.preenchido_por_motorista === 't' || corrida.preenchido_por_motorista === 1 || corrida.preenchido_por_motorista === '1'),
+          preenchidoPorFinanceiro: ((corrida as any).preenchido_por_financeiro === true || (corrida as any).preenchido_por_financeiro === 'true' || (corrida as any).preenchido_por_financeiro === 't' || (corrida as any).preenchido_por_financeiro === 1 || (corrida as any).preenchido_por_financeiro === '1'),
           numeroOS: corrida.numero_os || '',
           total: corrida.total || 0,
           localAbastecimento: corrida.local_abastecimento || '',
@@ -166,20 +166,20 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'corridas' },
         (payload) => {
-          console.log('Realtime event received:', payload);
+          if (import.meta.env?.DEV) console.debug('Realtime event received:', payload);
           loadCorridas();
         }
       )
       .subscribe((status) => {
-        console.log('Realtime connection status:', status);
+        if (import.meta.env?.DEV) console.debug('Realtime connection status:', status);
         
         if (status === 'SUBSCRIBED') {
           setIsRealtimeConnected(true);
           setConnectionRetries(0);
-          console.log('Realtime connected successfully');
+          if (import.meta.env?.DEV) console.debug('Realtime connected successfully');
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           setIsRealtimeConnected(false);
-          console.log('Realtime connection failed, attempting reconnection...');
+          if (import.meta.env?.DEV) console.debug('Realtime connection failed, attempting reconnection...');
           
           // Tentar reconectar após um delay
           setTimeout(() => {
@@ -187,15 +187,15 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
               setConnectionRetries(prev => prev + 1);
               setupRealtimeConnection();
             } else {
-              console.log('Max reconnection attempts reached');
+              if (import.meta.env?.DEV) console.debug('Max reconnection attempts reached');
               toast.error('Conexão em tempo real perdida. Usando atualização automática.');
             }
           }, Math.min(1000 * Math.pow(2, connectionRetries), 30000)); // Backoff exponencial
         } else if (status === 'CLOSED') {
           setIsRealtimeConnected(false);
-          console.log('Realtime connection closed');
-        }
-      });
+          if (import.meta.env?.DEV) console.debug('Realtime connection closed');
+         }
+       });
 
     setRealtimeChannel(channel);
   };
@@ -216,7 +216,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
     const connectionCheckInterval = setInterval(() => {
       if (!isRealtimeConnected && connectionRetries < 5) {
-        console.log('Checking realtime connection...');
+        if (import.meta.env?.DEV) console.debug('Checking realtime connection...');
         setupRealtimeConnection();
       }
     }, 60000); // Verificar a cada minuto

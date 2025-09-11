@@ -48,12 +48,15 @@ export const CorridasDialogs = ({
           </DialogHeader>
           
           {fillingOS ? (
-            <OSForm
-              corrida={fillingOS}
-              onSubmit={onOSSubmit}
-              onCancel={onCancel}
-              userLevel={userLevel}
-            />
+            <>
+              {console.debug('[CorridasDialogs] Renderizando OSForm para corrida', fillingOS?.id)}
+              <OSForm
+                corrida={fillingOS}
+                onSubmit={onOSSubmit}
+                onCancel={onCancel}
+                userLevel={userLevel}
+              />
+            </>
           ) : (
             <CorridaForm
               editingCorrida={editingCorrida}

@@ -74,6 +74,7 @@ export const DashboardHome = ({
   };
 
   const handleOSSubmit = (osData: any, documentos: any) => {
+    console.debug('[DashboardHome] handleOSSubmit - recebidos', { osData, documentos, fillingOS });
     // console.log('=== HANDLE OS SUBMIT ===');
     // console.log('OS Data recebido:', osData);
     // console.log('Documentos recebidos:', documentos);
@@ -88,6 +89,7 @@ export const DashboardHome = ({
   };
 
   const handleFillOS = (corrida: any) => {
+    console.debug('[DashboardHome] handleFillOS - abrir OS', corrida?.id, corrida?.status);
     openOSDialog(corrida);
   };
 

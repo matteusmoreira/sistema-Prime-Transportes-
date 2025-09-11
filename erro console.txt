@@ -1,0 +1,220 @@
+chunk-W6L2VRDA.js?v=c7c9a7f7:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+OSBasicFields.tsx:17 Uncaught ReferenceError: formatTime24h is not defined
+    at OSBasicFields (OSBasicFields.tsx:17:25)
+    at renderWithHooks (chunk-W6L2VRDA.js?v=c7c9a7f7:11548:26)
+    at mountIndeterminateComponent (chunk-W6L2VRDA.js?v=c7c9a7f7:14926:21)
+    at beginWork (chunk-W6L2VRDA.js?v=c7c9a7f7:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-W6L2VRDA.js?v=c7c9a7f7:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-W6L2VRDA.js?v=c7c9a7f7:3699:24)
+    at invokeGuardedCallback (chunk-W6L2VRDA.js?v=c7c9a7f7:3733:39)
+    at beginWork$1 (chunk-W6L2VRDA.js?v=c7c9a7f7:19765:15)
+    at performUnitOfWork (chunk-W6L2VRDA.js?v=c7c9a7f7:19198:20)
+    at workLoopSync (chunk-W6L2VRDA.js?v=c7c9a7f7:19137:13)
+OSBasicFields @ OSBasicFields.tsx:17
+renderWithHooks @ chunk-W6L2VRDA.js?v=c7c9a7f7:11548
+mountIndeterminateComponent @ chunk-W6L2VRDA.js?v=c7c9a7f7:14926
+beginWork @ chunk-W6L2VRDA.js?v=c7c9a7f7:15914
+callCallback2 @ chunk-W6L2VRDA.js?v=c7c9a7f7:3674
+invokeGuardedCallbackDev @ chunk-W6L2VRDA.js?v=c7c9a7f7:3699
+invokeGuardedCallback @ chunk-W6L2VRDA.js?v=c7c9a7f7:3733
+beginWork$1 @ chunk-W6L2VRDA.js?v=c7c9a7f7:19765
+performUnitOfWork @ chunk-W6L2VRDA.js?v=c7c9a7f7:19198
+workLoopSync @ chunk-W6L2VRDA.js?v=c7c9a7f7:19137
+renderRootSync @ chunk-W6L2VRDA.js?v=c7c9a7f7:19116
+performSyncWorkOnRoot @ chunk-W6L2VRDA.js?v=c7c9a7f7:18874
+flushSyncCallbacks @ chunk-W6L2VRDA.js?v=c7c9a7f7:9119
+flushSync @ chunk-W6L2VRDA.js?v=c7c9a7f7:18959
+flushSync$1 @ chunk-W6L2VRDA.js?v=c7c9a7f7:21538
+dispatchDiscreteCustomEvent @ chunk-LTXT6CEX.js?v=c7c9a7f7:52
+handleSelect @ @radix-ui_react-dropdown-menu.js?v=c7c9a7f7:430
+handleEvent @ chunk-2OQUIBDD.js?v=c7c9a7f7:16
+callCallback2 @ chunk-W6L2VRDA.js?v=c7c9a7f7:3674
+invokeGuardedCallbackDev @ chunk-W6L2VRDA.js?v=c7c9a7f7:3699
+invokeGuardedCallback @ chunk-W6L2VRDA.js?v=c7c9a7f7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-W6L2VRDA.js?v=c7c9a7f7:3736
+executeDispatch @ chunk-W6L2VRDA.js?v=c7c9a7f7:7014
+processDispatchQueueItemsInOrder @ chunk-W6L2VRDA.js?v=c7c9a7f7:7034
+processDispatchQueue @ chunk-W6L2VRDA.js?v=c7c9a7f7:7043
+dispatchEventsForPlugins @ chunk-W6L2VRDA.js?v=c7c9a7f7:7051
+(anonymous) @ chunk-W6L2VRDA.js?v=c7c9a7f7:7174
+batchedUpdates$1 @ chunk-W6L2VRDA.js?v=c7c9a7f7:18913
+batchedUpdates @ chunk-W6L2VRDA.js?v=c7c9a7f7:3579
+dispatchEventForPluginEventSystem @ chunk-W6L2VRDA.js?v=c7c9a7f7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-W6L2VRDA.js?v=c7c9a7f7:5478
+dispatchEvent @ chunk-W6L2VRDA.js?v=c7c9a7f7:5472
+dispatchDiscreteEvent @ chunk-W6L2VRDA.js?v=c7c9a7f7:5449
+OSBasicFields.tsx:17 Uncaught ReferenceError: formatTime24h is not defined
+    at OSBasicFields (OSBasicFields.tsx:17:25)
+    at renderWithHooks (chunk-W6L2VRDA.js?v=c7c9a7f7:11548:26)
+    at mountIndeterminateComponent (chunk-W6L2VRDA.js?v=c7c9a7f7:14926:21)
+    at beginWork (chunk-W6L2VRDA.js?v=c7c9a7f7:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-W6L2VRDA.js?v=c7c9a7f7:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-W6L2VRDA.js?v=c7c9a7f7:3699:24)
+    at invokeGuardedCallback (chunk-W6L2VRDA.js?v=c7c9a7f7:3733:39)
+    at beginWork$1 (chunk-W6L2VRDA.js?v=c7c9a7f7:19765:15)
+    at performUnitOfWork (chunk-W6L2VRDA.js?v=c7c9a7f7:19198:20)
+    at workLoopSync (chunk-W6L2VRDA.js?v=c7c9a7f7:19137:13)
+OSBasicFields @ OSBasicFields.tsx:17
+renderWithHooks @ chunk-W6L2VRDA.js?v=c7c9a7f7:11548
+mountIndeterminateComponent @ chunk-W6L2VRDA.js?v=c7c9a7f7:14926
+beginWork @ chunk-W6L2VRDA.js?v=c7c9a7f7:15914
+callCallback2 @ chunk-W6L2VRDA.js?v=c7c9a7f7:3674
+invokeGuardedCallbackDev @ chunk-W6L2VRDA.js?v=c7c9a7f7:3699
+invokeGuardedCallback @ chunk-W6L2VRDA.js?v=c7c9a7f7:3733
+beginWork$1 @ chunk-W6L2VRDA.js?v=c7c9a7f7:19765
+performUnitOfWork @ chunk-W6L2VRDA.js?v=c7c9a7f7:19198
+workLoopSync @ chunk-W6L2VRDA.js?v=c7c9a7f7:19137
+renderRootSync @ chunk-W6L2VRDA.js?v=c7c9a7f7:19116
+recoverFromConcurrentError @ chunk-W6L2VRDA.js?v=c7c9a7f7:18736
+performSyncWorkOnRoot @ chunk-W6L2VRDA.js?v=c7c9a7f7:18879
+flushSyncCallbacks @ chunk-W6L2VRDA.js?v=c7c9a7f7:9119
+flushSync @ chunk-W6L2VRDA.js?v=c7c9a7f7:18959
+flushSync$1 @ chunk-W6L2VRDA.js?v=c7c9a7f7:21538
+dispatchDiscreteCustomEvent @ chunk-LTXT6CEX.js?v=c7c9a7f7:52
+handleSelect @ @radix-ui_react-dropdown-menu.js?v=c7c9a7f7:430
+handleEvent @ chunk-2OQUIBDD.js?v=c7c9a7f7:16
+callCallback2 @ chunk-W6L2VRDA.js?v=c7c9a7f7:3674
+invokeGuardedCallbackDev @ chunk-W6L2VRDA.js?v=c7c9a7f7:3699
+invokeGuardedCallback @ chunk-W6L2VRDA.js?v=c7c9a7f7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-W6L2VRDA.js?v=c7c9a7f7:3736
+executeDispatch @ chunk-W6L2VRDA.js?v=c7c9a7f7:7014
+processDispatchQueueItemsInOrder @ chunk-W6L2VRDA.js?v=c7c9a7f7:7034
+processDispatchQueue @ chunk-W6L2VRDA.js?v=c7c9a7f7:7043
+dispatchEventsForPlugins @ chunk-W6L2VRDA.js?v=c7c9a7f7:7051
+(anonymous) @ chunk-W6L2VRDA.js?v=c7c9a7f7:7174
+batchedUpdates$1 @ chunk-W6L2VRDA.js?v=c7c9a7f7:18913
+batchedUpdates @ chunk-W6L2VRDA.js?v=c7c9a7f7:3579
+dispatchEventForPluginEventSystem @ chunk-W6L2VRDA.js?v=c7c9a7f7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-W6L2VRDA.js?v=c7c9a7f7:5478
+dispatchEvent @ chunk-W6L2VRDA.js?v=c7c9a7f7:5472
+dispatchDiscreteEvent @ chunk-W6L2VRDA.js?v=c7c9a7f7:5449
+chunk-W6L2VRDA.js?v=c7c9a7f7:14032 The above error occurred in the <OSBasicFields> component:
+
+    at OSBasicFields (http://localhost:8080/src/components/corridas/form/OSBasicFields.tsx:13:33)
+    at div
+    at _c8 (http://localhost:8080/src/components/ui/card.tsx:84:61)
+    at div
+    at _c (http://localhost:8080/src/components/ui/card.tsx:12:53)
+    at form
+    at OSForm (http://localhost:8080/src/components/corridas/form/OSForm.tsx:23:26)
+    at div
+    at http://localhost:8080/node_modules/.vite/deps/chunk-LTXT6CEX.js?v=c7c9a7f7:41:13
+    at http://localhost:8080/node_modules/.vite/deps/chunk-6WJ5YJVW.js?v=c7c9a7f7:63:7
+    at http://localhost:8080/node_modules/.vite/deps/chunk-D3CTYCI6.js?v=c7c9a7f7:52:11
+    at http://localhost:8080/node_modules/.vite/deps/chunk-D3CTYCI6.js?v=c7c9a7f7:33:11
+    at http://localhost:8080/node_modules/.vite/deps/chunk-LTXT6CEX.js?v=c7c9a7f7:41:13
+    at http://localhost:8080/node_modules/.vite/deps/chunk-GBEPO546.js?v=c7c9a7f7:29:5
+    at http://localhost:8080/node_modules/.vite/deps/chunk-7H3NMGNW.js?v=c7c9a7f7:232:13
+    at http://localhost:8080/node_modules/.vite/deps/chunk-7H3NMGNW.js?v=c7c9a7f7:155:58
+    at Presence (http://localhost:8080/node_modules/.vite/deps/chunk-RNAEPQ6M.js?v=c7c9a7f7:24:11)
+    at http://localhost:8080/node_modules/.vite/deps/chunk-7H3NMGNW.js?v=c7c9a7f7:146:64
+    at http://localhost:8080/node_modules/.vite/deps/chunk-D3CTYCI6.js?v=c7c9a7f7:52:11
+    at http://localhost:8080/node_modules/.vite/deps/chunk-D3CTYCI6.js?v=c7c9a7f7:33:11
+    at http://localhost:8080/node_modules/.vite/deps/chunk-LTXT6CEX.js?v=c7c9a7f7:41:13
+    at http://localhost:8080/node_modules/.vite/deps/chunk-6WJ5YJVW.js?v=c7c9a7f7:262:22
+    at Presence (http://localhost:8080/node_modules/.vite/deps/chunk-RNAEPQ6M.js?v=c7c9a7f7:24:11)
+    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-QUKTJ62H.js?v=c7c9a7f7:38:15)
+    at DialogPortal (http://localhost:8080/node_modules/.vite/deps/chunk-7H3NMGNW.js?v=c7c9a7f7:109:11)
+    at _c1 (http://localhost:8080/src/components/ui/dialog.tsx:36:63)
+    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-QUKTJ62H.js?v=c7c9a7f7:38:15)
+    at Dialog (http://localhost:8080/node_modules/.vite/deps/chunk-7H3NMGNW.js?v=c7c9a7f7:50:5)
+    at CorridasDialogs (http://localhost:8080/src/components/corridas/CorridasDialogs.tsx:14:35)
+    at div
+    at CorridasManager (http://localhost:8080/src/components/corridas/CorridasManager.tsx:26:35)
+    at main
+    at div
+    at div
+    at Dashboard (http://localhost:8080/src/components/dashboard/Dashboard.tsx:27:29)
+    at Index (http://localhost:8080/src/pages/Index.tsx:19:49)
+    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=c7c9a7f7:4069:5)
+    at Routes (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=c7c9a7f7:4508:5)
+    at Router (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=c7c9a7f7:4451:15)
+    at BrowserRouter (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=c7c9a7f7:5196:5)
+    at AppContent (http://localhost:8080/src/App.tsx:29:5)
+    at ErrorBoundary (http://localhost:8080/src/components/common/ErrorBoundary.tsx:145:9)
+    at NotificacoesProvider (http://localhost:8080/src/contexts/NotificacoesContext.tsx:15:40)
+    at AlertasProvider (http://localhost:8080/src/contexts/AlertasContext.tsx:15:35)
+    at CorridasProvider (http://localhost:8080/src/contexts/CorridasContext.tsx:19:36)
+    at EmpresasProvider (http://localhost:8080/src/contexts/EmpresasContext.tsx:16:36)
+    at AuthProvider (http://localhost:8080/src/contexts/AuthContext.tsx:23:32)
+    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-QUKTJ62H.js?v=c7c9a7f7:38:15)
+    at TooltipProvider (http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=c7c9a7f7:63:5)
+    at QueryClientProvider (http://localhost:8080/node_modules/.vite/deps/@tanstack_react-query.js?v=c7c9a7f7:2794:3)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+logCapturedError @ chunk-W6L2VRDA.js?v=c7c9a7f7:14032
+callback @ chunk-W6L2VRDA.js?v=c7c9a7f7:14078
+callCallback @ chunk-W6L2VRDA.js?v=c7c9a7f7:11248
+commitUpdateQueue @ chunk-W6L2VRDA.js?v=c7c9a7f7:11265
+commitLayoutEffectOnFiber @ chunk-W6L2VRDA.js?v=c7c9a7f7:17075
+commitLayoutMountEffects_complete @ chunk-W6L2VRDA.js?v=c7c9a7f7:17980
+commitLayoutEffects_begin @ chunk-W6L2VRDA.js?v=c7c9a7f7:17969
+commitLayoutEffects @ chunk-W6L2VRDA.js?v=c7c9a7f7:17920
+commitRootImpl @ chunk-W6L2VRDA.js?v=c7c9a7f7:19353
+commitRoot @ chunk-W6L2VRDA.js?v=c7c9a7f7:19277
+performSyncWorkOnRoot @ chunk-W6L2VRDA.js?v=c7c9a7f7:18895
+flushSyncCallbacks @ chunk-W6L2VRDA.js?v=c7c9a7f7:9119
+flushSync @ chunk-W6L2VRDA.js?v=c7c9a7f7:18959
+flushSync$1 @ chunk-W6L2VRDA.js?v=c7c9a7f7:21538
+dispatchDiscreteCustomEvent @ chunk-LTXT6CEX.js?v=c7c9a7f7:52
+handleSelect @ @radix-ui_react-dropdown-menu.js?v=c7c9a7f7:430
+handleEvent @ chunk-2OQUIBDD.js?v=c7c9a7f7:16
+callCallback2 @ chunk-W6L2VRDA.js?v=c7c9a7f7:3674
+invokeGuardedCallbackDev @ chunk-W6L2VRDA.js?v=c7c9a7f7:3699
+invokeGuardedCallback @ chunk-W6L2VRDA.js?v=c7c9a7f7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-W6L2VRDA.js?v=c7c9a7f7:3736
+executeDispatch @ chunk-W6L2VRDA.js?v=c7c9a7f7:7014
+processDispatchQueueItemsInOrder @ chunk-W6L2VRDA.js?v=c7c9a7f7:7034
+processDispatchQueue @ chunk-W6L2VRDA.js?v=c7c9a7f7:7043
+dispatchEventsForPlugins @ chunk-W6L2VRDA.js?v=c7c9a7f7:7051
+(anonymous) @ chunk-W6L2VRDA.js?v=c7c9a7f7:7174
+batchedUpdates$1 @ chunk-W6L2VRDA.js?v=c7c9a7f7:18913
+batchedUpdates @ chunk-W6L2VRDA.js?v=c7c9a7f7:3579
+dispatchEventForPluginEventSystem @ chunk-W6L2VRDA.js?v=c7c9a7f7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-W6L2VRDA.js?v=c7c9a7f7:5478
+dispatchEvent @ chunk-W6L2VRDA.js?v=c7c9a7f7:5472
+dispatchDiscreteEvent @ chunk-W6L2VRDA.js?v=c7c9a7f7:5449
+ErrorBoundary.tsx:17 [ErrorBoundary] Capturado erro na UI: ReferenceError: formatTime24h is not defined
+    at OSBasicFields (OSBasicFields.tsx:17:25)
+    at renderWithHooks (chunk-W6L2VRDA.js?v=c7c9a7f7:11548:26)
+    at mountIndeterminateComponent (chunk-W6L2VRDA.js?v=c7c9a7f7:14926:21)
+    at beginWork (chunk-W6L2VRDA.js?v=c7c9a7f7:15914:22)
+    at beginWork$1 (chunk-W6L2VRDA.js?v=c7c9a7f7:19753:22)
+    at performUnitOfWork (chunk-W6L2VRDA.js?v=c7c9a7f7:19198:20)
+    at workLoopSync (chunk-W6L2VRDA.js?v=c7c9a7f7:19137:13)
+    at renderRootSync (chunk-W6L2VRDA.js?v=c7c9a7f7:19116:15)
+    at recoverFromConcurrentError (chunk-W6L2VRDA.js?v=c7c9a7f7:18736:28)
+    at performSyncWorkOnRoot (chunk-W6L2VRDA.js?v=c7c9a7f7:18879:28) {componentStack: '\n    at OSBasicFields (http://localhost:8080/src/c…tack_react-query.js?v=c7c9a7f7:2794:3)\n    at App'}
+componentDidCatch @ ErrorBoundary.tsx:17
+callback @ chunk-W6L2VRDA.js?v=c7c9a7f7:14084
+callCallback @ chunk-W6L2VRDA.js?v=c7c9a7f7:11248
+commitUpdateQueue @ chunk-W6L2VRDA.js?v=c7c9a7f7:11265
+commitLayoutEffectOnFiber @ chunk-W6L2VRDA.js?v=c7c9a7f7:17075
+commitLayoutMountEffects_complete @ chunk-W6L2VRDA.js?v=c7c9a7f7:17980
+commitLayoutEffects_begin @ chunk-W6L2VRDA.js?v=c7c9a7f7:17969
+commitLayoutEffects @ chunk-W6L2VRDA.js?v=c7c9a7f7:17920
+commitRootImpl @ chunk-W6L2VRDA.js?v=c7c9a7f7:19353
+commitRoot @ chunk-W6L2VRDA.js?v=c7c9a7f7:19277
+performSyncWorkOnRoot @ chunk-W6L2VRDA.js?v=c7c9a7f7:18895
+flushSyncCallbacks @ chunk-W6L2VRDA.js?v=c7c9a7f7:9119
+flushSync @ chunk-W6L2VRDA.js?v=c7c9a7f7:18959
+flushSync$1 @ chunk-W6L2VRDA.js?v=c7c9a7f7:21538
+dispatchDiscreteCustomEvent @ chunk-LTXT6CEX.js?v=c7c9a7f7:52
+handleSelect @ @radix-ui_react-dropdown-menu.js?v=c7c9a7f7:430
+handleEvent @ chunk-2OQUIBDD.js?v=c7c9a7f7:16
+callCallback2 @ chunk-W6L2VRDA.js?v=c7c9a7f7:3674
+invokeGuardedCallbackDev @ chunk-W6L2VRDA.js?v=c7c9a7f7:3699
+invokeGuardedCallback @ chunk-W6L2VRDA.js?v=c7c9a7f7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-W6L2VRDA.js?v=c7c9a7f7:3736
+executeDispatch @ chunk-W6L2VRDA.js?v=c7c9a7f7:7014
+processDispatchQueueItemsInOrder @ chunk-W6L2VRDA.js?v=c7c9a7f7:7034
+processDispatchQueue @ chunk-W6L2VRDA.js?v=c7c9a7f7:7043
+dispatchEventsForPlugins @ chunk-W6L2VRDA.js?v=c7c9a7f7:7051
+(anonymous) @ chunk-W6L2VRDA.js?v=c7c9a7f7:7174
+batchedUpdates$1 @ chunk-W6L2VRDA.js?v=c7c9a7f7:18913
+batchedUpdates @ chunk-W6L2VRDA.js?v=c7c9a7f7:3579
+dispatchEventForPluginEventSystem @ chunk-W6L2VRDA.js?v=c7c9a7f7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-W6L2VRDA.js?v=c7c9a7f7:5478
+dispatchEvent @ chunk-W6L2VRDA.js?v=c7c9a7f7:5472
+dispatchDiscreteEvent @ chunk-W6L2VRDA.js?v=c7c9a7f7:5449

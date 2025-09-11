@@ -12,6 +12,7 @@ import { OSBasicFields } from './OSBasicFields';
 import { OSCostFields } from './OSCostFields';
 import { formatTimeToAmPm, removeSecondsFromTime } from '@/utils/timeFormatter';
 import { formatDateDDMMYYYY } from '@/utils/format';
+import { formatTime24h } from '@/utils/timeFormatter';
 interface OSFormProps {
   corrida: Corrida;
   onSubmit: (formData: any, documentos: DocumentoUpload[]) => void;

@@ -166,23 +166,30 @@ export const CorridasTable = ({
               </TableCell>
               <TableCell className="py-2">{formatCurrency(corrida.valorMotorista ?? 0)}</TableCell>
               <TableCell className="py-2" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="sm" variant="outline" aria-label="Abrir menu de ações">
-                      <MoreVertical className="h-4 w-4" />
+                <div className="flex items-center gap-2">
+                  {((corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente' || corrida.status === 'Aguardando OS') && !corrida.preenchidoPorMotorista && !corrida.preenchidoPorFinanceiro) && (
+                    <Button size="sm" variant="default" onClick={() => onFillOS(corrida)}>
+                      <FileEdit className="mr-2 h-4 w-4" /> Preencher OS
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="min-w-[220px]">
-                    <DropdownMenuItem onClick={() => onView(corrida)}>
-                      <Eye className="mr-2 h-4 w-4" /> Ver detalhes
-                    </DropdownMenuItem>
-                    {((corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente' || corrida.status === 'Aguardando OS') && !corrida.preenchidoPorMotorista && !corrida.preenchidoPorFinanceiro) && (
-                      <DropdownMenuItem onClick={() => onFillOS(corrida)}>
-                        <FileEdit className="mr-2 h-4 w-4" /> Preencher OS
+                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="outline" aria-label="Abrir menu de ações">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="min-w-[220px]">
+                      <DropdownMenuItem onClick={() => onView(corrida)}>
+                        <Eye className="mr-2 h-4 w-4" /> Ver detalhes
                       </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      {((corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente' || corrida.status === 'Aguardando OS') && !corrida.preenchidoPorMotorista && !corrida.preenchidoPorFinanceiro) && (
+                        <DropdownMenuItem onClick={() => onFillOS(corrida)}>
+                          <FileEdit className="mr-2 h-4 w-4" /> Preencher OS
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </TableCell>
             </TableRow>
           ))}

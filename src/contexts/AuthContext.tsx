@@ -138,9 +138,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error signing out:', error);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session) {
+        const { error } = await supabase.auth.signOut({ scope: 'global' });
+        if (error) throw error;
+      } else {
+        // Sem sessão ativa: faz logout local para limpar storage e estados
+        await supabase.auth.signOut({ scope: 'local' });
+        console.warn('SignOut: nenhuma sessão ativa, realizado logout local.');
+      }
+    } catch (error: any) {
+      // Em alguns casos o Supabase lança AuthSessionMissingError quando não há sessão
+      if (error?.name === 'AuthSessionMissingError' || String(error?.message || '').includes('Auth session missing')) {
+        await supabase.auth.signOut({ scope: 'local' });
+        console.warn('SignOut fallback: sessão ausente, realizado logout local.');
+      } else {
+        console.error('Error signing out:', error);
+      }
+    } finally {
+      // Garante que o estado local seja limpo
+      setUser(null);
+      setSession(null);
+      setProfile(null);
     }
   };
 
