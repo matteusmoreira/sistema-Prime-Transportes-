@@ -5,11 +5,12 @@ import type { Database } from '@/integrations/supabase/types';
 export type UserRole = Database['public']['Enums']['user_role'] | null;
 
 async function fetchUserRole(): Promise<UserRole> {
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError) {
-    console.warn('useUserRole: erro ao obter usuário autenticado:', authError);
+  // Usa getSession para evitar chamada desnecessária à API quando não há sessão
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) {
+    console.debug('useUserRole: erro ao obter sessão autenticada:', sessionError);
   }
-  const user = authData?.user;
+  const user = session?.user;
   if (!user) return null;
 
   // 1) Tentativa via RPC (se existir no banco)
@@ -22,12 +23,12 @@ async function fetchUserRole(): Promise<UserRole> {
     console.debug('useUserRole: RPC get_current_user_role não disponível, usando fallback.');
   }
 
-  // 2) Fallback: consulta direta à tabela profiles
+  // 2) Fallback: consulta direta à tabela profiles (talvez não exista linha ainda)
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.warn('useUserRole: erro ao buscar role em profiles:', error);
@@ -38,23 +39,9 @@ async function fetchUserRole(): Promise<UserRole> {
 }
 
 export function useUserRole() {
-  const query = useQuery<UserRole>({
-    queryKey: ['user-role'],
+  return useQuery<UserRole>({
+    queryKey: ['userRole'],
     queryFn: fetchUserRole,
-    staleTime: 10 * 60 * 1000, // 10 minutos
-    gcTime: 30 * 60 * 1000, // 30 minutos de cache
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
+    staleTime: 5 * 60 * 1000,
   });
-
-  const role = query.data ?? null;
-  const isMotorista = role === 'Motorista';
-
-  return {
-    role,
-    isMotorista,
-    isLoading: query.isLoading || query.isFetching,
-    error: query.error as Error | null,
-    refetch: query.refetch,
-  };
 }

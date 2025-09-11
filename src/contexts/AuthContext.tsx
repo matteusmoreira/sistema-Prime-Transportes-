@@ -26,14 +26,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -50,14 +42,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
         return null;
       }
 
-      return data;
+      return data as Profile | null;
     } catch (error) {
       console.error('Error fetching profile:', error);
       return null;
@@ -66,14 +58,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     // console.log('=== AUTH CONTEXT INIT ===');
-    
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         // console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           // console.log('User logged in, fetching profile...');
           // Defer profile fetch to avoid potential auth deadlock
@@ -86,7 +78,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           // console.log('No user session');
           setProfile(null);
         }
-        
+
         setLoading(false);
       }
     );
@@ -96,7 +88,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         setTimeout(async () => {
           const profileData = await fetchProfile(session.user.id);
@@ -122,7 +114,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signUp = async (email: string, password: string, nome: string, role: UserRole = 'Motorista') => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -167,7 +159,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const resetPassword = async (email: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
     });
@@ -190,4 +182,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

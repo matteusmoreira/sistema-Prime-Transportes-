@@ -15,18 +15,19 @@ export const UserDebugInfo = ({ show = false }: { show?: boolean }) => {
   useEffect(() => {
     const getUserInfo = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
         
         if (user) {
           const { data: profile } = await supabase
             .from('profiles')
             .select('role')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
           setUserInfo({
-            email: user.email,
-            role: profile?.role,
+            email: user.email ?? undefined,
+            role: (profile?.role as string | undefined) ?? undefined,
             isAuthenticated: true
           });
         } else {
@@ -56,31 +57,12 @@ export const UserDebugInfo = ({ show = false }: { show?: boolean }) => {
           </div>
           <div>
             <span className="font-medium">Role: </span>
-            <Badge 
-              variant={
-                userInfo.role === 'Administrador' ? 'default' :
-                userInfo.role === 'Administração' ? 'secondary' :
-                userInfo.role === 'Financeiro' ? 'outline' :
-                userInfo.role === 'Motorista' ? 'destructive' :
-                'destructive'
-              }
-            >
-              {userInfo.role || 'Sem role'}
-            </Badge>
+            <Badge variant="secondary">{userInfo.role || '—'}</Badge>
           </div>
           <div>
-            <span className="font-medium">Pode editar corridas: </span>
-            <Badge variant={
-              ['Administrador', 'Administração', 'Financeiro'].includes(userInfo.role || '') 
-                ? 'default' : 'destructive'
-            }>
-              {['Administrador', 'Administração', 'Financeiro'].includes(userInfo.role || '') ? 'Sim' : 'Não'}
-            </Badge>
-          </div>
-          <div>
-            <span className="font-medium">Status Auth: </span>
+            <span className="font-medium">Autenticado: </span>
             <Badge variant={userInfo.isAuthenticated ? 'default' : 'destructive'}>
-              {userInfo.isAuthenticated ? 'Logado' : 'Não logado'}
+              {userInfo.isAuthenticated ? 'Sim' : 'Não'}
             </Badge>
           </div>
         </div>
