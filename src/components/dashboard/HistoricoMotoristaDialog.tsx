@@ -165,11 +165,7 @@ export const HistoricoMotoristaDialog = ({
                       </div>
                       
                       <div className="space-y-2">
-                        {corrida.solicitante && (
-                          <div className="text-sm">
-                            <span className="text-gray-500">Solicitante:</span> {corrida.solicitante}
-                          </div>
-                        )}
+                        {/* Solicitante ocultado conforme solicitação */}
                         {corrida.passageiros && (
                           <div className="text-sm">
                             <span className="text-gray-500">Passageiros:</span> {corrida.passageiros}

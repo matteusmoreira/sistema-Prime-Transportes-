@@ -89,7 +89,8 @@ export const CorridaDetails = ({
     }
   };
 
-  return <div className="space-y-6">
+  return (
+    <div className="space-y-6">
       {/* Removido o card de WorkflowStatus conforme solicitado */}
       
       {/* Dados Básicos */}
@@ -100,10 +101,12 @@ export const CorridaDetails = ({
             <Label className="font-semibold">Empresa:</Label>
             <p>{corrida.empresa}</p>
           </div>
-          <div>
-            <Label className="font-semibold">Solicitante:</Label>
-            <p>{corrida.solicitante}</p>
-          </div>
+          {!isMotorista && (
+            <div>
+              <Label className="font-semibold">Solicitante:</Label>
+              <p>{corrida.solicitante}</p>
+            </div>
+          )}
           <div>
             <Label className="font-semibold">Motorista:</Label>
             <p>{corrida.motorista}</p>
@@ -315,5 +318,6 @@ export const CorridaDetails = ({
           <Label className="font-semibold">Observações:</Label>
           <p className="mt-1 p-2 bg-gray-50 rounded">{corrida.observacoes}</p>
         </div>}
-    </div>;
+    </div>
+  );
 };
