@@ -1,5 +1,7 @@
 # Logs
-logs
+# Evitar ignorar pastas de código chamadas "logs" dentro de src
+# Em vez disso, ignore apenas a pasta de logs na raiz, se existir
+/logs
 *.log
 npm-debug.log*
 yarn-debug.log*
