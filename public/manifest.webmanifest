@@ -1,7 +1,8 @@
 {
   "name": "Prime Transportes",
-  "short_name": "Prime",
+  "short_name": "Prime Transportes",
   "description": "Sistema de gestão Prime Transportes",
+  "id": "/prime-transportes",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
