@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import { registerSW } from 'virtual:pwa-register'
 
 // Silenciador de logs:
 // - Produção: oculta log/debug/trace
@@ -15,5 +16,8 @@ if (import.meta.env.PROD) {
   console.debug = noop;
   console.trace = noop;
 }
+
+// Registra o Service Worker do VitePWA (autoUpdate)
+registerSW({ immediate: true });
 
 createRoot(document.getElementById("root")!).render(<App />);
