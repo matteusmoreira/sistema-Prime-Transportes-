@@ -18,12 +18,7 @@ export const CorridaDetails = ({
   const { documentos, loading, downloadDocumento } = useCorridaDocuments(corrida?.id || null);
   const isMotorista = profile?.role === 'Motorista';
 
-  // Log para depuração dos valores de data recebidos
-  console.debug('[CorridaDetails] datas recebidas', {
-    id: corrida?.id,
-    dataServico: corrida?.dataServico,
-    data: corrida?.data,
-  });
+  
 
   // Helper: value presence (treat 0 as empty for numbers)
   const hasValue = (value: any): boolean => {

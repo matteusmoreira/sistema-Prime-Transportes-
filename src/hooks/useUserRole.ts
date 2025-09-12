@@ -8,7 +8,7 @@ async function fetchUserRole(): Promise<UserRole> {
   // Usa getSession para evitar chamada desnecessária à API quando não há sessão
   const { data: { session }, error: sessionError } = await supabase.auth.getSession();
   if (sessionError) {
-    console.debug('useUserRole: erro ao obter sessão autenticada:', sessionError);
+
   }
   const user = session?.user;
   if (!user) return null;
@@ -20,7 +20,7 @@ async function fetchUserRole(): Promise<UserRole> {
       return rpcData as UserRole;
     }
   } catch (e) {
-    console.debug('useUserRole: RPC get_current_user_role não disponível, usando fallback.');
+
   }
 
   // 2) Fallback: consulta direta à tabela profiles (talvez não exista linha ainda)

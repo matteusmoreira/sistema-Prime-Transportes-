@@ -188,7 +188,7 @@ export const HistoricoMotoristaDialog = ({
                         </Button>
                       )}
                       {onFillOS && (corrida.status === 'Aguardando OS' || corrida.status === 'Aguardando Conferência' || corrida.status === 'Pendente') && !corrida.preenchidoPorMotorista && (
-                        <Button size="sm" variant="default" onClick={() => { console.debug('[HistoricoMotorista] Preencher OS click', corrida.id, corrida.status); onFillOS(corrida); }}>
+                        <Button size="sm" variant="default" onClick={() => onFillOS(corrida)}>
                           <FileEdit className="h-4 w-4 mr-1" />
                           Preencher OS
                         </Button>

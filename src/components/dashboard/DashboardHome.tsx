@@ -13,6 +13,7 @@ import { useCorridasDialogs } from '@/hooks/useCorridasDialogs';
 import { useCorridasLogic } from '@/hooks/useCorridasLogic';
 import { OnlineUsersCard } from '@/components/dashboard/OnlineUsersCard';
 
+
 interface DashboardHomeProps {
   userLevel: string;
   userEmail?: string;
@@ -22,7 +23,7 @@ export const DashboardHome = ({
   userLevel,
   userEmail
 }: DashboardHomeProps) => {
-  // console.log('DashboardHome rendering with userLevel:', userLevel);
+  console.log('[DashboardHome] Rendering with userLevel:', userLevel, 'userEmail:', userEmail);
   
   const { empresas, loading: empresasLoading } = useEmpresas();
   const { solicitantes } = useSolicitantes();
@@ -179,6 +180,7 @@ export const DashboardHome = ({
   };
 
   return <div className="space-y-6">
+      {/* Debug removido */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>

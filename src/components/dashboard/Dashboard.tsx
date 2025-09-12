@@ -29,10 +29,7 @@ export const Dashboard = ({ userLevel, onLogout, userEmail, userName }: Dashboar
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Debug: verificar o userLevel
-  // console.log('=== DASHBOARD DEBUG ===');
-  // console.log('UserLevel atual:', userLevel);
-  // console.log('Tipo do userLevel:', typeof userLevel);
-  // console.log('=== FIM DEBUG ===');
+
 
   const renderContent = () => {
     switch (activeSection) {

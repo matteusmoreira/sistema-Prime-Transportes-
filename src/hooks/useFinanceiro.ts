@@ -148,20 +148,20 @@ export const useFinanceiro = () => {
   };
 
   const updatePaymentStatus = async (corridaId: number, statusPagamento: CorridaFinanceiro['statusPagamento']) => {
-    console.log('[Financeiro] updatePaymentStatus ->', { corridaId, statusPagamento });
+
     await updateCorridaOriginal(corridaId, { statusPagamento });
     toast.success(`Status de pagamento alterado para ${statusPagamento}!`);
   };
 
   const updateMedicaoNotaFiscalStatus = async (corridaId: number, medicaoNotaFiscal: CorridaFinanceiro['medicaoNotaFiscal']) => {
-    console.log('[Financeiro] updateMedicaoNotaFiscalStatus ->', { corridaId, medicaoNotaFiscal });
+
     await updateCorridaOriginal(corridaId, { medicaoNotaFiscal });
     toast.success(`Status de medição/nota fiscal alterado para ${medicaoNotaFiscal}!`);
   };
 
   const updateCorrida = async (corridaId: number, updatedData: any, documentos: any[]) => {
     try {
-      console.log('[Financeiro] updateCorrida -> dados basicos', { corridaId, updatedData });
+  
       // Atualiza dados básicos da corrida usando o contexto e aguarda persistência
       await updateCorridaOriginal(corridaId, updatedData);
 
@@ -215,7 +215,7 @@ export const useFinanceiro = () => {
 
   const approveCorrida = async (corrida: CorridaFinanceiro) => {
     // Atualiza status e marca data de conferência
-    console.log('[Financeiro] approveCorrida ->', corrida.id);
+
     updateStatus(corrida.id, 'Aprovada');
     await updateCorridaOriginal(corrida.id, {
       dataConferencia: new Date().toISOString(),
@@ -225,7 +225,7 @@ export const useFinanceiro = () => {
   };
 
   const rejectCorrida = async (corrida: CorridaFinanceiro, motivo: string) => {
-    console.log('[Financeiro] rejectCorrida ->', { id: corrida.id, motivo });
+
     updateStatus(corrida.id, 'Revisar');
     await updateCorridaOriginal(corrida.id, {
       motivoReprovacao: motivo

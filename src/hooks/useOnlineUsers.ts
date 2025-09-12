@@ -1,18 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// Bind realtime lifecycle logs once per module for easier debugging
-let __realtimeBound = false;
-if (!__realtimeBound) {
-  try {
-    supabase.realtime.onOpen(() => console.log('[Realtime] connection opened'));
-    supabase.realtime.onClose(() => console.warn('[Realtime] connection closed'));
-    supabase.realtime.onError((e) => console.error('[Realtime] connection error', e));
-    __realtimeBound = true;
-  } catch (e) {
-    // no-op
-  }
-}
+// Realtime connection logging will be handled at channel level
+
 
 export interface OnlineUser {
   id: string;
@@ -32,100 +22,152 @@ export function useOnlineUsers(options: Options = {}) {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [users, setUsers] = useState<OnlineUser[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+  
     let isMounted = true;
     let currentUserId: string | null = null;
+    let cleanup: (() => void) | null = null;
 
     const setup = async () => {
-      const { data } = await supabase.auth.getUser();
-      currentUserId = data.user?.id || null;
+      try {
+        setError(null);
+        const { data, error: authError } = await supabase.auth.getUser();
+        
+        if (authError) {
+          console.error('[OnlineUsers] Auth error:', authError);
+          setError('Erro de autenticação');
+          return;
+        }
+        
+        currentUserId = data.user?.id || null;
+  
 
-      // Evita recriar desnecessariamente
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-
-      const channel = supabase.channel('online-users', {
-        config: {
-          presence: { key: currentUserId || `anon-${Math.random().toString(36).slice(2)}` },
-        },
-      });
-
-      channel
-        .on('presence', { event: 'sync' }, () => {
-          const state = channel.presenceState() as Record<string, { metas: any[] }>;
-          const list: OnlineUser[] = Object.entries(state).map(([id, { metas }]) => {
-            const latest = metas?.[metas.length - 1] || {};
-            return {
-              id,
-              email: latest.email ?? null,
-              role: latest.role ?? null,
-              lastSeen: Number(latest.timestamp) || Date.now(),
-            };
-          });
-          // Ordena por email e depois por lastSeen desc
-          list.sort((a, b) => {
-            const ae = (a.email || '').localeCompare(b.email || '');
-            if (ae !== 0) return ae;
-            return b.lastSeen - a.lastSeen;
-          });
-          if (isMounted) {
-            setUsers(list);
-            setIsConnected(true); // consideramos conectado ao receber o primeiro sync
+        // Cleanup previous channel
+        if (channelRef.current) {
+          try {
+            await supabase.removeChannel(channelRef.current);
+          } catch (e) {
+            console.warn('[OnlineUsers] Error removing previous channel:', e);
           }
-        })
-        .on('presence', { event: 'join' }, (payload) => {
-          console.debug('[useOnlineUsers] presence join', payload);
-        })
-        .on('presence', { event: 'leave' }, (payload) => {
-          console.debug('[useOnlineUsers] presence leave', payload);
-        })
-        .subscribe(async (status) => {
-          if (!isMounted) return;
-          console.log('[useOnlineUsers] subscribe status:', status);
-          setIsConnected(status === 'SUBSCRIBED');
-          if (status === 'SUBSCRIBED' && trackSelf && currentUserId) {
-            try {
-              await channel.track({
-                email: email || data.user?.email || null,
-                role: role || null,
-                timestamp: Date.now(),
-              });
-              console.debug('[useOnlineUsers] tracked self presence');
-            } catch (e) {
-              console.debug('Falha ao fazer track de presença:', e);
-            }
-          }
+          channelRef.current = null;
+        }
+
+        const channelName = `online-users-${Date.now()}`; // Unique channel name
+        const channel = supabase.channel(channelName, {
+          config: {
+            presence: { key: currentUserId || `anon-${Math.random().toString(36).slice(2)}` },
+          },
         });
 
-      // Atualiza presença ao voltar foco
-      const handleVisibility = () => {
-        if (document.visibilityState === 'visible' && channel && trackSelf && currentUserId) {
-          channel.track({
-            email: email || data.user?.email || null,
-            role: role || null,
-            timestamp: Date.now(),
-          }).catch(() => {});
+        channel
+          .on('presence', { event: 'sync' }, () => {
+            try {
+              const state = channel.presenceState() as Record<string, { metas: any[] }>;
+      
+              
+              const list: OnlineUser[] = Object.entries(state).map(([id, { metas }]) => {
+                const latest = metas?.[metas.length - 1] || {};
+                return {
+                  id,
+                  email: latest.email ?? null,
+                  role: latest.role ?? null,
+                  lastSeen: Number(latest.timestamp) || Date.now(),
+                };
+              });
+              
+              // Ordena por email e depois por lastSeen desc
+              list.sort((a, b) => {
+                const ae = (a.email || '').localeCompare(b.email || '');
+                if (ae !== 0) return ae;
+                return b.lastSeen - a.lastSeen;
+              });
+              
+              if (isMounted) {
+        
+                setUsers(list);
+                setIsConnected(true);
+                setError(null);
+              }
+            } catch (e) {
+              console.error('[OnlineUsers] Error in presence sync:', e);
+              if (isMounted) {
+                setError('Erro ao sincronizar usuários online');
+              }
+            }
+          })
+          .on('presence', { event: 'join' }, (payload) => {
+    
+          })
+          .on('presence', { event: 'leave' }, (payload) => {
+    
+          })
+          .subscribe(async (status) => {
+            if (!isMounted) return;
+      
+            setIsConnected(status === 'SUBSCRIBED');
+
+            if (status === 'SUBSCRIBED' && trackSelf && currentUserId) {
+              try {
+                const { data: profile, error: profileError } = await supabase
+                  .from('profiles')
+                  .select('email, role')
+                  .eq('id', currentUserId)
+                  .single();
+
+                if (profileError) {
+                  console.error('[OnlineUsers] Profile fetch error:', profileError);
+                  setError(profileError.message);
+                  return;
+                }
+
+                if (profile && isMounted) {
+            
+                  await channel.track({
+                    email: profile.email,
+                    role: profile.role,
+                    timestamp: Date.now(),
+                  });
+                }
+              } catch (e) {
+                console.error('[OnlineUsers] Error tracking presence:', e);
+              }
+            } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+              if (isMounted) {
+                setError('Conexão com usuários online perdida');
+                setIsConnected(false);
+              }
+            }
+          });
+
+        channelRef.current = channel;
+        
+        cleanup = () => {
+          if (channel) {
+            supabase.removeChannel(channel).catch(e => 
+              console.warn('[OnlineUsers] Cleanup error:', e)
+            );
+          }
+        };
+        
+      } catch (e) {
+        console.error('[OnlineUsers] Setup error:', e);
+        if (isMounted) {
+          setError('Erro ao configurar usuários online');
         }
-      };
-
-      document.addEventListener('visibilitychange', handleVisibility);
-
-      channelRef.current = channel;
-
-      return () => {
-        document.removeEventListener('visibilitychange', handleVisibility);
-      };
+      }
     };
 
     setup();
 
     return () => {
+
       isMounted = false;
+      if (cleanup) {
+        cleanup();
+      }
       if (channelRef.current) {
-        try { supabase.removeChannel(channelRef.current); } catch {}
         channelRef.current = null;
       }
     };

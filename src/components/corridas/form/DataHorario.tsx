@@ -15,7 +15,7 @@ type DataHorarioProps = {
 
 export const DataHorario: React.FC<DataHorarioProps> = ({ formData, onFormChange, readOnly }) => {
   const set = (field: keyof DataHorarioProps['formData']) => (value: string) => {
-    console.log('[DataHorario] change', field, value);
+
     onFormChange(field, value);
   };
 

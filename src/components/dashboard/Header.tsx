@@ -29,7 +29,7 @@ const getInitials = (name?: string) => {
 };
 
 export const Header: React.FC<HeaderProps> = ({ userLevel, onLogout, onToggleSidebar, userEmail, userName }) => {
-  console.debug("Header mounted:", { userLevel, userEmail, userName });
+
 
   return (
     <header className="bg-background border-b border-border sticky top-0 z-20">

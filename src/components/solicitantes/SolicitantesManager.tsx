@@ -91,7 +91,7 @@ export const SolicitantesManager = () => {
     if (!filtroEmpresaId) return solicitantes;
     const id = parseInt(filtroEmpresaId);
     const filtrados = solicitantes.filter(s => s.empresaId === id);
-    console.debug('[Solicitantes] Aplicando filtro por empresa:', { filtroEmpresaId: id, total: filtrados.length });
+
     return filtrados;
   }, [solicitantes, filtroEmpresaId]);
 
