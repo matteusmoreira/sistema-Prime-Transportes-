@@ -1,16 +1,17 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { useOnlineUsers } from '@/hooks/useOnlineUsers';
-import { Users } from 'lucide-react';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Users, Wifi, WifiOff } from 'lucide-react';
+import { useOnlineUsers } from '../../contexts/OnlineUsersContext';
 
 interface Props {
   onlyAdmins?: boolean;
 }
 
 export const OnlineUsersCard = ({ onlyAdmins = false }: Props) => {
-  const { users, isConnected } = useOnlineUsers({ trackSelf: false });
+  const { onlineUsers, isLoading, error } = useOnlineUsers();
 
-  const filtered = users.filter(u => {
+  const filtered = onlineUsers.filter(u => {
     if (!onlyAdmins) return true;
     return (u.role === 'Administrador' || u.role === 'Administração');
   });
@@ -21,19 +22,23 @@ export const OnlineUsersCard = ({ onlyAdmins = false }: Props) => {
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <Users className="h-4 w-4 text-muted-foreground" /> Usuários Online
         </CardTitle>
-        <Badge variant={isConnected ? 'default' : 'secondary'} className={isConnected ? 'bg-green-100 text-green-700 border border-green-300' : ''}>
-          {isConnected ? 'Tempo real' : 'Reconectando...'}
+        <Badge variant={!isLoading && !error ? 'default' : 'secondary'} className={!isLoading && !error ? 'bg-green-100 text-green-700 border border-green-300' : ''}>
+          {isLoading ? 'Carregando...' : error ? 'Erro' : 'Tempo real'}
         </Badge>
       </CardHeader>
       <CardContent>
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <div className="text-sm text-muted-foreground">Carregando usuários...</div>
+        ) : error ? (
+          <div className="text-sm text-red-500">Erro: {error}</div>
+        ) : filtered.length === 0 ? (
           <div className="text-sm text-muted-foreground">Nenhum usuário online.</div>
         ) : (
           <ul className="space-y-2">
             {filtered.map(u => (
               <li key={u.id} className="flex items-center gap-2">
                 <span className="inline-block h-2.5 w-2.5 rounded-full bg-green-500" aria-label="online" />
-                <span className="text-sm text-gray-800">{u.email || 'Sem email'}</span>
+                <span className="text-sm text-gray-800">{u.name || u.email || 'Usuário'}</span>
                 {u.role && (
                   <span className="ml-auto text-xs text-muted-foreground">{u.role}</span>
                 )}

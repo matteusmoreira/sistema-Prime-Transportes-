@@ -9,6 +9,7 @@ import { AlertasProvider } from "@/contexts/AlertasContext";
 import { EmpresasProvider } from "@/contexts/EmpresasContext";
 import { NotificacoesProvider } from "@/contexts/NotificacoesContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { OnlineUsersProvider } from "@/contexts/OnlineUsersContext";
 import { useNotificationListener } from "@/hooks/useNotificationListener";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -37,20 +38,22 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <EmpresasProvider>
-          <CorridasProvider>
-            <AlertasProvider>
-              <NotificacoesProvider>
-                <ErrorBoundary>
-                  <Toaster />
-                  <Sonner />
-                  <PresenceTracker />
-                  <AppContent />
-                </ErrorBoundary>
-              </NotificacoesProvider>
-            </AlertasProvider>
-          </CorridasProvider>
-        </EmpresasProvider>
+        <OnlineUsersProvider>
+          <EmpresasProvider>
+            <CorridasProvider>
+              <AlertasProvider>
+                <NotificacoesProvider>
+                  <ErrorBoundary>
+                    <Toaster />
+                    <Sonner />
+                    <PresenceTracker />
+                    <AppContent />
+                  </ErrorBoundary>
+                </NotificacoesProvider>
+              </AlertasProvider>
+            </CorridasProvider>
+          </EmpresasProvider>
+        </OnlineUsersProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
