@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresas } from '@/contexts/EmpresasContext';
 import { useAuthDependentData } from '@/hooks/useAuthDependentData';
+import { useLogInterceptor, LogDataExtractors } from './useLogInterceptor';
 
 export interface Solicitante {
   id: number;
@@ -19,6 +20,7 @@ export const useSolicitantes = () => {
   const [solicitantes, setSolicitantes] = useState<Solicitante[]>([]);
   const [loading, setLoading] = useState(true);
   const { shouldLoadData, isAuthLoading } = useAuthDependentData();
+  const { interceptCreate, interceptUpdate, interceptDelete } = useLogInterceptor();
 
   // Carregar solicitantes do Supabase
   const loadSolicitantes = async () => {
@@ -67,99 +69,101 @@ export const useSolicitantes = () => {
     }
   }, [shouldLoadData, isAuthLoading]);
 
-  const addSolicitante = async (solicitanteData: Omit<Solicitante, 'id'>) => {
-    // Removido log de debug de criação de solicitante
-    
+  const originalAddSolicitante = async (solicitanteData: Omit<Solicitante, 'id'>) => {
     // Buscar o nome da empresa atualizado
     const empresa = empresas.find(e => e.id === solicitanteData.empresaId);
     const empresaNome = empresa ? empresa.nome : solicitanteData.empresaNome;
     
-    try {
-      const { data, error } = await supabase
-        .from('solicitantes')
-        .insert([{
-          nome: solicitanteData.nome,
-          empresa_id: solicitanteData.empresaId,
-          email: solicitanteData.email,
-          telefone: solicitanteData.telefone,
-        }])
-        .select()
-        .single();
+    const { data, error } = await supabase
+      .from('solicitantes')
+      .insert([{
+        nome: solicitanteData.nome,
+        empresa_id: solicitanteData.empresaId,
+        email: solicitanteData.email,
+        telefone: solicitanteData.telefone,
+      }])
+      .select()
+      .single();
 
-      if (error) {
-        console.error('Erro ao adicionar solicitante:', error);
-        toast.error('Erro ao adicionar solicitante');
-        return;
-      }
-
-      const novoSolicitante: Solicitante = {
-        id: data.id,
-        nome: data.nome || '',
-        empresaId: data.empresa_id,
-        empresaNome: empresaNome,
-        email: data.email || '',
-        telefone: data.telefone || '',
-        cargo: ''
-      };
-
-      setSolicitantes(prev => [...prev, novoSolicitante]);
-      toast.success('Solicitante adicionado com sucesso!');
-      
-    } catch (error) {
+    if (error) {
       console.error('Erro ao adicionar solicitante:', error);
       toast.error('Erro ao adicionar solicitante');
+      return;
     }
+
+    const novoSolicitante: Solicitante = {
+      id: data.id,
+      nome: data.nome || '',
+      empresaId: data.empresa_id,
+      empresaNome: empresaNome,
+      email: data.email || '',
+      telefone: data.telefone || '',
+      cargo: ''
+    };
+
+    setSolicitantes(prev => [...prev, novoSolicitante]);
+    toast.success('Solicitante adicionado com sucesso!');
+    return novoSolicitante;
   };
 
-  const updateSolicitante = async (id: number, updatedData: Partial<Solicitante>) => {
-    // Removido log de debug de atualização de solicitante
-    
-    try {
-      const { data, error } = await supabase
-        .from('solicitantes')
-        .update({
-          nome: updatedData.nome,
-          empresa_id: updatedData.empresaId,
-          email: updatedData.email,
-          telefone: updatedData.telefone,
-        })
-        .eq('id', id)
-        .select()
-        .single();
+  const addSolicitante = interceptCreate(
+    originalAddSolicitante,
+    'solicitantes',
+    LogDataExtractors.solicitante.create
+  );
 
-      if (error) {
-        console.error('Erro ao atualizar solicitante:', error);
-        toast.error('Erro ao atualizar solicitante');
-        return;
-      }
+  const originalUpdateSolicitante = async (id: number, updatedData: Partial<Solicitante>) => {
+    const { data, error } = await supabase
+      .from('solicitantes')
+      .update({
+        nome: updatedData.nome,
+        empresa_id: updatedData.empresaId,
+        email: updatedData.email,
+        telefone: updatedData.telefone,
+      })
+      .eq('id', id)
+      .select()
+      .single();
 
-      // Buscar o nome da empresa atualizado
-      const empresa = empresas.find(e => e.id === data.empresa_id);
-      const empresaNome = empresa ? empresa.nome : '';
-
-      const solicitanteAtualizado: Solicitante = {
-        id: data.id,
-        nome: data.nome || '',
-        empresaId: data.empresa_id,
-        empresaNome: empresaNome,
-        email: data.email || '',
-        telefone: data.telefone || '',
-        cargo: ''
-      };
-
-      setSolicitantes(prev => 
-        prev.map(solicitante => 
-          solicitante.id === id ? solicitanteAtualizado : solicitante
-        )
-      );
-      
-      toast.success('Solicitante atualizado com sucesso!');
-      
-    } catch (error) {
+    if (error) {
       console.error('Erro ao atualizar solicitante:', error);
       toast.error('Erro ao atualizar solicitante');
+      return;
     }
+
+    // Buscar o nome da empresa atualizado
+    const empresa = empresas.find(e => e.id === data.empresa_id);
+    const empresaNome = empresa ? empresa.nome : '';
+
+    const solicitanteAtualizado: Solicitante = {
+      id: data.id,
+      nome: data.nome || '',
+      empresaId: data.empresa_id,
+      empresaNome: empresaNome,
+      email: data.email || '',
+      telefone: data.telefone || '',
+      cargo: ''
+    };
+
+    setSolicitantes(prev => 
+      prev.map(solicitante => 
+        solicitante.id === id ? solicitanteAtualizado : solicitante
+      )
+    );
+    
+    toast.success('Solicitante atualizado com sucesso!');
+    return solicitanteAtualizado;
   };
+
+  const updateSolicitante = interceptUpdate(
+    originalUpdateSolicitante,
+    'solicitantes',
+    (args) => ({
+      entityId: args[0]?.toString() || 'unknown',
+      oldData: solicitantes.find(s => s.id === args[0]) || {},
+      newData: args[1] || {}
+    })
+  );
 
   const deleteSolicitante = async (id: number) => {
     const confirmed = window.confirm('Tem certeza que deseja excluir este solicitante?');

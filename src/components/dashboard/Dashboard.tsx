@@ -15,6 +15,7 @@ import { RelatoriosManager } from '@/components/relatorios/RelatoriosManager';
 import { ConfiguracoesManager } from '@/components/configuracoes/ConfiguracoesManager';
 import { MinhaContaManager } from './MinhaContaManager';
 import { DashboardHome } from './DashboardHome';
+import { LogsPage } from '@/pages/LogsPage';
 // import { CadastroManager } from './CadastroManager';
 
 interface DashboardProps {
@@ -57,6 +58,8 @@ export const Dashboard = ({ userLevel, onLogout, userEmail, userName }: Dashboar
           : <AlertasManager />;
       case 'relatorios':
         return <RelatoriosManager />;
+      case 'logs':
+        return <LogsPage />;
       case 'configuracoes':
         return <ConfiguracoesManager />;
       case 'minha-conta':

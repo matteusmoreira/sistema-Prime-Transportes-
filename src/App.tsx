@@ -10,10 +10,12 @@ import { EmpresasProvider } from "@/contexts/EmpresasContext";
 import { NotificacoesProvider } from "@/contexts/NotificacoesContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OnlineUsersProvider } from "@/contexts/OnlineUsersContext";
+import { LogsProvider } from "@/contexts/LogsContext";
 import { useNotificationListener } from "@/hooks/useNotificationListener";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { LogsPage } from "./pages/LogsPage";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { PresenceTracker } from "@/components/realtime/PresenceTracker";
 
@@ -27,6 +29,7 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/logs" element={<LogsPage />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -34,29 +37,33 @@ const AppContent = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <OnlineUsersProvider>
-          <EmpresasProvider>
-            <CorridasProvider>
-              <AlertasProvider>
-                <NotificacoesProvider>
-                  <ErrorBoundary>
-                    <Toaster />
-                    <Sonner />
-                    <PresenceTracker />
-                    <AppContent />
-                  </ErrorBoundary>
-                </NotificacoesProvider>
-              </AlertasProvider>
-            </CorridasProvider>
-          </EmpresasProvider>
-        </OnlineUsersProvider>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <LogsProvider>
+            <OnlineUsersProvider>
+              <EmpresasProvider>
+              <CorridasProvider>
+                <AlertasProvider>
+                  <NotificacoesProvider>
+                    <ErrorBoundary>
+                      <Toaster />
+                      <Sonner />
+                      <PresenceTracker />
+                      <AppContent />
+                    </ErrorBoundary>
+                  </NotificacoesProvider>
+                </AlertasProvider>
+              </CorridasProvider>
+              </EmpresasProvider>
+            </OnlineUsersProvider>
+          </LogsProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

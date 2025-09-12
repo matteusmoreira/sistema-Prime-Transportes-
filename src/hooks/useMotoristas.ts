@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthDependentData } from '@/hooks/useAuthDependentData';
+import { useLogInterceptor, LogDataExtractors } from './useLogInterceptor';
 
 export interface DocumentoMotorista {
   id: string;
@@ -37,6 +38,7 @@ export const useMotoristas = () => {
   const [motoristas, setMotoristas] = useState<Motorista[]>([]);
   const [loading, setLoading] = useState(true);
   const { shouldLoadData, isAuthLoading } = useAuthDependentData();
+  const { interceptCreate, interceptUpdate, interceptDelete } = useLogInterceptor();
 
   // Carregar motoristas do Supabase
   const loadMotoristas = async () => {
@@ -152,9 +154,7 @@ export const useMotoristas = () => {
      return data;
    };
 
-   const addMotorista = async (formData: Omit<Motorista, 'id'> | (Omit<Motorista, 'id' | 'status'> & { status?: 'Pendente' | 'Aprovado' | 'Reprovado' })) => {
-     // Removidos logs de debug do fluxo de cadastro
-     
+   const originalAddMotorista = async (formData: Omit<Motorista, 'id'> | (Omit<Motorista, 'id' | 'status'> & { status?: 'Pendente' | 'Aprovado' | 'Reprovado' })) => {
      try {
        // Verificar se é um admin criando o motorista
        const { data: { user } } = await supabase.auth.getUser();
@@ -341,9 +341,13 @@ export const useMotoristas = () => {
      }
    };
 
-   const updateMotorista = async (id: number, updatedData: Partial<Motorista>) => {
-   // Removido log de debug de atualização de motorista
-    
+   const addMotorista = interceptCreate(
+     originalAddMotorista,
+     'motoristas',
+     LogDataExtractors.motorista.create
+   );
+
+   const originalUpdateMotorista = async (id: number, updatedData: Partial<Motorista>) => {
     try {
       // Atualizar dados básicos do motorista
       const { error } = await supabase
@@ -441,11 +445,20 @@ export const useMotoristas = () => {
     }
   };
 
-  const deleteMotorista = async (id: number) => {
+  const updateMotorista = interceptUpdate(
+    originalUpdateMotorista,
+    'motoristas',
+    (args) => ({
+      entityId: args[0]?.toString() || 'unknown',
+      oldData: motoristas.find(m => m.id === args[0]) || {},
+      newData: args[1] || {}
+    })
+  );
+
+  const originalDeleteMotorista = async (id: number) => {
     if (!confirm('Esta ação irá excluir permanentemente o motorista e todos os dados relacionados (documentos, fotos, perfil de usuário). Tem certeza?')) {
       return;
     }
-
     try {
       // Removido log: início de exclusão
       
@@ -598,6 +611,15 @@ export const useMotoristas = () => {
       toast.error('Erro ao excluir motorista');
     }
   };
+
+  const deleteMotorista = interceptDelete(
+    originalDeleteMotorista,
+    'motoristas',
+    (args) => ({
+      entityId: args[0]?.toString() || 'unknown',
+      oldData: motoristas.find(m => m.id === args[0]) || {}
+    })
+  );
 
   const approveMotorista = async (id: number) => {
     await updateMotorista(id, { status: 'Aprovado' });

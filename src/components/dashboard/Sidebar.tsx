@@ -12,7 +12,8 @@ import {
   Bell,
   Receipt,
   Settings,
-  Shield
+  Shield,
+  ScrollText
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -40,6 +41,7 @@ export const Sidebar = ({
     { id: 'voucher', label: 'Voucher', icon: Receipt, roles: ['Administrador', 'Financeiro'] },
     { id: 'alertas', label: 'Alertas', icon: Bell, roles: ['Administrador', 'Administração', 'Motorista'] },
     { id: 'relatorios', label: 'Relatórios', icon: FileText, roles: ['Administrador', 'Administração', 'Financeiro'] },
+    { id: 'logs', label: 'Logs do Sistema', icon: ScrollText, roles: ['Administrador'] },
     { id: 'configuracoes', label: 'Configurações', icon: Settings, roles: ['Administrador'] },
     { id: 'minha-conta', label: 'Minha Conta', icon: Users, roles: ['Motorista'] }
   ];
