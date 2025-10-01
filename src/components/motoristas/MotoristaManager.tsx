@@ -43,6 +43,7 @@ export const MotoristaManager = () => {
     email: '',
     cnh: '',
     cnhDataValidade: '',
+    cnpj: '',
     status: 'Pendente' as 'Pendente' | 'Aprovado' | 'Reprovado'
   });
   const [documentos, setDocumentos] = useState<DocumentoUpload[]>([]);
@@ -56,6 +57,7 @@ export const MotoristaManager = () => {
       email: '',
       cnh: '',
       cnhDataValidade: '',
+      cnpj: '',
       status: 'Pendente' as 'Pendente' | 'Aprovado' | 'Reprovado'
     });
     setDocumentos([]);
@@ -72,6 +74,7 @@ export const MotoristaManager = () => {
       email: motorista.email,
       cnh: motorista.cnh,
       cnhDataValidade: motorista.cnhDataValidade || '',
+      cnpj: '', // Campo opcional apenas na UI; não há persistência no backend ainda
       status: motorista.status
     });
     
@@ -113,14 +116,15 @@ export const MotoristaManager = () => {
     }));
     
     if (editingMotorista) {
+      const { cnpj: _ignoredCnpj, ...formDataSansCnpj } = formData;
       await updateMotorista(editingMotorista.id, {
-        ...formData,
+        ...formDataSansCnpj,
         documentos: documentosFinais,
         fotosVeiculo: fotosFinais
       });
       await loadMotoristas(); // Refresh data after update
     } else {
-      const { status, ...motoristaDados } = formData;
+      const { status, cnpj: _ignoredCnpj, ...motoristaDados } = formData;
       await addMotorista({
         ...motoristaDados,
         documentos: documentosFinais,

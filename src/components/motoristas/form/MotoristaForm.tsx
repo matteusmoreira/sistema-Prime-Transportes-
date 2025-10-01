@@ -19,6 +19,8 @@ interface MotoristaFormData {
   email: string;
   cnh: string;
   cnhDataValidade: string;
+  // Campo opcional: CNPJ (apenas UI, não obrigatório)
+  cnpj?: string;
   status?: 'Pendente' | 'Aprovado' | 'Reprovado';
 }
 
@@ -351,6 +353,16 @@ export const MotoristaForm = ({
         {cpfError && (
           <p className="text-sm text-red-500">{cpfError}</p>
         )}
+      </div>
+      {/* Campo opcional: CNPJ */}
+      <div className="space-y-2">
+        <Label htmlFor="cnpj">CNPJ</Label>
+        <Input
+          id="cnpj"
+          value={formData.cnpj || ''}
+          onChange={(e) => onInputChange('cnpj', e.target.value)}
+          placeholder="00.000.000/0000-00"
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="telefone">Telefone *</Label>
