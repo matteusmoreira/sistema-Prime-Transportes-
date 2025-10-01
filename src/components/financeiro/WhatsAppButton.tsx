@@ -9,7 +9,6 @@ import { MessageCircle, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMotoristas } from '@/hooks/useMotoristas';
 import { supabase } from '@/integrations/supabase/client';
-import { formatTimeToAmPm } from '@/utils/timeFormatter';
 import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
 import { formatTime24h } from '@/utils/timeFormatter';
 
@@ -42,7 +41,7 @@ export const WhatsAppButton = ({ corrida, trigger }: WhatsAppButtonProps) => {
   const createFormattedMessage = () => {
     const dataBase = corrida.dataServico || corrida.data;
     const dataFormatada = dataBase ? formatDateDDMMYYYY(dataBase) : '';
-    const horaInicio = formatTimeToAmPm(corrida.horaInicio || corrida.horaSaida || '');
+    const horaInicio = formatTime24h(corrida.horaInicio || corrida.horaSaida || '');
 
     // Normaliza a lista de passageiros (aceita quebra de linha ou vírgula) e gera em linha separados por vírgulas
     const passageirosInline = (corrida.passageiros || '')
@@ -53,6 +52,7 @@ export const WhatsAppButton = ({ corrida, trigger }: WhatsAppButtonProps) => {
 
     const lines: string[] = [];
     if (corrida.motorista) lines.push(`MOTORISTA: ${corrida.motorista}`);
+    if (corrida.numeroOS) lines.push(`Nº O.S: ${corrida.numeroOS}`);
     if (corrida.empresa) lines.push(`CLIENTE: ${corrida.empresa}`);
     if (corrida.centroCusto) lines.push(`Centro de Custo: ${corrida.centroCusto}`);
     if (dataFormatada) lines.push(`DATA: ${dataFormatada}`);
