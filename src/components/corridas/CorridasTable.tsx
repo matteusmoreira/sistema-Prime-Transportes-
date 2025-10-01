@@ -317,7 +317,7 @@ export const CorridasTable = ({
       <MotoristaSelectionDialog
         open={motoristaSelectionDialog.open}
         onOpenChange={(open) => setMotoristaSelectionDialog({ open, corridaId: open ? motoristaSelectionDialog.corridaId : null })}
-        onConfirm={handleMotoristaSelected}
+        onSelect={handleMotoristaSelected}
       />
     </>
   );

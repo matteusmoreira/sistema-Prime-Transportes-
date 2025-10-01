@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { Corrida } from '@/types/corridas';
+import { removeSecondsFromTime } from '@/utils/timeFormatter';
 
 export const useFormData = (editingCorrida: Corrida | null) => {
   const [formData, setFormData] = useState({
@@ -10,7 +11,11 @@ export const useFormData = (editingCorrida: Corrida | null) => {
     solicitanteId: (editingCorrida as any)?.solicitanteId ? String((editingCorrida as any).solicitanteId) : '',
     motorista: editingCorrida?.motorista || '',
     dataServico: editingCorrida?.dataServico || editingCorrida?.data || '',
-    horaInicio: editingCorrida?.horaInicio || editingCorrida?.horaSaida || '',
+    // Normalizar horário para formato HH:mm ao carregar para evitar exibir HH:mm:ss no formulário
+    horaInicio: (() => {
+      const raw = editingCorrida?.horaInicio || editingCorrida?.horaSaida || '';
+      return raw ? removeSecondsFromTime(raw) : '';
+    })(),
     tipoAbrangencia: editingCorrida?.tipoAbrangencia || '',
     kmInicial: editingCorrida?.kmInicial?.toString() || '',
     kmFinal: editingCorrida?.kmFinal?.toString() || '',
