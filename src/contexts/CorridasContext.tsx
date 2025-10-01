@@ -475,6 +475,36 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       // Garantir que não haja chave inválida
       delete (payload as any).solicitanteId;
 
+      // Regras de transição automática de status ao alterar motorista
+      // Caso comum reportado: corrida criada sem motorista e, ao adicionar motorista via edição,
+      // o status deve mudar de "Selecionar Motorista" para "Aguardando OS" automaticamente.
+      const corridaAtual = corridas.find(c => c.id === id);
+      let statusAjustado: Corrida['status'] | undefined;
+      const motoristaAlterado = Object.prototype.hasOwnProperty.call(updatedData, 'motorista');
+
+      if (motoristaAlterado && corridaAtual) {
+        const novoMotorista = (updatedData.motorista ?? '').toString().trim();
+        const tinhaMotoristaAntes = !!(corridaAtual.motorista && corridaAtual.motorista.trim());
+
+        // Apenas ajustar automaticamente em estados iniciais do fluxo
+        const podeAjustarStatus = ['Selecionar Motorista', 'Pendente', 'Aguardando OS'].includes(corridaAtual.status);
+
+        if (podeAjustarStatus) {
+          if (!tinhaMotoristaAntes && novoMotorista) {
+            // Foi atribuído um motorista: avançar para "Aguardando OS"
+            statusAjustado = 'Aguardando OS';
+          } else if (tinhaMotoristaAntes && !novoMotorista) {
+            // Motorista removido: voltar para "Selecionar Motorista"
+            statusAjustado = 'Selecionar Motorista';
+          }
+        }
+      }
+
+      // Não sobrescrever se o usuário já definiu explicitamente um status na edição
+      if (statusAjustado && !Object.prototype.hasOwnProperty.call(updatedData, 'status')) {
+        payload.status = statusAjustado;
+      }
+
       console.debug('updateCorrida payload:', payload);
 
       const { error } = await supabase
@@ -488,8 +518,18 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // Atualiza estado local após sucesso
-      setCorridas(prev => prev.map(c => (c.id === id ? { ...c, ...updatedData } : c)));
+      // Atualiza estado local após sucesso (incluindo possível ajuste automático de status)
+      setCorridas(prev => prev.map(c => (
+        c.id === id
+          ? {
+              ...c,
+              ...updatedData,
+              status: (statusAjustado && !Object.prototype.hasOwnProperty.call(updatedData, 'status'))
+                ? statusAjustado
+                : (updatedData.status ?? c.status),
+            }
+          : c
+      )));
       toast.success('Corrida atualizada com sucesso!');
     } catch (err) {
       console.error('Falha ao atualizar corrida:', err);
