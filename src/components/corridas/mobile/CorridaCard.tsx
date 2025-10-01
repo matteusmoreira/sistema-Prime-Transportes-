@@ -2,10 +2,11 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Eye, FileEdit, Edit, MoreVertical } from 'lucide-react';
+import { Eye, FileEdit, Edit, MoreVertical, MessageCircle } from 'lucide-react';
 import { Corrida } from '@/types/corridas';
 import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
 import StatusBadge from '@/components/corridas/StatusBadge';
+import { WhatsAppButton } from '@/components/financeiro/WhatsAppButton';
 
 interface CorridaCardProps {
   corrida: Corrida;
@@ -72,6 +73,16 @@ const CorridaCard: React.FC<CorridaCardProps> = ({ corrida, userLevel, onView, o
             <DropdownMenuItem onClick={() => onView(corrida)} aria-label="Ver detalhes da corrida">
               <Eye className="mr-2 h-4 w-4" /> Ver detalhes
             </DropdownMenuItem>
+            {userLevel === 'Administrador' && corrida.motorista && (
+              <WhatsAppButton
+                corrida={corrida}
+                trigger={
+                  <DropdownMenuItem aria-label="Enviar mensagem pelo WhatsApp">
+                    <MessageCircle className="mr-2 h-4 w-4" /> Enviar Zap
+                  </DropdownMenuItem>
+                }
+              />
+            )}
             {/* Só mostra preencher OS no menu se não for motorista ou se não pode preencher */}
             {podePreencherOS && userLevel !== 'Motorista' && (
               <DropdownMenuItem onClick={() => onFillOS(corrida)} aria-label="Preencher Ordem de Serviço">
