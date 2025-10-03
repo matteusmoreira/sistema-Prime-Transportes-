@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import { LogsPage } from "./pages/LogsPage";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { PresenceTracker } from "@/components/realtime/PresenceTracker";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/reset" element={<ResetPassword />} />
         <Route path="/logs" element={<LogsPage />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
