@@ -116,6 +116,7 @@ export const FinanceiroTable = ({
         <Table className="min-w-[880px]">
           <TableHeader>
             <TableRow>
+              <TableHead>Nº OS</TableHead>
               <TableHead>Data</TableHead>
               <TableHead>Empresa</TableHead>
               <TableHead>Motorista</TableHead>
@@ -132,6 +133,7 @@ export const FinanceiroTable = ({
           <TableBody>
             {corridas.map((corrida) => (
               <TableRow key={corrida.id}>
+                <TableCell>{corrida.numeroOS || '-'}</TableCell>
                 <TableCell>{formatDateDDMMYYYY(corrida.dataServico)}</TableCell>
                 <TableCell className="font-medium">{corrida.empresa}</TableCell>
                 <TableCell>{corrida.motorista}</TableCell>
