@@ -28,10 +28,7 @@ export const OSForm = ({
   const { empresas } = useEmpresas();
 
   const [formData, setFormData] = useState({
-    horaOS: new Date().toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    }),
+    horaOS: removeSecondsFromTime(corrida.horaInicio || corrida.horaSaida || ''),
     numeroOS: corrida.numeroOS || '',
     horaSaida: removeSecondsFromTime(corrida.horaSaida || corrida.horaInicio || ''),
     horaChegada: '',
@@ -176,7 +173,7 @@ export const OSForm = ({
               <Input value={(corrida.dataServico || corrida.data) ? formatDateDDMMYYYY(corrida.dataServico || corrida.data) : ''} readOnly className="bg-gray-100" />
             </div>
             <div className="space-y-2">
-              <Label>Hora Início</Label>
+              <Label>Hora OS</Label>
               <Input value={formatTime24h(corrida.horaInicio || corrida.horaSaida || '')} readOnly className="bg-gray-100" />
             </div>
           </div>

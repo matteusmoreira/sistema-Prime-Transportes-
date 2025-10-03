@@ -579,7 +579,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         hora_saida: (osData as any).horaSaida ?? (osData as any).horaInicio ?? null,
         hora_chegada: (osData as any).horaChegada ?? null,
         data: (osData as any).data ?? (osData as any).dataServico ?? null,
-        hora_inicio: (osData as any).horaInicio ?? null,
+        // hora_inicio removido para preservar valor definido pelo administrador
         data_servico: (osData as any).dataServico ?? null,
         km_inicial: (osData as any).kmInicial ?? null,
         km_final: (osData as any).kmFinal ?? null,
@@ -605,7 +605,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       if ('data_servico' in updatePayload) updatePayload.data_servico = normalizeDate(updatePayload.data_servico);
       if ('hora_saida' in updatePayload) updatePayload.hora_saida = normalizeTime(updatePayload.hora_saida);
       if ('hora_chegada' in updatePayload) updatePayload.hora_chegada = normalizeTime(updatePayload.hora_chegada);
-      if ('hora_inicio' in updatePayload) updatePayload.hora_inicio = normalizeTime(updatePayload.hora_inicio);
+      // Removido normalize de hora_inicio pois não atualizamos esse campo aqui
 
       console.debug('fillOS payload:', updatePayload);
 

@@ -27,7 +27,7 @@ export const DataHorario: React.FC<DataHorarioProps> = ({ formData, onFormChange
       </div>
 
       <div className="space-y-2">
-        <Label>Hora Início *</Label>
+        <Label>Hora OS</Label>
         {readOnly ? (
           <Input value={formatTime24h(formData.horaInicio || '')} readOnly className="bg-gray-100" />
         ) : (
