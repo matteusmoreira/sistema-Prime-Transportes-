@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText } from 'lucide-react';
+import { FileText, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { useFinanceiro, type CorridaFinanceiro } from '@/hooks/useFinanceiro';
 import { FinanceiroStats } from './FinanceiroStats';
@@ -10,6 +10,10 @@ import { CorridaEditDialog } from './CorridaEditDialog';
 import { CorridaViewDialog } from './CorridaViewDialog';
 import { CorridaRejectDialog } from './CorridaRejectDialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { useMotoristas } from '@/hooks/useMotoristas';
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
+import { CorridasFilters } from '@/components/corridas/CorridasFilters';
 
 
 export const FinanceiroManager = () => {
@@ -41,6 +45,49 @@ export const FinanceiroManager = () => {
         if (!d) return false;
         return String(d.getMonth() + 1) === selectedMonth;
       });
+
+  // Filtros adicionais (iguais aos das corridas)
+  const { motoristas } = useMotoristas();
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [selectedMotorista, setSelectedMotorista] = useState<string>('all');
+  const [numeroOS, setNumeroOS] = useState<string>('');
+  const [filtersOpen, setFiltersOpen] = useState<boolean>(true);
+
+  const applyDateFilter = (list: CorridaFinanceiro[]) => {
+    if (!startDate && !endDate) return list;
+    return list.filter((c) => {
+      const d = parseDate(c.dataServico);
+      if (!d) return false;
+      if (startDate) {
+        const s = new Date(startDate);
+        if (d < s) return false;
+      }
+      if (endDate) {
+        const e = new Date(endDate);
+        e.setHours(23, 59, 59, 999);
+        if (d > e) return false;
+      }
+      return true;
+    });
+  };
+
+  const applyMotoristaFilter = (list: CorridaFinanceiro[]) => {
+    if (!selectedMotorista || selectedMotorista === 'all') return list;
+    return list.filter((c) => (c.motorista || '') === selectedMotorista);
+  };
+
+  const applyNumeroOSFilter = (list: CorridaFinanceiro[]) => {
+    if (!numeroOS) return list;
+    const query = numeroOS.toLowerCase();
+    return list.filter((c) => String(c.numeroOS ?? '').toLowerCase().includes(query));
+  };
+
+  const corridasFiltradasFinal = applyNumeroOSFilter(
+    applyMotoristaFilter(
+      applyDateFilter(corridasPorMes)
+    )
+  );
 
   const stats = getStats();
 
@@ -234,7 +281,7 @@ export const FinanceiroManager = () => {
           <div className="flex items-center justify-between gap-4">
             <CardTitle className="flex items-center space-x-2">
               <FileText className="h-5 w-5" />
-              <span>Corridas para Conferência ({corridasPorMes.length})</span>
+              <span>Corridas para Conferência ({corridasFiltradasFinal.length})</span>
             </CardTitle>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Mês:</span>
@@ -258,12 +305,46 @@ export const FinanceiroManager = () => {
                   <SelectItem value="12">Dezembro</SelectItem>
                 </SelectContent>
               </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFiltersOpen((v) => !v)}
+                className="inline-flex items-center gap-2"
+                title={filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
+                aria-label={filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="hidden sm:inline">Filtros</span>
+                {filtersOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
+          <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <CollapsibleContent>
+              <CorridasFilters
+                startDate={startDate}
+                endDate={endDate}
+                motorista={selectedMotorista}
+                numeroOS={numeroOS}
+                motoristas={motoristas.map(m => ({ id: m.id, nome: m.nome }))}
+                onStartDateChange={setStartDate}
+                onEndDateChange={setEndDate}
+                onMotoristaChange={setSelectedMotorista}
+                onNumeroOSChange={setNumeroOS}
+                onClear={() => {
+                  setStartDate('');
+                  setEndDate('');
+                  setSelectedMotorista('all');
+                  setNumeroOS('');
+                }}
+                compact
+              />
+            </CollapsibleContent>
+          </Collapsible>
           <FinanceiroTable
-            corridas={corridasPorMes}
+            corridas={corridasFiltradasFinal}
             onView={handleView}
             onEdit={handleEdit}
             onApprove={handleApprove}
