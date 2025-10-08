@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, Users, Car, Route, Calculator, TrendingUp, CheckCircle, Clock, FileText, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { Building2, Users, Car, Route, TrendingUp, CheckCircle, Clock, FileText, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { useEmpresas } from '@/contexts/EmpresasContext';
 import { useSolicitantes } from '@/hooks/useSolicitantes';
 import { useMotoristas } from '@/hooks/useMotoristas';
@@ -326,20 +326,7 @@ export const DashboardHome = ({
           </Card>
         </>}
 
-        {(userLevel === 'Administrador' || userLevel === 'Financeiro') && <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
-              <Calculator className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                R$ {stats.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Faturamento total
-              </p>
-            </CardContent>
-          </Card>}
+
       </div>
 
       {/* Diálogo de Histórico para Motoristas */}
