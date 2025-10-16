@@ -58,6 +58,7 @@ export const MotoristaManager = () => {
       cnh: '',
       cnhDataValidade: '',
       cnpj: '',
+      pix: '',
       status: 'Pendente' as 'Pendente' | 'Aprovado' | 'Reprovado'
     });
     setDocumentos([]);
@@ -75,6 +76,7 @@ export const MotoristaManager = () => {
       cnh: motorista.cnh,
       cnhDataValidade: motorista.cnhDataValidade || '',
       cnpj: '', // Campo opcional apenas na UI; não há persistência no backend ainda
+      pix: (motorista as any).pix || '', // Campo PIX
       status: motorista.status
     });
     

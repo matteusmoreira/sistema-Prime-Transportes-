@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Download, Filter, Calendar, Building2, Users, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/utils/format';
 import { toast } from 'sonner';
-import { exportCorridasToCSV, exportCorridasToPDF } from '@/utils/reportExports';
+import { exportCorridasToCSV } from '@/utils/reportExports';
 import { useCorridas } from '@/contexts/CorridasContext';
 import type { Corrida } from '@/types/corridas';
 
@@ -84,7 +84,14 @@ const dadosRelatorio: DadosRelatorio = useMemo(() => {
   const totalCorridas = filteredCorridas.length;
   const corridasAprovadas = filteredCorridas.filter(c => c.status === 'Aprovada' || c.status === 'No Show').length;
   const corridasReprovadas = filteredCorridas.filter(c => c.status === 'Rejeitada').length;
-  const valorTotal = filteredCorridas.reduce((sum, c) => sum + (Number(c.valor) || 0) + (Number(c.pedagio) || 0) + (Number(c.estacionamento) || 0) + (Number(c.hospedagem) || 0), 0);
+  const valorTotal = filteredCorridas.reduce((sum, c) => {
+    const valorBase = Number(c.valor) || 0;
+    const pedagio = Number(c.pedagio) || 0;
+    const estacionamento = Number(c.estacionamento) || 0;
+    const hospedagem = Number(c.hospedagem) || 0;
+    const outros = Number(c.outros) || 0;
+    return sum + valorBase + pedagio + estacionamento + hospedagem + outros;
+  }, 0);
   const empresasAtendidas = new Set(filteredCorridas.map(c => c.empresa).filter(Boolean)).size;
   const motoristasAtivos = new Set(filteredCorridas.map(c => c.motorista).filter(Boolean)).size;
   const kmRodados = filteredCorridas.reduce((sum, c) => sum + (Number(c.kmTotal) || 0), 0);
@@ -121,24 +128,15 @@ const handleGerarRelatorio = (tipo: 'corridas' | 'financeiro' | 'motoristas') =>
   }, 1200);
 };
 
-const handleDownload = async (relatorio: Relatorio, formato: 'excel' | 'pdf') => {
+const handleDownload = async (relatorio: Relatorio, formato: 'excel') => {
   if (relatorio.status !== 'Gerado') {
     toast.error('Relatório ainda não está disponível para download');
     return;
   }
 
   try {
-    if (formato === 'excel') {
-      exportCorridasToCSV(relatorio.data, `${relatorio.nome}.csv`);
-    } else {
-      await exportCorridasToPDF(relatorio.data, {
-        titulo: relatorio.tipo,
-        periodo: relatorio.periodo,
-        filtros: relatorio.filtrosSnapshot,
-        fileName: `${relatorio.nome}.pdf`
-      });
-    }
-    toast.success(`Download do relatório em ${formato.toUpperCase()} iniciado`);
+    exportCorridasToCSV(relatorio.data, `${relatorio.nome}.csv`);
+    toast.success(`Download do relatório em Excel iniciado`);
   } catch (e) {
     console.error(e);
     toast.error('Falha ao exportar relatório');
@@ -384,15 +382,6 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel' | 'pdf') =>
                         >
                           <Download className="h-4 w-4 mr-1" />
                           Excel
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleDownload(relatorio, 'pdf')}
-                          disabled={relatorio.status !== 'Gerado'}
-                        >
-                          <Download className="h-4 w-4 mr-1" />
-                          PDF
                         </Button>
                       </div>
                     </TableCell>

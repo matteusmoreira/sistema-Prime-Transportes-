@@ -28,6 +28,7 @@ export interface Motorista {
   email: string;
   cnh: string;
   cnhDataValidade: string;
+  pix?: string;
   status: 'Pendente' | 'Aprovado' | 'Reprovado';
   documentos: DocumentoMotorista[];
   fotosVeiculo: FotoVeiculo[];
@@ -200,6 +201,7 @@ export const useMotoristas = () => {
              email: formData.email,
              cnh: formData.cnh || null,
              validade_cnh: formData.cnhDataValidade && formData.cnhDataValidade.trim() !== '' ? formData.cnhDataValidade : null,
+             pix: (formData as any).pix || null,
              status: (formData as any).status || 'Pendente'
            }])
            .select()
@@ -359,6 +361,7 @@ export const useMotoristas = () => {
           email: updatedData.email,
           cnh: updatedData.cnh,
           validade_cnh: updatedData.cnhDataValidade && updatedData.cnhDataValidade.trim() !== '' ? updatedData.cnhDataValidade : null,
+          pix: updatedData.pix || null,
           status: updatedData.status
         })
         .eq('id', id);

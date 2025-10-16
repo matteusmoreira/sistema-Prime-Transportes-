@@ -21,6 +21,8 @@ interface MotoristaFormData {
   cnhDataValidade: string;
   // Campo opcional: CNPJ (apenas UI, não obrigatório)
   cnpj?: string;
+  // Campo PIX para pagamentos
+  pix?: string;
   status?: 'Pendente' | 'Aprovado' | 'Reprovado';
 }
 
@@ -364,6 +366,18 @@ export const MotoristaForm = ({
           placeholder="00.000.000/0000-00"
         />
       </div>
+      
+      {/* Campo PIX */}
+      <div className="space-y-2">
+        <Label htmlFor="pix">PIX</Label>
+        <Input
+          id="pix"
+          value={formData.pix || ''}
+          onChange={(e) => onInputChange('pix', e.target.value)}
+          placeholder="Chave PIX (CPF, e-mail, telefone ou chave aleatória)"
+        />
+      </div>
+      
       <div className="space-y-2">
         <Label htmlFor="telefone">Telefone *</Label>
         <Input
