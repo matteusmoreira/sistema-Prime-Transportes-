@@ -1,23 +1,56 @@
 
 import type { Corrida } from '@/types/corridas';
 import { formatCurrency, formatDateDDMMYYYY } from '@/utils/format';
+import * as XLSX from 'xlsx';
 
-export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.csv') => {
+export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.xlsx') => {
   const headers = [
     'ID',
-    'Data',
+    'Solicitante',
     'Empresa',
+    'Número OS',
+    'Data',
+    'Data Serviço',
+    'Hora Saída',
+    'Hora Chegada',
+    'Hora Início',
+    'Hora OS',
+    'Hora Espera',
+    'Valor Hora Espera',
+    'Passageiros',
     'Motorista',
+    'Veículo',
     'Origem',
     'Destino',
+    'Destino Extra',
     'Status',
+    'KM Inicial',
+    'KM Final',
     'KM Total',
+    'Combustível Inicial',
+    'Combustível Final',
+    'Valor Combustível',
+    'Centro Custo',
+    'Projeto',
+    'Motivo',
+    'Tipo Abrangência',
+    'Distância Percorrida',
     'Valor Base',
     'Pedágio',
     'Estacionamento',
     'Hospedagem',
     'Outros Custos',
-    'Valor Total'
+    'Reembolsos',
+    'Valor Total',
+    'CTE/NF',
+    'Valor Motorista',
+    'Status Pagamento',
+    'Medição/Nota Fiscal',
+    'Observações',
+    'Observações OS',
+    'Motivo Rejeição',
+    'Preenchido Por Motorista',
+    'Preenchido Por Financeiro'
   ];
   
   const rows = corridas.map(c => {
@@ -26,41 +59,154 @@ export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.c
     const estacionamento = Number(c.estacionamento) || 0;
     const hospedagem = Number(c.hospedagem) || 0;
     const outrosCustos = Number(c.outros) || 0;
-    const valorTotal = valorBase + pedagio + estacionamento + hospedagem + outrosCustos;
+    const reembolsos = Number(c.reembolsos) || 0;
+    const valorTotal = valorBase + pedagio + estacionamento + hospedagem + outrosCustos + reembolsos;
     
     return [
       c.id,
-      formatDateDDMMYYYY((c as any).dataServico || c.data),
-      c.empresa,
+      c.solicitante || '',
+      c.empresa || '',
+      c.numeroOS || '',
+      formatDateDDMMYYYY(c.data),
+      c.dataServico ? formatDateDDMMYYYY(c.dataServico) : '',
+      c.horaSaida || '',
+      c.horaChegada || '',
+      c.horaInicio || '',
+      c.horaOS || '',
+      c.horaEspera || '',
+      Number(c.valorHoraEspera) || 0,
+      c.passageiros || '',
       c.motorista || '',
-      c.origem,
-      c.destino,
-      c.status,
-      String(c.kmTotal ?? ''),
-      formatCurrency(valorBase),
-      formatCurrency(pedagio),
-      formatCurrency(estacionamento),
-      formatCurrency(hospedagem),
-      formatCurrency(outrosCustos),
-      formatCurrency(valorTotal)
+      c.veiculo || '',
+      c.origem || '',
+      c.destino || '',
+      c.destinoExtra || '',
+      c.status || '',
+      Number(c.kmInicial) || 0,
+      Number(c.kmFinal) || 0,
+      Number(c.kmTotal) || 0,
+      Number(c.combustivelInicial) || 0,
+      Number(c.combustivelFinal) || 0,
+      Number(c.valorCombustivel) || 0,
+      c.centroCusto || '',
+      c.projeto || '',
+      c.motivo || '',
+      c.tipoAbrangencia || '',
+      Number(c.distanciaPercorrida) || 0,
+      valorBase,
+      pedagio,
+      estacionamento,
+      hospedagem,
+      outrosCustos,
+      reembolsos,
+      valorTotal,
+      c.cteNf || '',
+      Number(c.valorMotorista) || 0,
+      c.statusPagamento || '',
+      c.medicaoNotaFiscal || '',
+      c.observacoes || '',
+      c.observacoesOS || '',
+      c.motivoRejeicao || '',
+      c.preenchidoPorMotorista ? 'Sim' : 'Não',
+      c.preenchidoPorFinanceiro ? 'Sim' : 'Não'
     ];
   });
 
-  const csv = [headers, ...rows]
-    .map(r => r.map(v => typeof v === 'string' && v.includes(',') ? `"${v.replace(/"/g, '""')}"` : v).join(','))
-    .join('\n');
-
-  // Adicionar BOM para UTF-8 para melhor compatibilidade com Excel
-  const BOM = '\uFEFF';
-  const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  // Alterar extensão para .xls para melhor compatibilidade
-  const xlsFileName = fileName.replace('.csv', '.xls');
-  link.setAttribute('download', xlsFileName);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  // Criar dados para o Excel
+  const worksheetData = [headers, ...rows];
+  
+  // Criar workbook e worksheet
+  const workbook = XLSX.utils.book_new();
+  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+  
+  // Configurar formatação das colunas monetárias
+  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+  
+  // Aplicar formatação de moeda para as colunas de valores monetários
+  // Colunas: Valor Hora Espera (11), Valor Combustível (24), Valor Base (30), Pedágio (31), 
+  // Estacionamento (32), Hospedagem (33), Outros Custos (34), Reembolsos (35), Valor Total (36), Valor Motorista (38)
+  const monetaryColumns = [11, 24, 30, 31, 32, 33, 34, 35, 36, 38];
+  for (let row = 1; row <= range.e.r; row++) {
+    for (const col of monetaryColumns) {
+      const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+      if (worksheet[cellAddress]) {
+        worksheet[cellAddress].z = '"R$" #,##0.00';
+      }
+    }
+  }
+  
+  // Aplicar formatação numérica para colunas de KM e combustível
+  const numericColumns = [19, 20, 21, 22, 23, 29]; // KM Inicial, KM Final, KM Total, Combustível Inicial, Combustível Final, Distância Percorrida
+  for (let row = 1; row <= range.e.r; row++) {
+    for (const col of numericColumns) {
+      const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+      if (worksheet[cellAddress]) {
+        worksheet[cellAddress].z = '#,##0.00';
+      }
+    }
+  }
+  
+  // Definir larguras das colunas
+  worksheet['!cols'] = [
+    { wch: 8 },   // ID
+    { wch: 20 },  // Solicitante
+    { wch: 20 },  // Empresa
+    { wch: 12 },  // Número OS
+    { wch: 12 },  // Data
+    { wch: 12 },  // Data Serviço
+    { wch: 10 },  // Hora Saída
+    { wch: 10 },  // Hora Chegada
+    { wch: 10 },  // Hora Início
+    { wch: 10 },  // Hora OS
+    { wch: 10 },  // Hora Espera
+    { wch: 15 },  // Valor Hora Espera
+    { wch: 15 },  // Passageiros
+    { wch: 20 },  // Motorista
+    { wch: 15 },  // Veículo
+    { wch: 25 },  // Origem
+    { wch: 25 },  // Destino
+    { wch: 20 },  // Destino Extra
+    { wch: 12 },  // Status
+    { wch: 10 },  // KM Inicial
+    { wch: 10 },  // KM Final
+    { wch: 10 },  // KM Total
+    { wch: 12 },  // Combustível Inicial
+    { wch: 12 },  // Combustível Final
+    { wch: 15 },  // Valor Combustível
+    { wch: 15 },  // Centro Custo
+    { wch: 15 },  // Projeto
+    { wch: 20 },  // Motivo
+    { wch: 15 },  // Tipo Abrangência
+    { wch: 12 },  // Distância Percorrida
+    { wch: 15 },  // Valor Base
+    { wch: 12 },  // Pedágio
+    { wch: 15 },  // Estacionamento
+    { wch: 12 },  // Hospedagem
+    { wch: 15 },  // Outros Custos
+    { wch: 12 },  // Reembolsos
+    { wch: 15 },  // Valor Total
+    { wch: 12 },  // CTE/NF
+    { wch: 15 },  // Valor Motorista
+    { wch: 15 },  // Status Pagamento
+    { wch: 18 },  // Medição/Nota Fiscal
+    { wch: 30 },  // Observações
+    { wch: 30 },  // Observações OS
+    { wch: 25 },  // Motivo Rejeição
+    { wch: 20 },  // Preenchido Por Motorista
+    { wch: 20 }   // Preenchido Por Financeiro
+  ];
+  
+  // Adicionar worksheet ao workbook
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório');
+  
+  // Gerar arquivo Excel e fazer download com configurações específicas
+  let xlsxFileName = fileName;
+  if (!xlsxFileName.endsWith('.xlsx')) {
+    xlsxFileName = xlsxFileName.replace(/\.(csv|xls)$/, '') + '.xlsx';
+  }
+  XLSX.writeFile(workbook, xlsxFileName, { 
+    bookType: 'xlsx',
+    type: 'binary',
+    compression: true
+  });
 };
