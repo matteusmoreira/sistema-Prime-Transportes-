@@ -32,6 +32,10 @@ export interface CorridaFinanceiro {
   projeto?: string;
   motivo?: string;
   horaInicio?: string;
+  horaOS?: string;
+  horaEspera?: string;
+  valorHoraEspera?: number;
+  cteNf?: string;
   horaFim?: string;
   kmInicial?: number;
   kmFinal?: number;
@@ -86,6 +90,10 @@ export const useFinanceiro = () => {
         projeto: corrida.projeto,
         motivo: corrida.motivo,
         horaInicio: (corrida as any).horaInicio || (corrida as any).horaSaida,
+        horaOS: (corrida as any).horaOS || (corrida as any).hora_os,
+        horaEspera: (corrida as any).horaEspera || (corrida as any).hora_espera,
+        valorHoraEspera: (corrida as any).valorHoraEspera || (corrida as any).valor_hora_espera,
+        cteNf: (corrida as any).cteNf || (corrida as any).cte_nf,
         horaFim: (corrida as any).horaFim || (corrida as any).horaChegada || (corrida as any).hora_chegada,
         tipoAbrangencia: (corrida as any).tipoAbrangencia,
         kmInicial: corrida.kmInicial,

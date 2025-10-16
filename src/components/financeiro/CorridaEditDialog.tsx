@@ -48,6 +48,10 @@ export const CorridaEditDialog = ({
     motivo: '',
     tipoAbrangencia: '',
     horaInicio: '',
+    horaOS: '',
+    horaEspera: '',
+    valorHoraEspera: '',
+    cteNf: '',
     horaFim: '',
     kmInicial: '',
     kmFinal: '',
@@ -87,6 +91,10 @@ export const CorridaEditDialog = ({
         motivo: corrida.motivo || '',
         tipoAbrangencia: (corrida as any).tipoAbrangencia || '',
         horaInicio: removeSecondsFromTime(corrida.horaInicio || ''),
+        horaOS: removeSecondsFromTime(corrida.horaOS || ''),
+        horaEspera: removeSecondsFromTime(corrida.horaEspera || ''),
+        valorHoraEspera: (corrida.valorHoraEspera ?? '').toString(),
+        cteNf: corrida.cteNf || '',
         horaFim: removeSecondsFromTime(corrida.horaFim || ''),
         kmInicial: (corrida.kmInicial ?? '').toString(),
         kmFinal: (corrida.kmFinal ?? '').toString(),
@@ -134,6 +142,10 @@ export const CorridaEditDialog = ({
       motivo: formData.motivo,
       tipoAbrangencia: formData.tipoAbrangencia,
       horaInicio: formData.horaInicio,
+      horaOS: formData.horaOS,
+      horaEspera: formData.horaEspera,
+      valorHoraEspera: parseNumber(formData.valorHoraEspera),
+      cteNf: formData.cteNf,
       horaFim: formData.horaFim,
       kmInicial: parseNumber(formData.kmInicial),
       kmFinal: parseNumber(formData.kmFinal),
@@ -271,6 +283,39 @@ export const CorridaEditDialog = ({
                 <div className="space-y-2">
                   <Label>Hora Saída</Label>
                   <TimeInput24h value={formData.horaInicio} onChange={v => updateFormData('horaInicio', v)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Hora OS</Label>
+                  <TimeInput24h value={formData.horaOS} onChange={v => updateFormData('horaOS', v)} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Hora de Espera</Label>
+                  <TimeInput24h value={formData.horaEspera} onChange={v => updateFormData('horaEspera', v)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Valor Hora de Espera</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    placeholder="0,00"
+                    value={formData.valorHoraEspera} 
+                    onChange={e => updateFormData('valorHoraEspera', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>CTE/NF</Label>
+                  <Input 
+                    type="text"
+                    placeholder="Número do CTE ou NF"
+                    value={formData.cteNf} 
+                    onChange={e => updateFormData('cteNf', e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Hora Chegada</Label>

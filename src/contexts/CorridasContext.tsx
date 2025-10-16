@@ -79,6 +79,10 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           valor: corrida.valor || 0,
           valorMotorista: corrida.valor_motorista || 0,
           horaInicio: corrida.hora_inicio || '',
+          horaOS: corrida.hora_os || '',
+          horaEspera: corrida.hora_espera || '',
+          valorHoraEspera: corrida.valor_hora_espera || 0,
+          cteNf: corrida.cte_nf || '',
           dataServico: corrida.data_servico || '',
           distanciaPercorrida: corrida.distancia_percorrida || 0,
           reembolsos: corrida.reembolsos || 0,
@@ -423,6 +427,8 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         valorMotorista: 'valor_motorista',
         dataServico: 'data_servico',
         horaInicio: 'hora_inicio',
+        horaOS: 'hora_os',
+        horaEspera: 'hora_espera',
         distanciaPercorrida: 'distancia_percorrida',
         motivoRejeicao: 'motivo_rejeicao',
         // Corrige chave usada no financeiro
@@ -471,6 +477,10 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       if ('hora_saida' in payload) payload.hora_saida = normalizeTime(payload.hora_saida);
       if ('hora_chegada' in payload) payload.hora_chegada = normalizeTime(payload.hora_chegada);
       if ('hora_inicio' in payload) payload.hora_inicio = normalizeTime(payload.hora_inicio);
+      if ('hora_os' in payload) payload.hora_os = normalizeTime(payload.hora_os);
+      if ('hora_espera' in payload) payload.hora_espera = normalizeTime(payload.hora_espera);
+      if ('valorHoraEspera' in payload) payload.valor_hora_espera = payload.valorHoraEspera;
+      if ('cteNf' in payload) payload.cte_nf = payload.cteNf;
 
       // Garantir que não haja chave inválida
       delete (payload as any).solicitanteId;

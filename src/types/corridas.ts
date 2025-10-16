@@ -36,6 +36,10 @@ export interface Corrida {
   motivoRejeicao?: string;
   documentos?: DocumentoUpload[];
   horaInicio?: string;
+  horaOS?: string;
+  horaEspera?: string;
+  valorHoraEspera?: number;
+  cteNf?: string;
   tipoAbrangencia?: string;
   dataServico?: string;
   distanciaPercorrida?: number;

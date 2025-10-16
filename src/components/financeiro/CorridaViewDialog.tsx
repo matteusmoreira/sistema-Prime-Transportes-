@@ -83,6 +83,10 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
         projeto: data.projeto,
         motivo: data.motivo,
         horaInicio: data.hora_inicio || data.hora_saida,
+        horaOS: data.hora_os,
+        horaEspera: data.hora_espera,
+        valorHoraEspera: data.valor_hora_espera,
+        cteNf: data.cte_nf,
         horaFim: data.hora_fim || data.hora_chegada,
         tipoAbrangencia: data.tipo_abrangencia,
         kmInicial: data.km_inicial,
@@ -269,12 +273,36 @@ export const CorridaViewDialog = ({ corrida, isOpen, onOpenChange, documentsUpda
                       <p className="text-lg font-bold text-blue-600">{dadosParaExibir.kmTotal} km</p>
                     </div>
                   </div>
-                  {(dadosParaExibir.horaInicio || dadosParaExibir.horaFim) && (
+                  {(dadosParaExibir.horaInicio || dadosParaExibir.horaOS || dadosParaExibir.horaEspera || dadosParaExibir.horaFim) && (
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                      {dadosParaExibir.horaInicio && (
                        <div>
                          <Label className="font-semibold">Hora Início:</Label>
                          <p className="text-lg">{dadosParaExibir.horaInicio}</p>
+                       </div>
+                     )}
+                     {dadosParaExibir.horaOS && (
+                       <div>
+                         <Label className="font-semibold">Hora OS:</Label>
+                         <p className="text-lg">{dadosParaExibir.horaOS}</p>
+                       </div>
+                     )}
+                     {dadosParaExibir.horaEspera && (
+                       <div>
+                         <Label className="font-semibold">Hora de Espera:</Label>
+                         <p className="text-lg">{dadosParaExibir.horaEspera}</p>
+                       </div>
+                     )}
+                     {dadosParaExibir.valorHoraEspera && (
+                       <div>
+                         <Label className="font-semibold">Valor Hora de Espera:</Label>
+                         <p className="text-lg font-bold text-green-600">{formatCurrency(dadosParaExibir.valorHoraEspera)}</p>
+                       </div>
+                     )}
+                     {dadosParaExibir.cteNf && (
+                       <div>
+                         <Label className="font-semibold">CTE/NF:</Label>
+                         <p className="text-lg">{dadosParaExibir.cteNf}</p>
                        </div>
                      )}
                      {dadosParaExibir.horaFim && (
