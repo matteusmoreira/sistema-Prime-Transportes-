@@ -8,11 +8,13 @@ import { VoucherFilters } from './VoucherFilters';
 import { VoucherTable } from './VoucherTable';
 
 export const VoucherManager = () => {
-  const { voucherData, filterByDateRange, getStats } = useVoucher();
+  const { voucherData, empresas, filterData, getStats } = useVoucher();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [selectedEmpresa, setSelectedEmpresa] = useState('all');
+  const [passageirosFilter, setPassageirosFilter] = useState('');
   
-  const filteredData = filterByDateRange(startDate, endDate);
+  const filteredData = filterData(startDate, endDate, selectedEmpresa, passageirosFilter);
   const stats = getStats();
 
   return (
@@ -26,15 +28,20 @@ export const VoucherManager = () => {
       <VoucherFilters
         startDate={startDate}
         endDate={endDate}
+        selectedEmpresa={selectedEmpresa}
+        passageirosFilter={passageirosFilter}
+        empresas={empresas}
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
+        onEmpresaChange={setSelectedEmpresa}
+        onPassageirosChange={setPassageirosFilter}
       />
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Receipt className="h-5 w-5" />
-            <span>Vouchers Disponíveis</span>
+            <span>Vouchers Disponíveis ({filteredData.length})</span>
           </CardTitle>
         </CardHeader>
         <CardContent>

@@ -68,6 +68,12 @@ export const useVoucher = () => {
     }));
   }, [corridasAprovadas]);
 
+  // Obter lista única de empresas
+  const empresas = useMemo(() => {
+    const empresasUnicas = new Set(voucherData.map(v => v.empresa).filter(Boolean));
+    return Array.from(empresasUnicas).sort();
+  }, [voucherData]);
+
   const filterByDateRange = (startDate: string, endDate: string): VoucherData[] => {
     if (!startDate || !endDate) return voucherData;
 
@@ -78,6 +84,44 @@ export const useVoucher = () => {
       
       return voucherDate >= start && voucherDate <= end;
     });
+  };
+
+  // Função para filtrar por empresa
+  const filterByEmpresa = (data: VoucherData[], empresa: string): VoucherData[] => {
+    if (!empresa || empresa === 'all') return data;
+    return data.filter(voucher => voucher.empresa === empresa);
+  };
+
+  // Função para filtrar por passageiros (busca fuzzy)
+  const filterByPassageiros = (data: VoucherData[], searchTerm: string): VoucherData[] => {
+    if (!searchTerm || searchTerm.length < 3) return data;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return data.filter(voucher => {
+      const passageiros = voucher.passageiros.toLowerCase();
+      // Busca por palavras similares - divide o termo de busca e os passageiros em palavras
+      const searchWords = searchLower.split(/\s+/);
+      const passageiroWords = passageiros.split(/[,;:\s]+/);
+      
+      return searchWords.some(searchWord => 
+        passageiroWords.some(passageiroWord => 
+          passageiroWord.includes(searchWord) || searchWord.includes(passageiroWord)
+        )
+      );
+    });
+  };
+
+  // Função combinada de filtros
+  const filterData = (
+    startDate: string, 
+    endDate: string, 
+    empresa: string, 
+    passageiros: string
+  ): VoucherData[] => {
+    let filtered = filterByDateRange(startDate, endDate);
+    filtered = filterByEmpresa(filtered, empresa);
+    filtered = filterByPassageiros(filtered, passageiros);
+    return filtered;
   };
 
   const getStats = () => {
@@ -96,7 +140,11 @@ export const useVoucher = () => {
 
   return {
     voucherData,
+    empresas,
     filterByDateRange,
+    filterByEmpresa,
+    filterByPassageiros,
+    filterData,
     getStats
   };
 };

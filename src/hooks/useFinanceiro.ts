@@ -105,6 +105,37 @@ export const useFinanceiro = () => {
 
   const corridas = baseCorridas;
 
+  // Obter lista única de empresas
+  const empresas = useMemo(() => {
+    const empresasUnicas = new Set(corridas.map(c => c.empresa).filter(Boolean));
+    return Array.from(empresasUnicas).sort();
+  }, [corridas]);
+
+  // Função para filtrar por empresa
+  const filterByEmpresa = (list: CorridaFinanceiro[], empresa: string) => {
+    if (!empresa || empresa === 'all') return list;
+    return list.filter((c) => c.empresa === empresa);
+  };
+
+  // Função para filtrar por passageiros (busca fuzzy)
+  const filterByPassageiros = (list: CorridaFinanceiro[], searchTerm: string) => {
+    if (!searchTerm || searchTerm.length < 3) return list;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return list.filter(corrida => {
+      const passageiros = corrida.passageiros.toLowerCase();
+      // Busca por palavras similares - divide o termo de busca e os passageiros em palavras
+      const searchWords = searchLower.split(/\s+/);
+      const passageiroWords = passageiros.split(/[,;:\s]+/);
+      
+      return searchWords.some(searchWord => 
+        passageiroWords.some(passageiroWord => 
+          passageiroWord.includes(searchWord) || searchWord.includes(passageiroWord)
+        )
+      );
+    });
+  };
+
   // Função para mapear status entre os tipos
   function mapStatusToFinanceiro(status: Corrida['status']): CorridaFinanceiro['status'] {
     switch (status) {
@@ -280,6 +311,9 @@ export const useFinanceiro = () => {
 
   return {
     corridas,
+    empresas,
+    filterByEmpresa,
+    filterByPassageiros,
     updateStatus,
     updatePaymentStatus,
     updateMedicaoNotaFiscalStatus,

@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import { FileText, SlidersHorizontal, ChevronDown, ChevronUp, Building, Users, Filter, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useFinanceiro, type CorridaFinanceiro } from '@/hooks/useFinanceiro';
 import { FinanceiroStats } from './FinanceiroStats';
@@ -11,18 +11,23 @@ import { CorridaViewDialog } from './CorridaViewDialog';
 import { CorridaRejectDialog } from './CorridaRejectDialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import { useMotoristas } from '@/hooks/useMotoristas';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { CorridasFilters } from '@/components/corridas/CorridasFilters';
 
 
 export const FinanceiroManager = () => {
-  const { corridas, updateStatus, updatePaymentStatus, updateMedicaoNotaFiscalStatus, approveCorrida, rejectCorrida, getStats, updateCorrida } = useFinanceiro();
+  const { corridas, empresas, filterByEmpresa, filterByPassageiros, updateStatus, updatePaymentStatus, updateMedicaoNotaFiscalStatus, approveCorrida, rejectCorrida, getStats, updateCorrida } = useFinanceiro();
   const [selectedCorrida, setSelectedCorrida] = useState<CorridaFinanceiro | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [documentsUpdateTrigger, setDocumentsUpdateTrigger] = useState(0);
+  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
 
   // Filtro por mês
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
@@ -52,7 +57,8 @@ export const FinanceiroManager = () => {
   const [endDate, setEndDate] = useState<string>('');
   const [selectedMotorista, setSelectedMotorista] = useState<string>('all');
   const [numeroOS, setNumeroOS] = useState<string>('');
-  const [filtersOpen, setFiltersOpen] = useState<boolean>(true);
+  const [selectedEmpresa, setSelectedEmpresa] = useState<string>('all');
+  const [passageirosFilter, setPassageirosFilter] = useState<string>('');
 
   const applyDateFilter = (list: CorridaFinanceiro[]) => {
     if (!startDate && !endDate) return list;
@@ -83,13 +89,42 @@ export const FinanceiroManager = () => {
     return list.filter((c) => String(c.numeroOS ?? '').toLowerCase().includes(query));
   };
 
-  const corridasFiltradasFinal = applyNumeroOSFilter(
-    applyMotoristaFilter(
-      applyDateFilter(corridasPorMes)
-    )
+  // Aplicar todos os filtros em sequência
+  const corridasFiltradasFinal = filterByPassageiros(
+    filterByEmpresa(
+      applyNumeroOSFilter(
+        applyMotoristaFilter(
+          applyDateFilter(corridasPorMes)
+        )
+      ),
+      selectedEmpresa
+    ),
+    passageirosFilter
   );
 
   const stats = getStats();
+
+  // Função para contar filtros ativos
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (numeroOS) count++;
+    if (selectedEmpresa !== 'all') count++;
+    if (passageirosFilter) count++;
+    if (selectedMotorista !== 'all') count++;
+    if (startDate) count++;
+    if (endDate) count++;
+    return count;
+  };
+
+  // Função para limpar todos os filtros
+  const clearAllFilters = () => {
+    setNumeroOS('');
+    setSelectedEmpresa('all');
+    setPassageirosFilter('');
+    setSelectedMotorista('all');
+    setStartDate('');
+    setEndDate('');
+  };
 
   const handleView = (corrida: CorridaFinanceiro) => {
     setSelectedCorrida(corrida);
@@ -97,8 +132,6 @@ export const FinanceiroManager = () => {
   };
 
   const handleEdit = (corrida: CorridaFinanceiro) => {
-    // Abertura do diálogo de edição de corrida
-     
     setSelectedCorrida(corrida);
     setIsEditDialogOpen(true);
   };
@@ -267,6 +300,8 @@ export const FinanceiroManager = () => {
     updateMedicaoNotaFiscalStatus(corridaId, medicaoNotaFiscal);
   };
 
+
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -305,44 +340,151 @@ export const FinanceiroManager = () => {
                   <SelectItem value="12">Dezembro</SelectItem>
                 </SelectContent>
               </Select>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFiltersOpen((v) => !v)}
-                className="inline-flex items-center gap-2"
-                title={filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
-                aria-label={filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                <span className="hidden sm:inline">Filtros</span>
-                {filtersOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </Button>
+              
+              {/* Modal de Filtros */}
+              <Dialog open={isFiltersModalOpen} onOpenChange={setIsFiltersModalOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="inline-flex items-center gap-2"
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span className="hidden sm:inline">Filtros</span>
+                    {getActiveFiltersCount() > 0 && (
+                      <Badge variant="secondary" className="ml-1 h-5 w-5 rounded-full p-0 text-xs">
+                        {getActiveFiltersCount()}
+                      </Badge>
+                    )}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Filter className="h-5 w-5" />
+                      Filtros de Pesquisa
+                    </DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
+                    {/* 1. Nº OS */}
+                    <div className="space-y-2">
+                      <Label htmlFor="numeroOS" className="flex items-center gap-1">
+                        <FileText className="h-4 w-4" />
+                        Nº OS
+                      </Label>
+                      <Input
+                        id="numeroOS"
+                        type="text"
+                        placeholder="Número da OS..."
+                        value={numeroOS}
+                        onChange={(e) => setNumeroOS(e.target.value)}
+                      />
+                    </div>
+
+                    {/* 2. Empresa */}
+                    <div className="space-y-2">
+                      <Label htmlFor="empresa" className="flex items-center gap-1">
+                        <Building className="h-4 w-4" />
+                        Empresa
+                      </Label>
+                      <Select value={selectedEmpresa} onValueChange={setSelectedEmpresa}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Todas as empresas" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todas as empresas</SelectItem>
+                          {empresas.map((empresa) => (
+                            <SelectItem key={empresa} value={empresa}>
+                              {empresa}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* 3. Passageiros */}
+                    <div className="space-y-2">
+                      <Label htmlFor="passageiros" className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        Passageiros
+                      </Label>
+                      <Input
+                        id="passageiros"
+                        type="text"
+                        placeholder="Digite pelo menos 3 letras..."
+                        value={passageirosFilter}
+                        onChange={(e) => setPassageirosFilter(e.target.value)}
+                      />
+                    </div>
+
+                    {/* 4. Motorista */}
+                    <div className="space-y-2">
+                      <Label htmlFor="motorista" className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        Motorista
+                      </Label>
+                      <Select value={selectedMotorista} onValueChange={setSelectedMotorista}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Todos os motoristas" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os motoristas</SelectItem>
+                          {motoristas.map((motorista) => (
+                            <SelectItem key={motorista.id} value={motorista.nome}>
+                              {motorista.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* 5. Data Inicial */}
+                    <div className="space-y-2">
+                      <Label htmlFor="startDate">Data Inicial</Label>
+                      <Input
+                        id="startDate"
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                      />
+                    </div>
+
+                    {/* 6. Data Final */}
+                    <div className="space-y-2">
+                      <Label htmlFor="endDate">Data Final</Label>
+                      <Input
+                        id="endDate"
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={clearAllFilters}
+                      className="flex items-center gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Limpar Filtros
+                    </Button>
+                    <Button
+                      onClick={() => setIsFiltersModalOpen(false)}
+                      className="flex items-center gap-2"
+                    >
+                      <Filter className="h-4 w-4" />
+                      Aplicar Filtros
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-            <CollapsibleContent>
-              <CorridasFilters
-                startDate={startDate}
-                endDate={endDate}
-                motorista={selectedMotorista}
-                numeroOS={numeroOS}
-                motoristas={motoristas.map(m => ({ id: m.id, nome: m.nome }))}
-                onStartDateChange={setStartDate}
-                onEndDateChange={setEndDate}
-                onMotoristaChange={setSelectedMotorista}
-                onNumeroOSChange={setNumeroOS}
-                onClear={() => {
-                  setStartDate('');
-                  setEndDate('');
-                  setSelectedMotorista('all');
-                  setNumeroOS('');
-                }}
-                compact
-              />
-            </CollapsibleContent>
-          </Collapsible>
           <FinanceiroTable
             corridas={corridasFiltradasFinal}
             onView={handleView}
