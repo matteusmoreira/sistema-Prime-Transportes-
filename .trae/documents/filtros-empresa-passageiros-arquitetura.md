@@ -42,17 +42,21 @@ graph TD
 
 ## 2. Descrição da Tecnologia
 
-- **Frontend**: React@18 + TypeScript + Tailwind CSS + shadcn/ui + Vite
-- **Backend**: Supabase (PostgreSQL + Auth + Real-time)
-- **Componentes UI**: shadcn/ui (Select, Input, Button)
-- **Ícones**: Lucide React
-- **Busca**: Algoritmo fuzzy search customizado em JavaScript
+* **Frontend**: React\@18 + TypeScript + Tailwind CSS + shadcn/ui + Vite
+
+* **Backend**: Supabase (PostgreSQL + Auth + Real-time)
+
+* **Componentes UI**: shadcn/ui (Select, Input, Button)
+
+* **Ícones**: Lucide React
+
+* **Busca**: Algoritmo fuzzy search customizado em JavaScript
 
 ## 3. Definições de Rotas
 
-| Rota | Propósito |
-|------|-----------|
-| /voucher | Página de vouchers com filtros de data, empresa e passageiros |
+| Rota        | Propósito                                                                          |
+| ----------- | ---------------------------------------------------------------------------------- |
+| /voucher    | Página de vouchers com filtros de data, empresa e passageiros                      |
 | /financeiro | Página financeira com filtros de data, motorista, número OS, empresa e passageiros |
 
 ## 4. Definições de API
@@ -60,6 +64,7 @@ graph TD
 ### 4.1 Hooks Customizados
 
 **useVoucher Hook**
+
 ```typescript
 interface UseVoucherReturn {
   corridas: VoucherData[];
@@ -71,6 +76,7 @@ interface UseVoucherReturn {
 ```
 
 **useFinanceiro Hook**
+
 ```typescript
 interface UseFinanceiroReturn {
   corridas: CorridaFinanceiro[];
@@ -84,6 +90,7 @@ interface UseFinanceiroReturn {
 ### 4.2 Tipos de Dados
 
 **Filtros de Estado**
+
 ```typescript
 interface FilterState {
   selectedEmpresa: string; // 'all' ou nome da empresa
@@ -92,6 +99,7 @@ interface FilterState {
 ```
 
 **Dados de Corrida**
+
 ```typescript
 interface CorridaData {
   id: string;
@@ -148,6 +156,7 @@ erDiagram
 ### 6.2 Linguagem de Definição de Dados
 
 **Tabela corridas (existente)**
+
 ```sql
 -- A tabela já existe, apenas documentando os campos relevantes
 -- Campo empresa: armazena o nome da empresa
@@ -163,6 +172,7 @@ GRANT ALL PRIVILEGES ON corridas TO authenticated;
 ```
 
 **Funções de Filtro JavaScript**
+
 ```typescript
 // Função para extrair empresas únicas
 const getUniqueEmpresas = (corridas: CorridaData[]): string[] => {
@@ -188,3 +198,4 @@ const fuzzySearchPassageiros = (corridas: CorridaData[], searchTerm: string): Co
   });
 };
 ```
+

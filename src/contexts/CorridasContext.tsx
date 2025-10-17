@@ -453,6 +453,8 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         preenchidoPorFinanceiro: 'preenchido_por_financeiro',
         dataEdicaoFinanceiro: 'data_edicao_financeiro',
         usuarioEdicaoFinanceiro: 'usuario_edicao_financeiro',
+        valorHoraEspera: 'valor_hora_espera',
+        cteNf: 'cte_nf',
       };
 
       // Campos que não devem ser enviados para o banco
@@ -479,8 +481,10 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       if ('hora_inicio' in payload) payload.hora_inicio = normalizeTime(payload.hora_inicio);
       if ('hora_os' in payload) payload.hora_os = normalizeTime(payload.hora_os);
       if ('hora_espera' in payload) payload.hora_espera = normalizeTime(payload.hora_espera);
-      if ('valorHoraEspera' in payload) payload.valor_hora_espera = payload.valorHoraEspera;
-      if ('cteNf' in payload) payload.cte_nf = payload.cteNf;
+      
+      // Remover campos duplicados que já foram mapeados
+      delete payload.valorHoraEspera;
+      delete payload.cteNf;
 
       // Garantir que não haja chave inválida
       delete (payload as any).solicitanteId;

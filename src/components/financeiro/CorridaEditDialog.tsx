@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -114,43 +114,73 @@ export const CorridaEditDialog = ({
   const handleSave = () => {
     if (!corrida) return;
 
+    // Validação de campos obrigatórios
+    const camposObrigatorios = [
+      { campo: 'empresa', valor: formData.empresa, nome: 'Empresa' },
+      { campo: 'motorista', valor: formData.motorista, nome: 'Motorista' },
+      { campo: 'dataServico', valor: formData.dataServico, nome: 'Data do Serviço' },
+      { campo: 'origem', valor: formData.origem, nome: 'Origem' },
+      { campo: 'destino', valor: formData.destino, nome: 'Destino' }
+    ];
+
+    const camposFaltando = camposObrigatorios.filter(item => !item.valor || item.valor.trim() === '');
+    
+    if (camposFaltando.length > 0) {
+      const nomesCampos = camposFaltando.map(item => item.nome).join(', ');
+      toast.error(`Os seguintes campos são obrigatórios: ${nomesCampos}`);
+      return;
+    }
+
     const parseNumber = (v: string) => {
       if (!v) return 0;
       const num = parseFloat(String(v).replace(',', '.'));
       return isNaN(num) ? 0 : num;
     };
 
+    // Validação de formato de data
+    if (formData.dataServico && !/^\d{4}-\d{2}-\d{2}$/.test(formData.dataServico)) {
+      toast.error('Data do serviço deve estar no formato YYYY-MM-DD');
+      return;
+    }
+
     const dadosBasicos = {
-      empresa: formData.empresa,
-      motorista: formData.motorista,
-      veiculo: formData.veiculo,
+      empresa: formData.empresa.trim(),
+      motorista: formData.motorista.trim(),
+      veiculo: formData.veiculo?.trim() || '',
       dataServico: formData.dataServico,
-      origem: formData.origem,
-      destino: formData.destino,
-      destinoExtra: formData.destinoExtra,
-      centroCusto: formData.centroCusto,
-      numeroOS: formData.numeroOS,
+      origem: formData.origem.trim(),
+      destino: formData.destino.trim(),
+      destinoExtra: formData.destinoExtra?.trim() || '',
+      centroCusto: formData.centroCusto?.trim() || '',
+      numeroOS: formData.numeroOS?.trim() || '',
       kmTotal: parseNumber(formData.kmTotal),
       valor: parseNumber(formData.valor),
       valorMotorista: parseNumber(formData.valorMotorista),
       pedagio: parseNumber(formData.pedagio),
       estacionamento: parseNumber(formData.estacionamento),
       hospedagem: parseNumber(formData.hospedagem),
-      passageiros: formData.passageiros,
-      observacoes: formData.observacoes,
-      projeto: formData.projeto,
-      motivo: formData.motivo,
-      tipoAbrangencia: formData.tipoAbrangencia,
-      horaInicio: formData.horaInicio,
-      horaOS: formData.horaOS,
-      horaEspera: formData.horaEspera,
+      passageiros: formData.passageiros?.trim() || '',
+      observacoes: formData.observacoes?.trim() || '',
+      projeto: formData.projeto?.trim() || '',
+      motivo: formData.motivo?.trim() || '',
+      tipoAbrangencia: formData.tipoAbrangencia?.trim() || '',
+      horaInicio: formData.horaInicio || '',
+      horaOS: formData.horaOS || '',
+      horaEspera: formData.horaEspera || '',
       valorHoraEspera: parseNumber(formData.valorHoraEspera),
-      cteNf: formData.cteNf,
-      horaFim: formData.horaFim,
+      cteNf: formData.cteNf?.trim() || '',
+      horaFim: formData.horaFim || '',
       kmInicial: parseNumber(formData.kmInicial),
       kmFinal: parseNumber(formData.kmFinal),
-      solicitante: formData.solicitante
+      solicitante: formData.solicitante?.trim() || '',
+      // Campos específicos do financeiro
+      preenchidoPorFinanceiro: true,
+      dataEdicaoFinanceiro: new Date().toISOString(),
+      usuarioEdicaoFinanceiro: 'financeiro' // Pode ser ajustado conforme o contexto do usuário
     };
+
+    // Log de debug dos dados que serão enviados
+    console.log('Dados básicos para salvar (CorridaEditDialog):', dadosBasicos);
 
     const documentos: any[] = [];
     const pushDoc = (nome: string, arquivo: File | null, valor: number) => {
@@ -173,6 +203,8 @@ export const CorridaEditDialog = ({
       ...documentosExtras.filter(d => !!d.arquivo)
     ];
 
+    console.log('Documentos para salvar:', documentosComExtras);
+
     try {
       onSave(dadosBasicos, documentosComExtras);
     } catch (error) {
@@ -188,6 +220,9 @@ export const CorridaEditDialog = ({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Corrida - Conferência Financeira</DialogTitle>
+          <DialogDescription>
+            Edite os dados da corrida para conferência financeira. Todos os campos podem ser modificados conforme necessário.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
