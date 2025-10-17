@@ -469,8 +469,15 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
       // Handle passageiros field - map to both passageiro (required) and passageiros (optional)
       if (updatedData.passageiros !== undefined) {
-        payload.passageiro = updatedData.passageiros || '';
+        payload.passageiro = updatedData.passageiros || 'N/A';
         payload.passageiros = updatedData.passageiros || '';
+      }
+
+      // Garantir que o campo passageiro sempre tenha um valor válido (NOT NULL constraint)
+      if (!payload.passageiro || payload.passageiro.trim() === '') {
+        // Tentar usar dados existentes da corrida ou valor padrão
+        const corridaAtual = corridas.find(c => c.id === id);
+        payload.passageiro = corridaAtual?.passageiro || corridaAtual?.passageiros || 'N/A';
       }
 
       // Normalizar datas/horas (converter '' para null também)
