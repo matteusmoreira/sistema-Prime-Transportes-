@@ -172,7 +172,9 @@ export const CorridaEditDialog = ({
       horaFim: formData.horaFim || '',
       kmInicial: parseNumber(formData.kmInicial),
       kmFinal: parseNumber(formData.kmFinal),
-      solicitante: formData.solicitante?.trim() || '',
+      solicitante: formData.solicitante?.trim() || corrida.solicitante || '',
+      // Garantir que campos obrigatórios do banco estejam presentes
+      data: formData.dataServico, // Campo 'data' é obrigatório no banco
       // Campos específicos do financeiro
       preenchidoPorFinanceiro: true,
       dataEdicaoFinanceiro: new Date().toISOString(),

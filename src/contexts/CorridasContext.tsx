@@ -520,6 +520,15 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       }
 
       console.debug('updateCorrida payload:', payload);
+      console.debug('Campos obrigatórios verificados:', {
+        solicitante: payload.solicitante,
+        empresa: payload.empresa,
+        passageiro: payload.passageiro,
+        origem: payload.origem,
+        destino: payload.destino,
+        data: payload.data,
+        centro_custo: payload.centro_custo
+      });
 
       const { error } = await supabase
         .from('corridas')
@@ -527,8 +536,14 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', id);
 
       if (error) {
-        console.error('Erro ao atualizar corrida no banco:', error);
-        toast.error('Erro ao atualizar corrida');
+        console.error('Erro detalhado do Supabase:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        console.error('Payload que causou erro:', payload);
+        toast.error(`Erro ao atualizar corrida: ${error.message}`);
         return;
       }
 
