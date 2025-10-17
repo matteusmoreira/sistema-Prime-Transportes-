@@ -481,6 +481,47 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       if ('hora_inicio' in payload) payload.hora_inicio = normalizeTime(payload.hora_inicio);
       if ('hora_os' in payload) payload.hora_os = normalizeTime(payload.hora_os);
       if ('hora_espera' in payload) payload.hora_espera = normalizeTime(payload.hora_espera);
+
+      // Validar e converter tipos de dados numéricos
+      const numericFields = [
+        'km_inicial', 'km_final', 'km_total', 'combustivel_inicial', 'combustivel_final',
+        'pedagio', 'estacionamento', 'hospedagem', 'outros', 'total', 'valor', 'valor_motorista',
+        'distancia_percorrida', 'reembolsos', 'valor_combustivel', 'valor_hora_espera'
+      ];
+
+      numericFields.forEach(field => {
+        if (field in payload) {
+          const value = payload[field];
+          if (value === '' || value === null || value === undefined) {
+            payload[field] = null;
+          } else if (typeof value === 'string') {
+            const numValue = parseFloat(value.replace(',', '.'));
+            payload[field] = isNaN(numValue) ? null : numValue;
+          } else if (typeof value === 'number') {
+            payload[field] = isNaN(value) ? null : value;
+          }
+        }
+      });
+
+      // Validar campos de texto (garantir que não sejam undefined)
+      const textFields = [
+        'solicitante', 'empresa', 'passageiro', 'origem', 'destino', 'observacoes',
+        'motorista', 'veiculo', 'motivo_rejeicao', 'tipo_abrangencia', 'tempo_viagem',
+        'observacoes_os', 'local_abastecimento', 'centro_custo', 'destino_extra',
+        'numero_os', 'passageiros', 'projeto', 'motivo', 'telefone_passageiro',
+        'status_pagamento', 'medicao_nota_fiscal', 'usuario_edicao_financeiro', 'cte_nf'
+      ];
+
+      textFields.forEach(field => {
+        if (field in payload) {
+          const value = payload[field];
+          if (value === undefined) {
+            payload[field] = null;
+          } else if (typeof value === 'string') {
+            payload[field] = value.trim() || null;
+          }
+        }
+      });
       
       // Remover campos duplicados que já foram mapeados
       delete payload.valorHoraEspera;
@@ -519,7 +560,29 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         payload.status = statusAjustado;
       }
 
-      console.debug('updateCorrida payload:', payload);
+      // Validar campos existentes na tabela
+      const validColumns = [
+        'id', 'solicitante', 'empresa', 'empresa_id', 'passageiro', 'telefone_passageiro',
+        'origem', 'destino', 'data', 'hora_saida', 'hora_chegada', 'observacoes', 'status',
+        'motorista', 'motorista_id', 'veiculo', 'km_inicial', 'km_final', 'km_total',
+        'combustivel_inicial', 'combustivel_final', 'pedagio', 'estacionamento', 'hospedagem',
+        'outros', 'total', 'valor', 'valor_motorista', 'motivo_rejeicao', 'hora_inicio',
+        'tipo_abrangencia', 'data_servico', 'distancia_percorrida', 'tempo_viagem',
+        'observacoes_os', 'reembolsos', 'valor_combustivel', 'local_abastecimento',
+        'centro_custo', 'destino_extra', 'numero_os', 'passageiros', 'projeto', 'motivo',
+        'preenchido_por_motorista', 'created_at', 'updated_at', 'status_pagamento',
+        'medicao_nota_fiscal', 'preenchido_por_financeiro', 'data_edicao_financeiro',
+        'usuario_edicao_financeiro', 'valor_hora_espera', 'cte_nf'
+      ];
+
+      // Remover campos inválidos do payload
+      const invalidFields = Object.keys(payload).filter(key => !validColumns.includes(key));
+      if (invalidFields.length > 0) {
+        console.warn('Campos inválidos removidos do payload:', invalidFields);
+        invalidFields.forEach(field => delete payload[field]);
+      }
+
+      console.debug('updateCorrida payload:', JSON.stringify(payload, null, 2));
       console.debug('Campos obrigatórios verificados:', {
         solicitante: payload.solicitante,
         empresa: payload.empresa,
@@ -536,13 +599,13 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', id);
 
       if (error) {
-        console.error('Erro detalhado do Supabase:', {
+        console.error('Erro detalhado do Supabase:', JSON.stringify({
           message: error.message,
           details: error.details,
           hint: error.hint,
           code: error.code
-        });
-        console.error('Payload que causou erro:', payload);
+        }, null, 2));
+        console.error('Payload que causou erro:', JSON.stringify(payload, null, 2));
         toast.error(`Erro ao atualizar corrida: ${error.message}`);
         return;
       }
