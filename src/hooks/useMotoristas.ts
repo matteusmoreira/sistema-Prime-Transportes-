@@ -100,6 +100,7 @@ export const useMotoristas = () => {
             email: motorista.email,
             cnh: motorista.cnh || '',
             cnhDataValidade: motorista.validade_cnh || '',
+            pix: motorista.pix || '',
             status: motorista.status || 'Pendente',
             documentos: documentosFormatted,
             fotosVeiculo: fotosFormatted,

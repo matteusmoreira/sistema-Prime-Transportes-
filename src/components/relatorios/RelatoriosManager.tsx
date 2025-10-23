@@ -10,9 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Download, Filter, Calendar, Building2, Users, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/utils/format';
 import { toast } from 'sonner';
-import { exportCorridasToCSV } from '@/utils/reportExports';
+import { exportCorridasToCSV, exportPagamentosMotoristasToExcel } from '@/utils/reportExports';
 import { useCorridas } from '@/contexts/CorridasContext';
 import type { Corrida } from '@/types/corridas';
+import { useMotoristas } from '@/hooks/useMotoristas';
 
 interface Relatorio {
   id: number;
@@ -23,7 +24,8 @@ interface Relatorio {
   geradoPor: string;
   status: 'Gerado' | 'Processando' | 'Erro';
   tamanho: string;
-  data: Corrida[];
+  dataCorridas?: Corrida[];
+  dataPagamentos?: { nome: string; pix: string; valorReceber: number }[];
   filtrosSnapshot: {
     dataInicio: string;
     dataFim: string;
@@ -54,6 +56,7 @@ export const RelatoriosManager = () => {
   });
 
 const { corridas } = useCorridas();
+const { motoristas } = useMotoristas();
 
 const empresas = useMemo(() => {
   const set = new Set<string>();
@@ -61,7 +64,7 @@ const empresas = useMemo(() => {
   return Array.from(set);
 }, [corridas]);
 
-const motoristas = useMemo(() => {
+const motoristasNomes = useMemo(() => {
   const set = new Set<string>();
   corridas.forEach(c => { if (c.motorista) set.add(c.motorista); });
   return Array.from(set);
@@ -98,7 +101,33 @@ const dadosRelatorio: DadosRelatorio = useMemo(() => {
   return { totalCorridas, corridasAprovadas, corridasReprovadas, valorTotal, empresasAtendidas, motoristasAtivos, kmRodados };
 }, [filteredCorridas]);
 
-const handleGerarRelatorio = (tipo: 'corridas' | 'financeiro' | 'motoristas') => {
+const pagamentosPorMotorista = useMemo(() => {
+  const mapa = new Map<string, { nome: string; pix: string; valorReceber: number }>();
+
+  filteredCorridas.forEach(c => {
+    const nome = (c.motorista || '').trim();
+    if (!nome) return;
+    // Considerar apenas corridas com pagamento pendente e valorMotorista válido
+    if ((c.statusPagamento || 'Pendente') !== 'Pendente') return;
+    const valor = Number(c.valorMotorista) || 0;
+    if (valor <= 0) return;
+
+    const existente = mapa.get(nome);
+    const pix = (motoristas.find(m => m.nome === nome)?.pix || '').toString();
+
+    if (existente) {
+      existente.valorReceber += valor;
+      // Atualiza PIX se estava vazio
+      if (!existente.pix && pix) existente.pix = pix;
+    } else {
+      mapa.set(nome, { nome, pix: pix || '', valorReceber: valor });
+    }
+  });
+
+  return Array.from(mapa.values()).sort((a, b) => b.valorReceber - a.valorReceber);
+}, [filteredCorridas, motoristas]);
+
+const handleGerarRelatorio = (tipo: 'corridas' | 'financeiro' | 'motoristas' | 'pagamentosMotoristas') => {
   if (!filtros.dataInicio || !filtros.dataFim) {
     toast.error('Selecione o período para gerar o relatório');
     return;
@@ -106,7 +135,19 @@ const handleGerarRelatorio = (tipo: 'corridas' | 'financeiro' | 'motoristas') =>
 
   const periodo = `${new Date(filtros.dataInicio).toLocaleDateString('pt-BR')} - ${new Date(filtros.dataFim).toLocaleDateString('pt-BR')}`;
 
-  const novoRelatorio: Relatorio = {
+  const isPagamentos = tipo === 'pagamentosMotoristas';
+  const novoRelatorio: Relatorio = isPagamentos ? {
+    id: relatorios.length + 1,
+    tipo: 'Pagamentos Motoristas',
+    nome: `Relatório de Motoristas — Pagamentos a Receber - ${new Date().toLocaleDateString('pt-BR')}`,
+    periodo,
+    geradoEm: new Date().toISOString(),
+    geradoPor: 'Admin System',
+    status: 'Processando',
+    tamanho: `${pagamentosPorMotorista.length} itens`,
+    dataPagamentos: pagamentosPorMotorista,
+    filtrosSnapshot: { ...filtros }
+  } : {
     id: relatorios.length + 1,
     tipo: tipo === 'corridas' ? 'Corridas' : tipo === 'financeiro' ? 'Financeiro' : 'Motoristas',
     nome: `Relatório de ${tipo === 'corridas' ? 'Corridas' : tipo === 'financeiro' ? 'Financeiro' : 'Motoristas'} - ${new Date().toLocaleDateString('pt-BR')}`,
@@ -115,7 +156,7 @@ const handleGerarRelatorio = (tipo: 'corridas' | 'financeiro' | 'motoristas') =>
     geradoPor: 'Admin System',
     status: 'Processando',
     tamanho: `${filteredCorridas.length} itens`,
-    data: filteredCorridas,
+    dataCorridas: filteredCorridas,
     filtrosSnapshot: { ...filtros }
   };
 
@@ -135,7 +176,11 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel') => {
   }
 
   try {
-    exportCorridasToCSV(relatorio.data, `${relatorio.nome}.csv`);
+    if (relatorio.tipo === 'Pagamentos Motoristas') {
+      exportPagamentosMotoristasToExcel(relatorio.dataPagamentos || [], `${relatorio.nome}.xlsx`);
+    } else {
+      exportCorridasToCSV(relatorio.dataCorridas || [], `${relatorio.nome}.xlsx`);
+    }
     toast.success(`Download do relatório em Excel iniciado`);
   } catch (e) {
     console.error(e);
@@ -263,8 +308,8 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel') => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  {motoristas.map((motorista) => (
-                    <SelectItem key={motorista} value={motorista}>{motorista}</SelectItem>
+                  {motoristasNomes.map((motoristaNome) => (
+                    <SelectItem key={motoristaNome} value={motoristaNome}>{motoristaNome}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -274,7 +319,7 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel') => {
       </Card>
 
       {/* Geração de Relatórios */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -334,6 +379,26 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel') => {
             </Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="h-5 w-5" />
+              <span>Relatório de Pagamentos de Motoristas</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-gray-600">
+              Valores pendentes a receber por motorista no período selecionado.
+            </p>
+            <Button 
+              className="w-full" 
+              onClick={() => handleGerarRelatorio('pagamentosMotoristas')}
+            >
+              Gerar Relatório
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Histórico de Relatórios */}
@@ -385,6 +450,39 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel') => {
                         </Button>
                       </div>
                     </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+      {/* Relatório de Pagamentos por Motorista */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <FileText className="h-5 w-5" />
+            <span>Relatório de Motoristas — Pagamentos a Receber</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {pagamentosPorMotorista.length === 0 ? (
+            <div className="text-center py-6 text-gray-500">Nenhum valor pendente encontrado para o período/filtragem selecionado.</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome do motorista</TableHead>
+                  <TableHead>PIX</TableHead>
+                  <TableHead>Valor a receber</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pagamentosPorMotorista.map((item) => (
+                  <TableRow key={item.nome}>
+                    <TableCell className="font-medium">{item.nome}</TableCell>
+                    <TableCell>{item.pix || 'Não cadastrado'}</TableCell>
+                    <TableCell className="font-semibold">{formatCurrency(item.valorReceber)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

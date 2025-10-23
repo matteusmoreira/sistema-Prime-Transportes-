@@ -210,3 +210,51 @@ export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.x
     compression: true
   });
 };
+
+export interface PagamentoMotorista {
+  nome: string;
+  pix: string;
+  valorReceber: number;
+}
+
+export const exportPagamentosMotoristasToExcel = (
+  pagamentos: PagamentoMotorista[],
+  fileName = 'relatorio-pagamentos-motoristas.xlsx'
+) => {
+  const headers = ['Nome do motorista', 'PIX', 'Valor a receber'];
+  const rows = pagamentos.map(p => [p.nome, p.pix || '', Number(p.valorReceber) || 0]);
+
+  const worksheetData = [headers, ...rows];
+  const workbook = XLSX.utils.book_new();
+  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+  // Coluna monetária: índice 2 (0-based)
+  const monetaryColumns = [2];
+  for (let row = 1; row <= range.e.r; row++) {
+    for (const col of monetaryColumns) {
+      const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+      if (worksheet[cellAddress]) {
+        worksheet[cellAddress].z = '"R$" #,##0.00';
+      }
+    }
+  }
+
+  worksheet['!cols'] = [
+    { wch: 25 }, // Nome do motorista
+    { wch: 25 }, // PIX
+    { wch: 18 }, // Valor a receber
+  ];
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Pagamentos Motoristas');
+
+  let xlsxFileName = fileName;
+  if (!xlsxFileName.endsWith('.xlsx')) {
+    xlsxFileName = xlsxFileName.replace(/\.(csv|xls)$/,'') + '.xlsx';
+  }
+  XLSX.writeFile(workbook, xlsxFileName, {
+    bookType: 'xlsx',
+    type: 'binary',
+    compression: true,
+  });
+};
