@@ -112,7 +112,7 @@ export const FinanceiroTable: React.FC<FinanceiroTableProps> = ({
   ];
 
   const paymentStatusOptions: CorridaFinanceiro['statusPagamento'][] = ['Pendente', 'Pago'];
-  const medicaoNotaFiscalOptions: CorridaFinanceiro['medicaoNotaFiscal'][] = ['Medição', 'Nota Fiscal'];
+  const medicaoNotaFiscalOptions: CorridaFinanceiro['medicaoNotaFiscal'][] = ['Medição', 'Nota Fiscal', 'Não Enviada'];
 
   return (
     <div className="w-full">

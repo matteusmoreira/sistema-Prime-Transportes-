@@ -57,7 +57,7 @@ export interface Corrida {
   preenchidoPorMotorista?: boolean;
   preenchidoPorFinanceiro?: boolean;
   statusPagamento?: 'Pendente' | 'Pago';
-  medicaoNotaFiscal?: 'Medição' | 'Nota Fiscal';
+  medicaoNotaFiscal?: 'Medição' | 'Nota Fiscal' | 'Não Enviada';
 }
 
 export interface CorridasContextType {

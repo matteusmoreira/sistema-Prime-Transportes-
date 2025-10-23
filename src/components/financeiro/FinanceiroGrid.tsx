@@ -29,7 +29,7 @@ const statusOptions: CorridaFinanceiro['status'][] = [
 ];
 
 const paymentStatusOptions: CorridaFinanceiro['statusPagamento'][] = ['Pendente', 'Pago'];
-const medicaoNotaFiscalOptions: CorridaFinanceiro['medicaoNotaFiscal'][] = ['Medição', 'Nota Fiscal'];
+const medicaoNotaFiscalOptions: CorridaFinanceiro['medicaoNotaFiscal'][] = ['Medição', 'Nota Fiscal', 'Não Enviada'];
 
 const getStatusBadge = (status: string) => {
   switch (status) {

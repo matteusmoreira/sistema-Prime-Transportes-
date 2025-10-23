@@ -17,7 +17,7 @@ export interface CorridaFinanceiro {
   valorMotorista?: number;
   status: 'Aguardando Conferência' | 'Em Análise' | 'No Show' | 'Revisar' | 'Cancelada' | 'Aprovada';
   statusPagamento: 'Pendente' | 'Pago';
-  medicaoNotaFiscal: 'Medição' | 'Nota Fiscal';
+  medicaoNotaFiscal: 'Medição' | 'Nota Fiscal' | 'Não Enviada';
   observacoes?: string;
   motivoReprovacao?: string;
   dataConferencia?: string;
