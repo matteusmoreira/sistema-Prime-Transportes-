@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, SlidersHorizontal, ChevronDown, ChevronUp, Building, Users, Filter, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -33,7 +33,12 @@ export const FinanceiroManager = () => {
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
 
   // Filtro por mês
-  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return window.localStorage.getItem('financeiro_selected_month') || 'all';
+    }
+    return 'all';
+  });
   const parseDate = (s?: string): Date | null => {
     if (!s) return null;
     const native = new Date(s);
@@ -62,6 +67,34 @@ export const FinanceiroManager = () => {
   const [numeroOS, setNumeroOS] = useState<string>('');
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>('all');
   const [passageirosFilter, setPassageirosFilter] = useState<string>('');
+  // Novos filtros ao lado do "Mês"
+  const [selectedStatus, setSelectedStatus] = useState<'all' | CorridaFinanceiro['status']>(() => {
+    if (typeof window !== 'undefined') {
+      const v = window.localStorage.getItem('financeiro_selected_status');
+      if (v && ['all','Aguardando Conferência','Em Análise','No Show','Revisar','Cancelada','Aprovada'].includes(v)) {
+        return v as any;
+      }
+    }
+    return 'all';
+  });
+  const [selectedStatusPagamento, setSelectedStatusPagamento] = useState<'all' | CorridaFinanceiro['statusPagamento']>(() => {
+    if (typeof window !== 'undefined') {
+      const v = window.localStorage.getItem('financeiro_selected_status_pagamento');
+      if (v && ['all','Pendente','Pago'].includes(v)) {
+        return v as any;
+      }
+    }
+    return 'all';
+  });
+  const [selectedMedicao, setSelectedMedicao] = useState<'all' | CorridaFinanceiro['medicaoNotaFiscal']>(() => {
+    if (typeof window !== 'undefined') {
+      const v = window.localStorage.getItem('financeiro_selected_medicao');
+      if (v && ['all','Medição','Nota Fiscal','Não Enviada'].includes(v)) {
+        return v as any;
+      }
+    }
+    return 'all';
+  });
 
   const applyDateFilter = (list: CorridaFinanceiro[]) => {
     if (!startDate && !endDate) return list;
@@ -92,8 +125,22 @@ export const FinanceiroManager = () => {
     return list.filter((c) => String(c.numeroOS ?? '').toLowerCase().includes(query));
   };
 
+  // Novos aplicadores de filtro (Status, Pagamento, Medição/Nota Fiscal)
+  const applyStatusFilter = (list: CorridaFinanceiro[]) => {
+    if (!selectedStatus || selectedStatus === 'all') return list;
+    return list.filter((c) => c.status === selectedStatus);
+  };
+  const applyPaymentStatusFilter = (list: CorridaFinanceiro[]) => {
+    if (!selectedStatusPagamento || selectedStatusPagamento === 'all') return list;
+    return list.filter((c) => c.statusPagamento === selectedStatusPagamento);
+  };
+  const applyMedicaoFilter = (list: CorridaFinanceiro[]) => {
+    if (!selectedMedicao || selectedMedicao === 'all') return list;
+    return list.filter((c) => c.medicaoNotaFiscal === selectedMedicao);
+  };
+
   // Aplicar todos os filtros em sequência
-  const corridasFiltradasFinal = filterByPassageiros(
+  const corridasFiltradasBase = filterByPassageiros(
     filterByEmpresa(
       applyNumeroOSFilter(
         applyMotoristaFilter(
@@ -103,6 +150,11 @@ export const FinanceiroManager = () => {
       selectedEmpresa
     ),
     passageirosFilter
+  );
+  const corridasFiltradasFinal = applyMedicaoFilter(
+    applyPaymentStatusFilter(
+      applyStatusFilter(corridasFiltradasBase)
+    )
   );
 
   // Alternância de visualização (lista/grade)
@@ -130,6 +182,31 @@ export const FinanceiroManager = () => {
     setCurrentPage(p);
   };
 
+  // Persistência dos filtros principais (Mês, Status, Pagamento, Medição/Nota Fiscal)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('financeiro_selected_month', selectedMonth);
+    }
+  }, [selectedMonth]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('financeiro_selected_status', String(selectedStatus));
+    }
+  }, [selectedStatus]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('financeiro_selected_status_pagamento', String(selectedStatusPagamento));
+    }
+  }, [selectedStatusPagamento]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('financeiro_selected_medicao', String(selectedMedicao));
+    }
+  }, [selectedMedicao]);
+
   const stats = getStats();
 
   // Função para contar filtros ativos
@@ -141,6 +218,9 @@ export const FinanceiroManager = () => {
     if (selectedMotorista !== 'all') count++;
     if (startDate) count++;
     if (endDate) count++;
+    if (selectedStatus !== 'all') count++;
+    if (selectedStatusPagamento !== 'all') count++;
+    if (selectedMedicao !== 'all') count++;
     return count;
   };
 
@@ -152,6 +232,9 @@ export const FinanceiroManager = () => {
     setSelectedMotorista('all');
     setStartDate('');
     setEndDate('');
+    setSelectedStatus('all');
+    setSelectedStatusPagamento('all');
+    setSelectedMedicao('all');
     // Reiniciar paginação
     setCurrentPage(1);
   };
@@ -343,14 +426,14 @@ export const FinanceiroManager = () => {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-3">
             <CardTitle className="flex items-center space-x-2">
               <FileText className="h-5 w-5" />
               <span>Corridas para Conferência ({corridasFiltradasFinal.length})</span>
             </CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
               {/* Toggle visualização */}
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 col-span-2">
                 <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="sm" aria-label="Modo lista" onClick={() => changeViewMode('list')}>
                   <List className="h-4 w-4" />
                 </Button>
@@ -358,9 +441,9 @@ export const FinanceiroManager = () => {
                   <LayoutGrid className="h-4 w-4" />
                 </Button>
               </div>
-              <span className="text-sm text-gray-600">Mês:</span>
+              <span className="hidden sm:inline text-sm text-gray-600">Mês:</span>
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-full sm:w-[160px]">
                   <SelectValue placeholder="Todos os meses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -379,6 +462,48 @@ export const FinanceiroManager = () => {
                   <SelectItem value="12">Dezembro</SelectItem>
                 </SelectContent>
               </Select>
+
+              {/* Novos filtros fora do botão de filtros */}
+              <span className="hidden sm:inline text-sm text-gray-600">Status:</span>
+              <Select value={selectedStatus} onValueChange={(v) => setSelectedStatus(v as any)}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="Aguardando Conferência">Aguardando Conferência</SelectItem>
+                  <SelectItem value="Em Análise">Em Análise</SelectItem>
+                  <SelectItem value="No Show">No Show</SelectItem>
+                  <SelectItem value="Revisar">Revisar</SelectItem>
+                  <SelectItem value="Cancelada">Cancelada</SelectItem>
+                  <SelectItem value="Aprovada">Aprovada</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <span className="hidden sm:inline text-sm text-gray-600">Pagamento:</span>
+              <Select value={selectedStatusPagamento} onValueChange={(v) => setSelectedStatusPagamento(v as any)}>
+                <SelectTrigger className="w-full sm:w-[150px]">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="Pendente">Pendente</SelectItem>
+                  <SelectItem value="Pago">Pago</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <span className="hidden sm:inline text-sm text-gray-600">Medição/Nota Fiscal:</span>
+              <Select value={selectedMedicao} onValueChange={(v) => setSelectedMedicao(v as any)}>
+                <SelectTrigger className="w-full sm:w-[190px]">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="Medição">Medição</SelectItem>
+                  <SelectItem value="Nota Fiscal">Nota Fiscal</SelectItem>
+                  <SelectItem value="Não Enviada">Não Enviada</SelectItem>
+                </SelectContent>
+              </Select>
               
               {/* Modal de Filtros */}
               <Dialog open={isFiltersModalOpen} onOpenChange={setIsFiltersModalOpen}>
@@ -386,7 +511,7 @@ export const FinanceiroManager = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="inline-flex items-center gap-2"
+                    className="inline-flex items-center gap-2 w-full sm:w-auto"
                   >
                     <Filter className="h-4 w-4" />
                     <span className="hidden sm:inline">Filtros</span>
