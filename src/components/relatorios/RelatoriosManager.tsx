@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,13 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Download, Filter, Calendar, Building2, Users, TrendingUp } from 'lucide-react';
+import { FileText, Download, Filter, Calendar, Building2, Users, TrendingUp, Wallet } from 'lucide-react';
 import { formatCurrency } from '@/utils/format';
 import { toast } from 'sonner';
 import { exportCorridasToCSV, exportPagamentosMotoristasToExcel } from '@/utils/reportExports';
 import { useCorridas } from '@/contexts/CorridasContext';
 import type { Corrida } from '@/types/corridas';
 import { useMotoristas } from '@/hooks/useMotoristas';
+import { useSolicitantes } from '@/hooks/useSolicitantes';
 
 interface Relatorio {
   id: number;
@@ -31,6 +32,8 @@ interface Relatorio {
     dataFim: string;
     empresa: string;
     motorista: string;
+    solicitante: string;
+    centroCusto: string;
   };
 }
 
@@ -52,11 +55,14 @@ export const RelatoriosManager = () => {
     dataInicio: '',
     dataFim: '',
     empresa: '',
-    motorista: ''
+    motorista: '',
+    solicitante: '',
+    centroCusto: ''
   });
 
 const { corridas } = useCorridas();
 const { motoristas } = useMotoristas();
+const { solicitantes } = useSolicitantes();
 
 const empresas = useMemo(() => {
   const set = new Set<string>();
@@ -70,6 +76,29 @@ const motoristasNomes = useMemo(() => {
   return Array.from(set);
 }, [corridas]);
 
+const solicitantesNomes = useMemo(() => {
+  const set = new Set<string>();
+  solicitantes.forEach(s => {
+    if (filtros.empresa && s.empresaNome !== filtros.empresa) return;
+    if (s.nome) set.add(s.nome);
+  });
+  return Array.from(set);
+}, [solicitantes, filtros.empresa]);
+
+const centrosDeCusto = useMemo(() => {
+  const set = new Set<string>();
+  corridas.forEach(c => {
+    if (filtros.empresa && c.empresa !== filtros.empresa) return;
+    if (c.centroCusto) set.add(c.centroCusto);
+  });
+  return Array.from(set);
+}, [corridas, filtros.empresa]);
+
+useEffect(() => {
+  // Ao mudar a empresa, limpar filtros dependentes
+  setFiltros(prev => ({ ...prev, solicitante: '', centroCusto: '' }));
+}, [filtros.empresa]);
+
 const filteredCorridas: Corrida[] = useMemo(() => {
   const start = filtros.dataInicio ? new Date(filtros.dataInicio) : null;
   const end = filtros.dataFim ? new Date(filtros.dataFim) : null;
@@ -79,7 +108,9 @@ const filteredCorridas: Corrida[] = useMemo(() => {
     const inDate = (!start || dataServ >= start) && (!end || dataServ <= end!);
     const inEmpresa = !filtros.empresa || c.empresa === filtros.empresa;
     const inMotorista = !filtros.motorista || c.motorista === filtros.motorista;
-    return inDate && inEmpresa && inMotorista;
+    const inSolicitante = !filtros.solicitante || c.solicitante === filtros.solicitante;
+    const inCentroCusto = !filtros.centroCusto || c.centroCusto === filtros.centroCusto;
+    return inDate && inEmpresa && inMotorista && inSolicitante && inCentroCusto;
   });
 }, [corridas, filtros]);
 
@@ -126,6 +157,11 @@ const pagamentosPorMotorista = useMemo(() => {
 
   return Array.from(mapa.values()).sort((a, b) => b.valorReceber - a.valorReceber);
 }, [filteredCorridas, motoristas]);
+
+// Novo: total pendente a pagar para motoristas conforme filtros
+const valorMotoristaPendentesTotal = useMemo(() => {
+  return pagamentosPorMotorista.reduce((sum, p) => sum + (Number(p.valorReceber) || 0), 0);
+}, [pagamentosPorMotorista]);
 
 const handleGerarRelatorio = (tipo: 'corridas' | 'financeiro' | 'motoristas' | 'pagamentosMotoristas') => {
   if (!filtros.dataInicio || !filtros.dataFim) {
@@ -204,7 +240,7 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel') => {
       </div>
 
       {/* Dashboard de Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -256,6 +292,20 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel') => {
             <p className="text-sm text-gray-600">Este mês</p>
           </CardContent>
         </Card>
+
+        {/* Novo Card: Valor do Motorista (pendente) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Wallet className="h-5 w-5 text-teal-500" />
+              <span>Valor do Motorista</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-teal-600">{formatCurrency(valorMotoristaPendentesTotal)}</p>
+            <p className="text-sm text-gray-600">A receber</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filtros */}
@@ -299,7 +349,7 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel') => {
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="space-y-2">
               <Label>Motorista</Label>
               <Select value={filtros.motorista || 'all'} onValueChange={(value) => setFiltros(prev => ({ ...prev, motorista: value === 'all' ? '' : value }))}>
@@ -310,6 +360,34 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel') => {
                   <SelectItem value="all">Todos</SelectItem>
                   {motoristasNomes.map((motoristaNome) => (
                     <SelectItem key={motoristaNome} value={motoristaNome}>{motoristaNome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Solicitante</Label>
+              <Select value={filtros.solicitante || 'all'} onValueChange={(value) => setFiltros(prev => ({ ...prev, solicitante: value === 'all' ? '' : value }))} disabled={!filtros.empresa}>
+                <SelectTrigger>
+                  <SelectValue placeholder={filtros.empresa ? 'Selecione um solicitante' : 'Selecione uma empresa primeiro'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {solicitantesNomes.map((nome) => (
+                    <SelectItem key={nome} value={nome}>{nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Centro de Custo</Label>
+              <Select value={filtros.centroCusto || 'all'} onValueChange={(value) => setFiltros(prev => ({ ...prev, centroCusto: value === 'all' ? '' : value }))} disabled={!filtros.empresa}>
+                <SelectTrigger>
+                  <SelectValue placeholder={filtros.empresa ? 'Selecione um centro de custo' : 'Selecione uma empresa primeiro'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {centrosDeCusto.map((cc) => (
+                    <SelectItem key={cc} value={cc}>{cc}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -450,39 +528,6 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel') => {
                         </Button>
                       </div>
                     </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-      {/* Relatório de Pagamentos por Motorista */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <FileText className="h-5 w-5" />
-            <span>Relatório de Motoristas — Pagamentos a Receber</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {pagamentosPorMotorista.length === 0 ? (
-            <div className="text-center py-6 text-gray-500">Nenhum valor pendente encontrado para o período/filtragem selecionado.</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome do motorista</TableHead>
-                  <TableHead>PIX</TableHead>
-                  <TableHead>Valor a receber</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pagamentosPorMotorista.map((item) => (
-                  <TableRow key={item.nome}>
-                    <TableCell className="font-medium">{item.nome}</TableCell>
-                    <TableCell>{item.pix || 'Não cadastrado'}</TableCell>
-                    <TableCell className="font-semibold">{formatCurrency(item.valorReceber)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

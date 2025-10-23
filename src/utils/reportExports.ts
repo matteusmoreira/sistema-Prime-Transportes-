@@ -27,9 +27,6 @@ export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.x
     'KM Inicial',
     'KM Final',
     'KM Total',
-    'Combustível Inicial',
-    'Combustível Final',
-    'Valor Combustível',
     'Centro Custo',
     'Projeto',
     'Motivo',
@@ -48,7 +45,6 @@ export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.x
     'Medição/Nota Fiscal',
     'Observações',
     'Observações OS',
-    'Motivo Rejeição',
     'Preenchido Por Motorista',
     'Preenchido Por Financeiro'
   ];
@@ -85,9 +81,6 @@ export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.x
       Number(c.kmInicial) || 0,
       Number(c.kmFinal) || 0,
       Number(c.kmTotal) || 0,
-      Number(c.combustivelInicial) || 0,
-      Number(c.combustivelFinal) || 0,
-      Number(c.valorCombustivel) || 0,
       c.centroCusto || '',
       c.projeto || '',
       c.motivo || '',
@@ -106,7 +99,6 @@ export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.x
       c.medicaoNotaFiscal || '',
       c.observacoes || '',
       c.observacoesOS || '',
-      c.motivoRejeicao || '',
       c.preenchidoPorMotorista ? 'Sim' : 'Não',
       c.preenchidoPorFinanceiro ? 'Sim' : 'Não'
     ];
@@ -123,9 +115,9 @@ export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.x
   const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
   
   // Aplicar formatação de moeda para as colunas de valores monetários
-  // Colunas: Valor Hora Espera (11), Valor Combustível (24), Valor Base (30), Pedágio (31), 
-  // Estacionamento (32), Hospedagem (33), Outros Custos (34), Reembolsos (35), Valor Total (36), Valor Motorista (38)
-  const monetaryColumns = [11, 24, 30, 31, 32, 33, 34, 35, 36, 38];
+  // Colunas: Valor Hora Espera (11), Valor Base (27), Pedágio (28), Estacionamento (29), 
+  // Hospedagem (30), Outros Custos (31), Reembolsos (32), Valor Total (33), Valor Motorista (35)
+  const monetaryColumns = [11, 27, 28, 29, 30, 31, 32, 33, 35];
   for (let row = 1; row <= range.e.r; row++) {
     for (const col of monetaryColumns) {
       const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
@@ -135,8 +127,8 @@ export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.x
     }
   }
   
-  // Aplicar formatação numérica para colunas de KM e combustível
-  const numericColumns = [19, 20, 21, 22, 23, 29]; // KM Inicial, KM Final, KM Total, Combustível Inicial, Combustível Final, Distância Percorrida
+  // Aplicar formatação numérica para colunas de KM e distância
+  const numericColumns = [19, 20, 21, 26]; // KM Inicial, KM Final, KM Total, Distância Percorrida
   for (let row = 1; row <= range.e.r; row++) {
     for (const col of numericColumns) {
       const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
@@ -170,9 +162,6 @@ export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.x
     { wch: 10 },  // KM Inicial
     { wch: 10 },  // KM Final
     { wch: 10 },  // KM Total
-    { wch: 12 },  // Combustível Inicial
-    { wch: 12 },  // Combustível Final
-    { wch: 15 },  // Valor Combustível
     { wch: 15 },  // Centro Custo
     { wch: 15 },  // Projeto
     { wch: 20 },  // Motivo
@@ -191,7 +180,6 @@ export const exportCorridasToCSV = (corridas: Corrida[], fileName = 'relatorio.x
     { wch: 18 },  // Medição/Nota Fiscal
     { wch: 30 },  // Observações
     { wch: 30 },  // Observações OS
-    { wch: 25 },  // Motivo Rejeição
     { wch: 20 },  // Preenchido Por Motorista
     { wch: 20 }   // Preenchido Por Financeiro
   ];
