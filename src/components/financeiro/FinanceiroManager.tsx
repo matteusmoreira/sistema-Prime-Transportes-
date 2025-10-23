@@ -18,6 +18,9 @@ import { Badge } from '@/components/ui/badge';
 import { useMotoristas } from '@/hooks/useMotoristas';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { CorridasFilters } from '@/components/corridas/CorridasFilters';
+import { LayoutGrid, List } from 'lucide-react';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { FinanceiroGrid } from './FinanceiroGrid';
 
 
 export const FinanceiroManager = () => {
@@ -102,6 +105,31 @@ export const FinanceiroManager = () => {
     passageirosFilter
   );
 
+  // Alternância de visualização (lista/grade)
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(() => {
+    const saved = typeof window !== 'undefined' ? window.localStorage.getItem('financeiro_view_mode') : null;
+    return (saved === 'grid' || saved === 'list') ? (saved as 'list' | 'grid') : 'list';
+  });
+  const changeViewMode = (mode: 'list' | 'grid') => {
+    setViewMode(mode);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('financeiro_view_mode', mode);
+    }
+  };
+  
+  // Paginação: 25 por página
+  const PAGE_SIZE = 25;
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const totalItems = corridasFiltradasFinal.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+  const paginatedCorridas = corridasFiltradasFinal.slice(startIndex, endIndex);
+  const gotoPage = (page: number) => {
+    const p = Math.min(Math.max(page, 1), totalPages);
+    setCurrentPage(p);
+  };
+
   const stats = getStats();
 
   // Função para contar filtros ativos
@@ -124,6 +152,8 @@ export const FinanceiroManager = () => {
     setSelectedMotorista('all');
     setStartDate('');
     setEndDate('');
+    // Reiniciar paginação
+    setCurrentPage(1);
   };
 
   const handleView = (corrida: CorridaFinanceiro) => {
@@ -319,6 +349,15 @@ export const FinanceiroManager = () => {
               <span>Corridas para Conferência ({corridasFiltradasFinal.length})</span>
             </CardTitle>
             <div className="flex items-center gap-2">
+              {/* Toggle visualização */}
+              <div className="flex items-center gap-1">
+                <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="sm" aria-label="Modo lista" onClick={() => changeViewMode('list')}>
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button variant={viewMode === 'grid' ? 'default' : 'outline'} size="sm" aria-label="Modo grade" onClick={() => changeViewMode('grid')}>
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+              </div>
               <span className="text-sm text-gray-600">Mês:</span>
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                 <SelectTrigger className="w-[160px]">
@@ -485,16 +524,57 @@ export const FinanceiroManager = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <FinanceiroTable
-            corridas={corridasFiltradasFinal}
-            onView={handleView}
-            onEdit={handleEdit}
-            onApprove={handleApprove}
-            onReject={handleReject}
-            onStatusChange={handleStatusChange}
-            onPaymentStatusChange={handlePaymentStatusChange}
-            onMedicaoNotaFiscalChange={handleMedicaoNotaFiscalChange}
-          />
+          {viewMode === 'list' ? (
+            <FinanceiroTable
+              corridas={paginatedCorridas}
+              onView={handleView}
+              onEdit={handleEdit}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onStatusChange={handleStatusChange}
+              onPaymentStatusChange={handlePaymentStatusChange}
+              onMedicaoNotaFiscalChange={handleMedicaoNotaFiscalChange}
+            />
+          ) : (
+            <FinanceiroGrid
+              corridas={paginatedCorridas}
+              onView={handleView}
+              onEdit={handleEdit}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onStatusChange={handleStatusChange}
+              onPaymentStatusChange={handlePaymentStatusChange}
+              onMedicaoNotaFiscalChange={handleMedicaoNotaFiscalChange}
+            />
+          )}
+
+          {/* Paginação */}
+          <div className="pt-4">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); gotoPage(currentPage - 1); }} />
+                </PaginationItem>
+                {Array.from({ length: totalPages }).map((_, idx) => {
+                  const page = idx + 1;
+                  // Mostrar no máximo 7 itens, com ellipsis (simples):
+                  const show = totalPages <= 7 || Math.abs(page - currentPage) <= 2 || page === 1 || page === totalPages;
+                  if (!show) return null;
+                  return (
+                    <PaginationItem key={page}>
+                      <PaginationLink href="#" isActive={page === currentPage} onClick={(e) => { e.preventDefault(); gotoPage(page); }}>
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                <PaginationItem>
+                  <PaginationNext href="#" onClick={(e) => { e.preventDefault(); gotoPage(currentPage + 1); }} />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+            <div className="mt-2 text-center text-xs text-muted-foreground">Exibindo {startIndex + 1}-{Math.min(endIndex, totalItems)} de {totalItems} corridas (25 por página)</div>
+          </div>
         </CardContent>
       </Card>
 

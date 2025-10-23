@@ -150,7 +150,7 @@ export const WhatsAppButton = ({ corrida, trigger }: WhatsAppButtonProps) => {
         </>
       ) : (
         <DialogTrigger asChild>
-          <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700">
+          <Button size="sm" variant="outline" aria-label="Enviar WhatsApp" className="text-green-600 hover:text-green-700 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-600">
             <MessageCircle className="h-4 w-4" />
           </Button>
         </DialogTrigger>
