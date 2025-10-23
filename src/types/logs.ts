@@ -2,7 +2,7 @@ export interface SystemLog {
   id: string;
   user_email: string;
   action_type: 'CREATE' | 'UPDATE' | 'DELETE';
-  entity_type: 'empresas' | 'solicitantes' | 'motoristas' | 'corridas';
+  entity_type: 'empresas' | 'solicitantes' | 'motoristas' | 'corridas' | 'relatorios';
   entity_id: string;
   old_data?: Record<string, any> | null;
   new_data?: Record<string, any> | null;
@@ -14,7 +14,7 @@ export interface SystemLog {
 export interface LogFilters {
   user_email?: string;
   action_type?: 'CREATE' | 'UPDATE' | 'DELETE';
-  entity_type?: 'empresas' | 'solicitantes' | 'motoristas' | 'corridas';
+  entity_type?: 'empresas' | 'solicitantes' | 'motoristas' | 'corridas' | 'relatorios';
   date_from?: string;
   date_to?: string;
   limit?: number;
@@ -36,7 +36,7 @@ export interface LogsContextType {
 
 export interface LogActionParams {
   action_type: 'CREATE' | 'UPDATE' | 'DELETE';
-  entity_type: 'empresas' | 'solicitantes' | 'motoristas' | 'corridas';
+  entity_type: 'empresas' | 'solicitantes' | 'motoristas' | 'corridas' | 'relatorios';
   entity_id: string;
   old_data?: Record<string, any> | null;
   new_data?: Record<string, any> | null;
@@ -57,5 +57,6 @@ export interface LogStats {
     solicitantes: number;
     motoristas: number;
     corridas: number;
+    relatorios: number;
   };
 }

@@ -15,6 +15,7 @@ import { useCorridas } from '@/contexts/CorridasContext';
 import type { Corrida } from '@/types/corridas';
 import { useMotoristas } from '@/hooks/useMotoristas';
 import { useSolicitantes } from '@/hooks/useSolicitantes';
+import { useLogs } from '@/contexts/LogsContext';
 
 interface Relatorio {
   id: number;
@@ -63,6 +64,7 @@ export const RelatoriosManager = () => {
 const { corridas } = useCorridas();
 const { motoristas } = useMotoristas();
 const { solicitantes } = useSolicitantes();
+const { logAction } = useLogs();
 
 const empresas = useMemo(() => {
   const set = new Set<string>();
@@ -199,6 +201,23 @@ const handleGerarRelatorio = (tipo: 'corridas' | 'financeiro' | 'motoristas' | '
   setRelatorios([novoRelatorio, ...relatorios]);
   toast.success('Relatório sendo gerado...');
 
+  // Audit log: geração de relatório
+  logAction({
+    action_type: 'CREATE',
+    entity_type: 'relatorios',
+    entity_id: String(novoRelatorio.id),
+    old_data: null,
+    new_data: {
+      acao: 'gerar_relatorio',
+      tipo: novoRelatorio.tipo,
+      periodo,
+      filtros: { ...novoRelatorio.filtrosSnapshot },
+      tamanho: novoRelatorio.tamanho
+    }
+  }).catch((err) => {
+    if (import.meta.env?.DEV) console.error('Erro ao registrar log de geração de relatório:', err);
+  });
+
   setTimeout(() => {
     setRelatorios(prev => prev.map(r => r.id === novoRelatorio.id ? { ...r, status: 'Gerado' } : r));
     toast.success('Relatório gerado com sucesso!');
@@ -218,6 +237,24 @@ const handleDownload = async (relatorio: Relatorio, formato: 'excel') => {
       exportCorridasToCSV(relatorio.dataCorridas || [], `${relatorio.nome}.xlsx`);
     }
     toast.success(`Download do relatório em Excel iniciado`);
+
+    // Audit log: download de relatório
+    logAction({
+      action_type: 'CREATE',
+      entity_type: 'relatorios',
+      entity_id: String(relatorio.id),
+      old_data: null,
+      new_data: {
+        acao: 'download_relatorio',
+        tipo: relatorio.tipo,
+        nome: relatorio.nome,
+        periodo: relatorio.periodo,
+        formato,
+        tamanho: relatorio.tamanho
+      }
+    }).catch((err) => {
+      if (import.meta.env?.DEV) console.error('Erro ao registrar log de download de relatório:', err);
+    });
   } catch (e) {
     console.error(e);
     toast.error('Falha ao exportar relatório');

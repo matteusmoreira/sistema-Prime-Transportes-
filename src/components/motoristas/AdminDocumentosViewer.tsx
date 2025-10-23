@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
+import { useLogs } from '@/contexts/LogsContext';
 
 interface AdminDocumentosViewerProps {
   motorista: Motorista;
@@ -59,6 +60,7 @@ export const AdminDocumentosViewer = ({
   const { deleteDocumento, deleteFoto } = useMotoristas();
   const [docImagePreviews, setDocImagePreviews] = useState<Record<number, string>>({});
   const [expandedDocIds, setExpandedDocIds] = useState<Set<number>>(new Set());
+  const { logAction } = useLogs();
 
   const isImagePath = (path: string) => {
     const ext = path.split('.').pop()?.toLowerCase();
@@ -83,9 +85,25 @@ export const AdminDocumentosViewer = ({
       }
       setExpandedDocIds(prev => {
         const s = new Set(prev);
-        if (s.has(documento.id)) s.delete(documento.id); else s.add(documento.id);
+        const wasOpen = s.has(documento.id);
+        if (wasOpen) s.delete(documento.id); else s.add(documento.id);
         return s;
       });
+      // Log somente quando abrir a visualização
+      const isCurrentlyOpen = expandedDocIds.has(documento.id);
+      if (!isCurrentlyOpen) {
+        logAction({
+          action_type: 'CREATE',
+          entity_type: 'motoristas',
+          entity_id: String(motorista.id),
+          old_data: null,
+          new_data: {
+            acao: 'visualizacao_documento',
+            origem: 'public_url',
+            documento: { id: documento.id, nome: documento.nome, path: documento.url }
+          }
+        }).catch(() => {});
+      }
     } catch (error) {
       console.error('Erro ao gerar preview:', error);
       toast({
@@ -164,6 +182,19 @@ export const AdminDocumentosViewer = ({
         title: "Download realizado",
         description: `${documento.nome} foi baixado com sucesso`
       });
+
+      // Log de auditoria: download de documento de motorista (via storage)
+      logAction({
+        action_type: 'CREATE',
+        entity_type: 'motoristas',
+        entity_id: String(motorista.id),
+        old_data: null,
+        new_data: {
+          acao: 'download_documento',
+          origem: 'storage',
+          documento: { id: documento.id, nome: documento.nome, path: documento.url }
+        }
+      }).catch(() => {});
     } catch (error) {
       console.error('Erro no download:', error);
       toast({
@@ -181,6 +212,19 @@ export const AdminDocumentosViewer = ({
         .getPublicUrl(foto.url);
 
       window.open(data.publicUrl, '_blank');
+
+      // Log de auditoria: visualização de foto de motorista (via public URL)
+      logAction({
+        action_type: 'CREATE',
+        entity_type: 'motoristas',
+        entity_id: String(motorista.id),
+        old_data: null,
+        new_data: {
+          acao: 'visualizacao_foto',
+          origem: 'public_url',
+          foto: { id: foto.id, nome: foto.nome, path: foto.url }
+        }
+      }).catch(() => {});
     } catch (error) {
       console.error('Erro ao visualizar imagem:', error);
       toast({

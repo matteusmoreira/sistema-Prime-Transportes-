@@ -113,6 +113,7 @@ export const LogsPanel: React.FC<LogsPanelProps> = ({ onLogSelect }) => {
       'solicitantes': 'Solicitantes',
       'motoristas': 'Motoristas',
       'corridas': 'Corridas',
+      'relatorios': 'Relatórios',
       'system_logs': 'Logs do Sistema'
     };
     return tableNames[tableName] || tableName;
@@ -217,6 +218,7 @@ export const LogsPanel: React.FC<LogsPanelProps> = ({ onLogSelect }) => {
                   <SelectItem value="solicitantes">Solicitantes</SelectItem>
                   <SelectItem value="motoristas">Motoristas</SelectItem>
                   <SelectItem value="corridas">Corridas</SelectItem>
+                  <SelectItem value="relatorios">Relatórios</SelectItem>
                 </SelectContent>
               </Select>
 

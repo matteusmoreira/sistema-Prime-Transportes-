@@ -88,28 +88,10 @@ export const LogsProvider: React.FC<LogsProviderProps> = ({ children }) => {
   // Registrar uma ação no log
   const logAction = useCallback(async (params: LogActionParams) => {
     try {
-      console.log('🔍 DEBUG: logAction chamado com parâmetros:', params);
-      console.log('🔍 DEBUG: Usuário atual:', user?.email);
-      
-      // Obter informações do cliente
-      const fetchedIp: string | null = await fetch('https://api.ipify.org?format=json')
-        .then(res => res.json())
-        .then(data => data.ip as string)
-        .catch(() => null);
+      // Evitar chamadas externas (ipify) para performance; IP será nulo e pode ser preenchido no backend se necessário
+      const ipAddress: string | null = null;
+      const userAgent = (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent : null;
 
-      // Normalizar IP para o tipo INET (enviar null se não for IPv4/IPv6 válido)
-      const normalizeIp = (ip: string | null): string | null => {
-        if (!ip) return null;
-        const ipv4 = /^(25[0-5]|2[0-4]\d|[01]?\d?\d)(\.(25[0-5]|2[0-4]\d|[01]?\d?\d)){3}$/;
-        // Validação simplificada para IPv6: caracteres hex e ':'
-        const ipv6 = /^[0-9a-fA-F:]+$/;
-        return ipv4.test(ip) || ipv6.test(ip) ? ip : null;
-      };
-
-      const ipAddress = normalizeIp(fetchedIp);
-      const userAgent = navigator.userAgent;
-      
-      console.log('🔍 DEBUG: Chamando RPC log_system_action...');
       const { error } = await supabase.rpc('log_system_action', {
         p_user_email: user?.email || 'anonymous',
         p_action_type: params.action_type,
@@ -121,18 +103,18 @@ export const LogsProvider: React.FC<LogsProviderProps> = ({ children }) => {
         p_user_agent: userAgent
       });
 
-      if (error) {
-        console.error('🔍 DEBUG: Erro na RPC log_system_action:', {
+      if (error && import.meta.env?.DEV) {
+        console.error('Erro ao registrar log (log_system_action):', {
           message: (error as any)?.message,
           details: (error as any)?.details,
           hint: (error as any)?.hint,
           code: (error as any)?.code,
         });
-      } else {
-        console.log('🔍 DEBUG: Log registrado com sucesso!');
       }
     } catch (err) {
-      console.error('🔍 DEBUG: Erro geral ao registrar ação no log:', err);
+      if (import.meta.env?.DEV) {
+        console.error('Erro geral ao registrar ação no log:', err);
+      }
     }
   }, [user?.email]);
 

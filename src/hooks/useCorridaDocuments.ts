@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useLogs } from '@/contexts/LogsContext';
 
 export interface DocumentoUpload {
   id?: string | number;
@@ -16,6 +17,7 @@ export const useCorridaDocuments = (corridaId: number | null) => {
   const [documentos, setDocumentos] = useState<DocumentoUpload[]>([]);
   const [loading, setLoading] = useState(false);
   const [reloadTrigger, setReloadTrigger] = useState(0);
+  const { logAction } = useLogs();
 
   const forceReload = useCallback(() => {
     // Removido log de recarregamento forçado
@@ -120,6 +122,20 @@ export const useCorridaDocuments = (corridaId: number | null) => {
       // Se a URL já é pública (http/https), abrir diretamente
       if (documento.url.startsWith('http')) {
         window.open(documento.url, '_blank');
+        // Log de auditoria: download de documento de corrida (link público)
+        if (corridaId) {
+          logAction({
+            action_type: 'CREATE',
+            entity_type: 'corridas',
+            entity_id: String(corridaId),
+            old_data: null,
+            new_data: {
+              acao: 'download_documento',
+              origem: 'public_url',
+              documento: { nome: documento.nome, url: documento.url }
+            }
+          }).catch(() => {});
+        }
         return;
       }
 
@@ -145,6 +161,21 @@ export const useCorridaDocuments = (corridaId: number | null) => {
       URL.revokeObjectURL(url);
 
       toast.success(`${documento.nome} foi baixado com sucesso`);
+
+      // Log de auditoria: download de documento de corrida (via storage)
+      if (corridaId) {
+        logAction({
+          action_type: 'CREATE',
+          entity_type: 'corridas',
+          entity_id: String(corridaId),
+          old_data: null,
+          new_data: {
+            acao: 'download_documento',
+            origem: 'storage',
+            documento: { nome: documento.nome, path: documento.url }
+          }
+        }).catch(() => {});
+      }
     } catch (error) {
       console.error('❌ useCorridaDocuments: Erro no download:', error);
       toast.error('Erro inesperado no download');

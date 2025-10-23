@@ -7,6 +7,7 @@ import { getCorridasByMotorista } from '@/utils/corridaHelpers';
 import { useAuthDependentData } from '@/hooks/useAuthDependentData';
 // import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useLogs } from '@/contexts/LogsContext';
 
 const CorridasContext = createContext<CorridasContextType | undefined>(undefined);
 
@@ -21,6 +22,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
   const { shouldLoadData, isAuthLoading } = useAuthDependentData();
   // const { user } = useAuth();
   const { isMotorista } = useUserRole();
+  const { logAction } = useLogs();
 
   // Carregar corridas do Supabase com documentos
   const loadCorridas = async () => {
@@ -382,6 +384,27 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
+      // Registrar log de criação da corrida
+      try {
+        await logAction({
+          action_type: 'CREATE',
+          entity_type: 'corridas',
+          entity_id: String(data.id),
+          old_data: null,
+          new_data: {
+            empresa: data.empresa,
+            origem: data.origem,
+            destino: data.destino,
+            data: data.data || data.data_servico,
+            motorista: data.motorista,
+            status: data.status,
+            numero_os: data.numero_os
+          }
+        });
+      } catch (e) {
+        console.warn('Falha ao registrar log de criação de corrida:', e);
+      }
+
       // Após inserir, recarregar lista para evitar duplicações por estado local + realtime
       await loadCorridas();
       toast.success('Corrida cadastrada com sucesso!');
@@ -618,6 +641,36 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Atualiza estado local após sucesso (incluindo possível ajuste automático de status)
+      try {
+        const sanitizedNewData: any = { ...updatedData };
+        delete sanitizedNewData.documentos;
+        if (statusAjustado && !Object.prototype.hasOwnProperty.call(updatedData, 'status')) {
+          sanitizedNewData.status = statusAjustado;
+        }
+
+        // Tornar o old_data dinâmico com base nas chaves realmente alteradas,
+        // para capturar também mudanças de statusPagamento, medicaoNotaFiscal etc.
+        const oldDataForLog = corridaAtual
+          ? Object.keys(sanitizedNewData).reduce((acc: Record<string, any>, key) => {
+              // Usa o nome de campo na camada de domínio (Corrida), que corresponde às chaves de sanitizedNewData
+              // Ex.: statusPagamento, medicaoNotaFiscal, numeroOS, motorista, veiculo etc.
+              if (key in (corridaAtual as any)) {
+                acc[key] = (corridaAtual as any)[key];
+              }
+              return acc;
+            }, {})
+          : null;
+
+        await logAction({
+          action_type: 'UPDATE',
+          entity_type: 'corridas',
+          entity_id: String(id),
+          old_data: oldDataForLog,
+          new_data: sanitizedNewData
+        });
+      } catch (e) {
+        console.warn('Falha ao registrar log de atualização de corrida:', e);
+      }
       setCorridas(prev => prev.map(c => (
         c.id === id
           ? {
@@ -809,6 +862,32 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         } : c
       ));
       
+      // Registrar log do preenchimento da OS
+      try {
+        const corridaAntes = corridas.find(c => c.id === id);
+        await logAction({
+          action_type: 'UPDATE',
+          entity_type: 'corridas',
+          entity_id: String(id),
+          old_data: corridaAntes ? {
+            status: corridaAntes.status,
+            numeroOS: corridaAntes.numeroOS,
+            motorista: corridaAntes.motorista,
+          } : null,
+          new_data: {
+            numero_os: numeroOSFinal,
+            status: 'Aguardando Conferência',
+            km_inicial: (osData as any).kmInicial ?? undefined,
+            km_final: (osData as any).kmFinal ?? undefined,
+            km_total: (osData as any).kmTotal ?? undefined,
+            passageiros: (osData as any).passageiros ?? undefined,
+            documentos_salvos: typeof documentosSalvos === 'number' ? documentosSalvos : undefined
+          }
+        });
+      } catch (e) {
+        console.warn('Falha ao registrar log de preenchimento de OS:', e);
+      }
+      
       toast.success('Ordem de Serviço preenchida com sucesso!');
       // console.log('OS preenchida com sucesso para corrida:', id);
     } catch (error) {
@@ -821,6 +900,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
     if (window.confirm('Tem certeza que deseja excluir esta corrida?')) {
       try {
         // console.log('Excluindo corrida:', id);
+        const corridaAntes = corridas.find(c => c.id === id);
         
         // Primeiro, excluir documentos relacionados
         const { error: docsError } = await supabase
@@ -847,6 +927,19 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
         
         // Atualizar estado local apenas após sucesso na exclusão do banco
         setCorridas(prev => prev.filter(c => c.id !== id));
+        
+        // Registrar log de exclusão da corrida
+        try {
+          await logAction({
+            action_type: 'DELETE',
+            entity_type: 'corridas',
+            entity_id: String(id),
+            old_data: corridaAntes || null,
+            new_data: null
+          });
+        } catch (e) {
+          console.warn('Falha ao registrar log de exclusão de corrida:', e);
+        }
         toast.success('Corrida excluída com sucesso!');
         // console.log('Corrida excluída com sucesso:', id);
       } catch (error) {
@@ -858,6 +951,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
   const approveCorrida = async (id: number) => {
     try {
+      const corridaAntes = corridas.find(c => c.id === id);
       const { error } = await supabase
         .from('corridas')
         .update({ status: 'Aprovada', updated_at: new Date().toISOString() })
@@ -872,6 +966,19 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       setCorridas(prev => prev.map(c => 
         c.id === id ? { ...c, status: 'Aprovada' as const } : c
       ));
+      
+      // Registrar log de aprovação
+      try {
+        await logAction({
+          action_type: 'UPDATE',
+          entity_type: 'corridas',
+          entity_id: String(id),
+          old_data: corridaAntes ? { status: corridaAntes.status } : null,
+          new_data: { status: 'Aprovada' }
+        });
+      } catch (e) {
+        console.warn('Falha ao registrar log de aprovação de corrida:', e);
+      }
       toast.success('Corrida aprovada com sucesso!');
     } catch (err) {
       console.error('Falha ao aprovar corrida:', err);
@@ -881,6 +988,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
   const rejectCorrida = async (id: number, motivo: string) => {
     try {
+      const corridaAntes = corridas.find(c => c.id === id);
       const { error } = await supabase
         .from('corridas')
         .update({ status: 'Rejeitada', motivo_rejeicao: motivo, updated_at: new Date().toISOString() })
@@ -895,6 +1003,19 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       setCorridas(prev => prev.map(c => 
         c.id === id ? { ...c, status: 'Rejeitada' as const, motivoRejeicao: motivo } : c
       ));
+      
+      // Registrar log de rejeição
+      try {
+        await logAction({
+          action_type: 'UPDATE',
+          entity_type: 'corridas',
+          entity_id: String(id),
+          old_data: corridaAntes ? { status: corridaAntes.status } : null,
+          new_data: { status: 'Rejeitada', motivo_rejeicao: motivo }
+        });
+      } catch (e) {
+        console.warn('Falha ao registrar log de rejeição de corrida:', e);
+      }
       toast.error('Corrida rejeitada!');
     } catch (err) {
       console.error('Falha ao rejeitar corrida:', err);
@@ -904,6 +1025,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
   const updateStatus = async (id: number, status: Corrida['status']) => {
     try {
+      const corridaAntes = corridas.find(c => c.id === id);
       const { error } = await supabase
         .from('corridas')
         .update({ status, updated_at: new Date().toISOString() })
@@ -916,6 +1038,19 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
       }
 
       setCorridas(prev => prev.map(c => (c.id === id ? { ...c, status } : c)));
+      
+      // Registrar log de atualização de status
+      try {
+        await logAction({
+          action_type: 'UPDATE',
+          entity_type: 'corridas',
+          entity_id: String(id),
+          old_data: corridaAntes ? { status: corridaAntes.status } : null,
+          new_data: { status }
+        });
+      } catch (e) {
+        console.warn('Falha ao registrar log de atualização de status:', e);
+      }
       toast.success('Status atualizado com sucesso!');
     } catch (err) {
       console.error('Falha ao atualizar status:', err);
@@ -925,6 +1060,7 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
 
   const selectMotorista = async (corridaId: number, motoristaName: string, veiculo?: string) => {
     try {
+      const corridaAntes = corridas.find(c => c.id === corridaId);
       const { error } = await supabase
         .from('corridas')
         .update({ 
@@ -948,6 +1084,19 @@ export const CorridasProvider = ({ children }: { children: ReactNode }) => {
           status: 'Aguardando OS' as const
         } : c
       ));
+      
+      // Registrar log de seleção de motorista
+      try {
+        await logAction({
+          action_type: 'UPDATE',
+          entity_type: 'corridas',
+          entity_id: String(corridaId),
+          old_data: corridaAntes ? { motorista: corridaAntes.motorista, veiculo: corridaAntes.veiculo } : null,
+          new_data: { motorista: motoristaName, veiculo: veiculo || null, status: 'Aguardando OS' }
+        });
+      } catch (e) {
+        console.warn('Falha ao registrar log de seleção de motorista:', e);
+      }
       toast.success('Motorista selecionado com sucesso!');
     } catch (error) {
       console.error('Erro ao selecionar motorista:', error);

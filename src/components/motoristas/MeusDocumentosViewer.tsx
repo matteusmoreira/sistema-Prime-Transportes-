@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 // Remover import errado que ficou
 // import { useMotoristas } from '@/hooks/useMotoristas';
+import { useLogs } from '@/contexts/LogsContext';
 
 interface DocumentoBanco {
   id: number;
@@ -67,6 +68,8 @@ export const MeusDocumentosViewer = ({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState<string>('');
+
+  const { logAction } = useLogs();
 
   useEffect(() => {
     if (open && user) {
@@ -172,6 +175,21 @@ export const MeusDocumentosViewer = ({
         title: "Download realizado",
         description: `${documento.nome} foi baixado com sucesso`
       });
+
+      // Log de auditoria: download de documento de motorista (via storage)
+      if (motoristaId) {
+        logAction({
+          action_type: 'CREATE',
+          entity_type: 'motoristas',
+          entity_id: String(motoristaId),
+          old_data: null,
+          new_data: {
+            acao: 'download_documento',
+            origem: 'storage',
+            documento: { id: documento.id, nome: documento.nome, path: documento.url }
+          }
+        }).catch(() => {});
+      }
     } catch (error) {
       console.error('Erro no download:', error);
       toast({
@@ -188,6 +206,21 @@ export const MeusDocumentosViewer = ({
       setPreviewTitle(foto.nome);
       setPreviewUrl(url);
       setPreviewOpen(true);
+
+      // Log de auditoria: visualização de foto de motorista (via public URL)
+      if (motoristaId) {
+        logAction({
+          action_type: 'CREATE',
+          entity_type: 'motoristas',
+          entity_id: String(motoristaId),
+          old_data: null,
+          new_data: {
+            acao: 'visualizacao_foto',
+            origem: 'public_url',
+            foto: { id: foto.id, nome: foto.nome, path: foto.url }
+          }
+        }).catch(() => {});
+      }
     } catch (error) {
       console.error('Erro ao visualizar imagem:', error);
       toast({
@@ -204,6 +237,21 @@ export const MeusDocumentosViewer = ({
       setPreviewTitle(documento.nome);
       setPreviewUrl(url);
       setPreviewOpen(true);
+
+      // Log de auditoria: visualização de documento de motorista (via public URL)
+      if (motoristaId) {
+        logAction({
+          action_type: 'CREATE',
+          entity_type: 'motoristas',
+          entity_id: String(motoristaId),
+          old_data: null,
+          new_data: {
+            acao: 'visualizacao_documento',
+            origem: 'public_url',
+            documento: { id: documento.id, nome: documento.nome, path: documento.url }
+          }
+        }).catch(() => {});
+      }
     } catch (error) {
       console.error('Erro ao visualizar documento:', error);
       toast({ title: 'Erro', description: 'Não foi possível visualizar o documento', variant: 'destructive' });

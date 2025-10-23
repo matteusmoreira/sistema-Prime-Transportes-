@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useMotoristas } from '@/hooks/useMotoristas';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useLogs } from '@/contexts/LogsContext';
 
 interface MotoristaFormData {
   nome: string;
@@ -101,6 +102,7 @@ export const MotoristaForm = ({
   // Previews públicos (URL) para imagens
   const [docPreviews, setDocPreviews] = useState<Record<number, string>>({});
   const [fotoPreviews, setFotoPreviews] = useState<Record<number, string>>({});
+  const { logAction } = useLogs();
   
   useEffect(() => {
     // Mapear URLs públicas para imagens de documentos
@@ -146,6 +148,21 @@ export const MotoristaForm = ({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       toast.success('Download realizado');
+
+      // Log de auditoria: download de documento de motorista (via storage)
+      if (motoristaId) {
+        logAction({
+          action_type: 'CREATE',
+          entity_type: 'motoristas',
+          entity_id: String(motoristaId),
+          old_data: null,
+          new_data: {
+            acao: 'download_documento',
+            origem: 'storage',
+            documento: { id: doc.id, nome: doc.nome, path: doc.url }
+          }
+        }).catch(() => {});
+      }
     } catch (e) {
       console.error('Erro no download:', e);
       toast.error('Não foi possível baixar o documento');
@@ -156,6 +173,21 @@ export const MotoristaForm = ({
     try {
       const { data } = await supabase.storage.from('motorista-fotos').getPublicUrl(foto.url);
       window.open(data.publicUrl, '_blank');
+
+      // Log de auditoria: visualização de foto de motorista (via public URL)
+      if (motoristaId) {
+        logAction({
+          action_type: 'CREATE',
+          entity_type: 'motoristas',
+          entity_id: String(motoristaId),
+          old_data: null,
+          new_data: {
+            acao: 'visualizacao_foto',
+            origem: 'public_url',
+            foto: { id: foto.id, nome: foto.nome, path: foto.url }
+          }
+        }).catch(() => {});
+      }
     } catch (e) {
       console.error('Erro ao visualizar imagem:', e);
       toast.error('Não foi possível visualizar a imagem');
